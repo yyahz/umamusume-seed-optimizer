@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "闪耀优俊少女 · 种马优选器",
+  "version": "0.5.0",
+  "description": "在吗哩吗哩工具箱内按角色与蓝、红、绿、白因子优先级搜索并排序好友种马。",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://game.bilibili.com/*",
+    "https://api.game.bilibili.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://game.bilibili.com/tool/pd*"],
+      "js": ["page-bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://game.bilibili.com/tool/pd*"],
+      "js": ["ranking.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

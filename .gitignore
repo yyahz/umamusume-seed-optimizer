@@ -1,0 +1,27 @@
+# Local configuration and secrets
+.env*
+
+# Dependencies and generated output
+node_modules/
+coverage/
+dist/
+build/
+*.zip
+*.crx
+
+# Logs and temporary files
+*.log
+.tmp/
+tmp/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

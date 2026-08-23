@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>种马优选器界面验证页</title>
+  <style>
+    body { margin:0; min-height:100vh; color:#233129; background:linear-gradient(145deg,#eef8ef,#fff8dc); font-family:"Microsoft YaHei UI",sans-serif; }
+    main { width:min(900px,calc(100% - 32px)); margin:0 auto; padding:72px 0; }
+    h1 { font-size:clamp(28px,5vw,52px); }
+    p { max-width:620px; color:#647169; line-height:1.8; }
+  </style>
+</head>
+<body>
+  <main><h1>吗哩吗哩工具箱 · 测试背景</h1><p>此页面只为离线验证扩展的响应式布局、拖动替代操作、因子三级优先级和推荐列表，不会访问 B 站接口。</p></main>
+  <script>
+    const saved = {
+      umaSeedOptimizerPreferencesV1: {
+        colorOrder: ["blue", "red", "green", "white"],
+        cardIds: [100101],
+        desiredFactors: [
+          { type:1, num:1, name:"速度", tier:1, minStars:7, minSelfStars:2, colorId:"blue", subtype:"属性" },
+          { type:2, num:31, name:"短距离", tier:1, minStars:5, minSelfStars:1, colorId:"red", subtype:"适性" },
+          { type:6, num:30001, name:"URA剧本", tier:2, minStars:3, minSelfStars:1, colorId:"white", subtype:"剧本" }
+        ],
+        depth: 1,
+        filterFull: true
+      }
+    };
+    window.chrome = {
+      storage: {
+        local: {
+          async get(key) { return { [key]: saved[key] }; },
+          async set(document) { Object.assign(saved, document); }
+        }
+      }
+    };
+    const factors = [{ factor_groups: [
+      { type:1, factors:[
+        { type:1, num:1, name:"速度" }, { type:1, num:2, name:"耐力" }, { type:1, num:3, name:"力量" }, { type:1, num:4, name:"毅力" }, { type:1, num:5, name:"智力" }
+      ] },
+      { type:2, factors:[
+        { type:2, num:11, name:"草地" }, { type:2, num:21, name:"领跑" }, { type:2, num:31, name:"短距离" }, { type:2, num:32, name:"英里" }
+      ] },
+      { type:3, factors:[
+        { type:3, num:100101, name:"璀璨流星" }, { type:3, num:100601, name:"胜利的鼓动" }
+      ] },
+      { type:4, factors:[
+        { type:4, num:20001, name:"顺时针○" }, { type:4, num:20002, name:"逆时针○" }, { type:4, num:20013, name:"标准距离○" }
+      ] },
+      { type:5, factors:[
+        { type:5, num:10002, name:"中京短途赛" }, { type:5, num:10013, name:"短途者锦标赛" }
+      ] },
+      { type:6, factors:[
+        { type:6, num:30001, name:"URA剧本" }, { type:6, num:30002, name:"青春杯剧本" }, { type:6, num:30005, name:"荣耀女神杯剧本" }
+      ] }
+    ] }];
+    const heroCards = [
+      { card_id:100101, name:"特别周", rarity:3 },
+      { card_id:100202, name:"无声铃鹿", rarity:3 },
+      { card_id:100303, name:"东海帝王", rarity:3 },
+      { card_id:100404, name:"黄金船", rarity:2 },
+      { card_id:100505, name:"春丽", rarity:1 },
+      { card_id:100606, name:"大树快车", rarity:1 }
+    ];
+    const candidates = [
+      { role_id:"77510321", hero_card:{ card_name:"优先速度型", win_race_count:42, factors:[
+        { factor_id:1,type:1,num:1,name:"速度",rarity:3,total_rarity:9 },
+        { factor_id:2,type:2,num:31,name:"短距离",rarity:2,total_rarity:7 },
+        { factor_id:3,type:6,num:30001,name:"URA剧本",rarity:1,total_rarity:5 }
+      ] } },
+      { role_id:"88246019", hero_card:{ card_name:"短距剧本型", win_race_count:55, factors:[
+        { factor_id:4,type:1,num:1,name:"速度",rarity:2,total_rarity:5 },
+        { factor_id:5,type:2,num:31,name:"短距离",rarity:3,total_rarity:9 },
+        { factor_id:6,type:6,num:30001,name:"URA剧本",rarity:1,total_rarity:9 }
+      ] } },
+      { role_id:"19420753", hero_card:{ card_name:"部分命中型", win_race_count:31, factors:[
+        { factor_id:7,type:2,num:31,name:"短距离",rarity:1,total_rarity:3 },
+        { factor_id:8,type:4,num:20001,name:"顺时针○",rarity:0,total_rarity:6 }
+      ] } }
+    ];
+    window.addEventListener("message", (event) => {
+      const request = event.data;
+      if (event.source !== window || request?.channel !== "UMA_SEED_OPTIMIZER_REQUEST_V1") return;
+      window.__lastUmaRequest = request;
+      const result = request.action === "GET_FACTORS"
+        ? { code:0, data:factors }
+        : request.action === "GET_HERO_CARDS"
+          ? { code:0, data:heroCards }
+          : { code:0, data:{ records:candidates, total:candidates.length, has_next_page:false } };
+      setTimeout(() => window.postMessage({
+        channel:"UMA_SEED_OPTIMIZER_RESPONSE_V1",
+        requestId:request.requestId,
+        ok:true,
+        result
+      }, "*"), 40);
+    });
+  </script>
+  <script src="../ranking.js"></script>
+  <script src="../content.js"></script>
+</body>
+</html>

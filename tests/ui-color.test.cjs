@@ -1,0 +1,26 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const test = require("node:test");
+
+const contentSource = fs.readFileSync(path.join(__dirname, "..", "content.js"), "utf8");
+
+test("factor UI includes the current official foreground and background palette", () => {
+  const officialTokens = [
+    "#008AC5", "#DFF6FD",
+    "#E84B85", "#FFECF1",
+    "#4E8E04", "#E3F2C8",
+    "#4D5D7C", "#EBEFF4",
+    "#AA7D00", "#FFF5BF"
+  ];
+
+  for (const token of officialTokens) {
+    assert.ok(contentSource.includes(token), `missing official factor color ${token}`);
+  }
+});
+
+test("white factor subtypes keep scenario gold separate from skill and race blue-gray", () => {
+  assert.match(contentSource, /剧本:\s*\{[^}]*color:\s*"#AA7D00"[^}]*soft:\s*"#FFF5BF"/);
+  assert.match(contentSource, /技能:\s*\{[^}]*color:\s*"#4D5D7C"[^}]*soft:\s*"#EBEFF4"/);
+  assert.match(contentSource, /比赛:\s*\{[^}]*color:\s*"#4D5D7C"[^}]*soft:\s*"#EBEFF4"/);
+});
