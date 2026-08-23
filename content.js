@@ -315,8 +315,9 @@
       .match-chip { border-radius:999px; padding:4px 8px; color:var(--factor-color); background:var(--factor-soft); font-size:11px; font-weight:650; }
       .match-chip.shortfall { border:1px dashed var(--factor-color); background:#fff; }
       .result-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px 10px; border-top:1px solid #edf0ed; }
-      .copy-button { min-height:44px; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); border-radius:11px; padding:0 12px; color:var(--brand-dark); background:#fff; font-weight:700; }
-      .scope-note { color:var(--muted); font-size:11px; }
+      .copy-button { min-height:44px; flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); border-radius:11px; padding:0 12px; color:var(--brand-dark); background:#fff; font-weight:700; white-space:nowrap; }
+      .scope-note { min-width:0; color:var(--muted); font-size:11px; }
+      .settings-note { margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.55; }
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
@@ -460,12 +461,12 @@
             return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前 P${tier}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
               <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
               <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(item.subtype || "因子")}</div></div>
-              <label class="compact-factor-field total-star-field">家系
+              <label class="compact-factor-field total-star-field">家系至少
                 <select class="star-select" data-total-star-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}最低家系合计星数">
                   ${Array.from({ length: ranking.MAX_FACTOR_STARS }, (_, index) => index + 1).map((stars) => `<option value="${stars}" ${stars === ranking.clampFactorStars(item.minStars) ? "selected" : ""}>${stars}★</option>`).join("")}
                 </select>
               </label>
-              <label class="compact-factor-field self-star-field">本体
+              <label class="compact-factor-field self-star-field">本体至少
                 <select class="star-select" data-self-star-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}最低本体星数">
                   ${Array.from({ length: ranking.MAX_SELF_STARS }, (_, index) => index + 1).map((stars) => `<option value="${stars}" ${stars === ranking.clampSelfStars(item.minSelfStars) ? "selected" : ""}>${stars}★</option>`).join("")}
                 </select>
@@ -630,21 +631,27 @@
           const candidate = item.candidate || {};
           const hero = candidate.hero_card || {};
           const id = String(candidate.role_id || "未知");
-          const displayName = hero.name || hero.card_name || `好友种马 #${index + 1}`;
+          const heroName = String(hero.name || hero.card_name || "").trim();
+          const displayName = heroName || `ID ${id}`;
+          const resultMeta = [
+            heroName ? `ID ${id}` : "",
+            `${Number(hero.win_race_count || 0)} 胜`,
+            `双门槛达标 ${item.satisfiedCount}/${item.requestedCount}`
+          ].filter(Boolean).join(" · ");
           const image = hero.icon_url || "";
           const totalShortfallCount = item.matches.filter((match) => !match.meetsTotalThreshold).length;
           const selfShortfallCount = item.matches.filter((match) => !match.meetsSelfThreshold).length;
           return `<article class="result-card">
             <div class="result-top">
               ${image ? `<img class="hero-image" src="${escapeHtml(image)}" alt="${escapeHtml(displayName)}头像" loading="lazy">` : '<div class="hero-image" aria-hidden="true"></div>'}
-              <div><div class="result-name">${escapeHtml(displayName)}</div><div class="result-meta">ID ${escapeHtml(id)} · ${Number(hero.win_race_count || 0)} 胜 · 双门槛达标 ${item.satisfiedCount}/${item.requestedCount}</div></div>
+              <div><div class="result-name">${escapeHtml(displayName)}</div><div class="result-meta">${escapeHtml(resultMeta)}</div></div>
               <div class="score"><div class="score-value">${item.score.toFixed(1)}</div><div class="score-label">综合匹配</div></div>
             </div>
             <div class="score-track" role="progressbar" aria-label="综合匹配" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${item.score.toFixed(1)}"><div class="score-fill" style="width:${Math.max(0, Math.min(100, item.score))}%"></div></div>
             <div class="breakdown">${renderBreakdown(item)}</div>
             <div class="match-list">${item.matches.slice(0, 10).map((match) => {
               const matchMeta = factorVisualMeta(match);
-              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${escapeHtml(match.name)} · 家系 ${match.stars}/${match.minStars}★ · 本体 ${match.selfStars}/${match.minSelfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${escapeHtml(match.name)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
             }).join("")}</div>
             <div class="result-actions"><span class="scope-note">第 ${index + 1} 名 · 缺少 ${item.misses.length} 项 · 家系不足 ${totalShortfallCount} 项 · 本体不足 ${selfShortfallCount} 项</span><button class="copy-button" type="button" data-copy-id="${escapeHtml(id)}">${ICONS.copy}复制 ID</button></div>
           </article>`;
@@ -665,15 +672,16 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">新选择默认进入 P1；拖动紧凑行调整优先级。在上方目录再次点击“再点取消”即可取消选择。</p></div><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">家系与本体星级均为最低门槛：选择 1★ 时，2★、3★等更高星级同样达标。新因子默认进入 P1；再次点击目录中的同一因子即可取消。</p></div><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">
         <div class="section-head"><div><h2>4. 搜索范围</h2><p class="helper">会在已选角色内合并默认池、高优先组合与单因子候选，再统一重排。</p></div></div>
         <div class="settings">
-          <label class="field-label">每组搜索页数<select class="select" id="depth"><option value="1" ${state.depth === 1 ? "selected" : ""}>1 页 · 更快</option><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 推荐</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 更全面</option></select></label>
+          <label class="field-label">每组候选页数<select class="select" id="depth"><option value="1" ${state.depth === 1 ? "selected" : ""}>1 页 · 最多 20 位</option><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 最多 40 位（推荐）</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 最多 60 位</option></select></label>
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
         </div>
+        <p class="settings-note">每页包含 20 位候选。“每组”指默认推荐池、高优先组合及最多 12 个单因子查询；重复 ID 会合并。页数越多，候选覆盖更广，但请求更多、等待更久。</p>
       </section>
       ${renderResults()}`;
     elements.status.textContent = state.status;

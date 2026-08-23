@@ -191,6 +191,23 @@ test("ranking requires family and self thresholds at the same time", () => {
   assert.equal(result.find((item) => item.candidate.role_id === "self-below").shortfalls[0].meetsSelfThreshold, false);
 });
 
+test("family and self star selections are minimum thresholds, not exact matches", () => {
+  const aboveMinimum = candidate("above-minimum", [
+    { type: 1, num: 1, name: "速度", stars: 9, rarity: 3 }
+  ]);
+  const [result] = ranking.rankCandidates([aboveMinimum], {
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [
+      { type: 1, num: 1, name: "速度", tier: 1, minStars: 1, minSelfStars: 1 }
+    ]
+  });
+  assert.equal(result.matches[0].stars, 9);
+  assert.equal(result.matches[0].selfStars, 3);
+  assert.equal(result.matches[0].meetsTotalThreshold, true);
+  assert.equal(result.matches[0].meetsSelfThreshold, true);
+  assert.equal(result.satisfiedCount, 1);
+});
+
 test("factor response flattener preserves the three white subtypes", () => {
   const factors = ranking.flattenFactorResponse([{ factor_groups: [
     { type: 4, factors: [{ type: 4, num: 1, name: "技能白" }] },

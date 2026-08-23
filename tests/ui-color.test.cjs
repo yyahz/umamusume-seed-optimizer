@@ -24,3 +24,11 @@ test("white factor subtypes keep scenario gold separate from skill and race blue
   assert.match(contentSource, /技能:\s*\{[^}]*color:\s*"#4D5D7C"[^}]*soft:\s*"#EBEFF4"/);
   assert.match(contentSource, /比赛:\s*\{[^}]*color:\s*"#4D5D7C"[^}]*soft:\s*"#EBEFF4"/);
 });
+
+test("result cards keep names, star values, and the copy action compact", () => {
+  assert.equal(contentSource.includes("好友种马 #"), false);
+  assert.equal(contentSource.includes("${match.stars}/${match.minStars}★"), false);
+  assert.equal(contentSource.includes("${match.selfStars}/${match.minSelfStars}★"), false);
+  assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
+  assert.match(contentSource, /每页包含 20 位候选/);
+});
