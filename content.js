@@ -5,6 +5,7 @@
   window.__UMA_SEED_OPTIMIZER_CONTENT_V1__ = true;
 
   const ranking = globalThis.UmaSeedRanking;
+  const recognizer = globalThis.UmaFactorRecognizer;
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
   const STORAGE_KEY = "umaSeedOptimizerPreferencesV1";
@@ -26,7 +27,8 @@
     up: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
     down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
     search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>',
-    copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>'
+    copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+    scan: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 9h8M8 13h8M8 17h5"/></svg>'
   };
 
   const state = {
@@ -46,6 +48,11 @@
     colorOrder: [...ranking.DEFAULT_COLOR_ORDER],
     selected: new Map(),
     factors: [],
+    factorIndex: null,
+    quickFactorText: "",
+    recognition: null,
+    recognitionNotice: null,
+    importUndo: null,
     depth: 2,
     filterFull: true,
     status: "正在读取简中因子目录…",
@@ -203,6 +210,37 @@
       .role-rarity { margin-top:3px; color:#9a6700; font-size:10px; font-weight:800; letter-spacing:.04em; }
       .selected-role-summary { min-height:36px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; border-radius:11px; padding:6px 9px; color:var(--muted); background:var(--surface-2); font-size:11px; }
       .clear-roles { min-height:44px; flex:0 0 auto; border:0; border-radius:10px; padding:0 12px; color:var(--brand-dark); background:#e9f7ef; font-size:12px; font-weight:750; }
+      .quick-recognizer { margin-bottom:12px; border:1px solid #cfe3d6; border-radius:14px; padding:12px; background:#f6fbf8; }
+      .recognizer-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+      .recognizer-label { display:block; color:var(--ink); font-size:13px; font-weight:800; }
+      .recognizer-helper { margin:3px 0 0; color:var(--muted); font-size:11px; line-height:1.5; }
+      .recognizer-kicker { flex:0 0 auto; border-radius:999px; padding:3px 7px; color:var(--brand-dark); background:#e4f4ea; font-size:10px; font-weight:750; }
+      .recognizer-textarea { width:100%; min-height:92px; margin-top:9px; resize:vertical; border:1px solid var(--line); border-radius:11px; padding:10px 11px; color:var(--ink); background:#fff; font-size:13px; line-height:1.55; }
+      .recognizer-textarea::placeholder { color:#89958e; }
+      .recognizer-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
+      .recognizer-hint { color:var(--muted); font-size:10px; line-height:1.4; }
+      .recognizer-button,.recognition-apply,.recognition-cancel,.undo-import { min-height:44px; border-radius:11px; padding:0 13px; font-size:12px; font-weight:800; }
+      .recognizer-button { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--brand); color:var(--brand-dark); background:#fff; }
+      .recognizer-button:hover { background:#e9f7ef; }
+      .recognizer-button:disabled { cursor:not-allowed; opacity:.48; }
+      .recognizer-button svg { width:18px; height:18px; }
+      .recognition-feedback { display:grid; gap:8px; margin-top:10px; }
+      .recognition-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; border-radius:10px; padding:8px 9px; color:var(--brand-dark); background:#e9f7ef; font-size:11px; font-weight:750; }
+      .recognition-list { display:grid; gap:5px; }
+      .recognition-item { min-height:48px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:10px; padding:6px 8px; background:var(--factor-soft); }
+      .recognition-name { overflow:hidden; font-size:12px; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
+      .recognition-kind { margin-top:2px; color:var(--muted); font-size:10px; }
+      .recognition-stars { color:var(--ink); font-size:11px; font-weight:800; text-align:right; white-space:nowrap; }
+      .recognition-issue { border-radius:10px; padding:8px 9px; color:#6f4f00; background:#fff6d8; font-size:11px; line-height:1.5; }
+      .recognition-issue.error { color:var(--danger); background:#fff0ee; }
+      .recognition-issue b { display:block; margin-bottom:2px; }
+      .recognition-preview-actions { display:flex; justify-content:flex-end; gap:7px; }
+      .recognition-apply { border:0; color:#fff; background:var(--brand); }
+      .recognition-apply:disabled { cursor:not-allowed; opacity:.48; }
+      .recognition-cancel { border:1px solid var(--line); color:var(--muted); background:#fff; }
+      .recognition-notice { min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:9px; border-radius:10px; padding:7px 9px; color:var(--brand-dark); background:#e9f7ef; font-size:11px; line-height:1.45; }
+      .recognition-notice.error { color:var(--danger); background:#fff0ee; }
+      .undo-import { flex:0 0 auto; border:1px solid currentColor; color:inherit; background:#fff; }
       .factor-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:12px; }
       .factor-tab { min-height:44px; padding:6px; border:1px solid var(--line); border-radius:12px; color:var(--muted); background:#fff; font-weight:650; }
       .factor-tab.active { color:var(--factor-color); border-color:var(--factor-color); background:var(--factor-soft); }
@@ -282,19 +320,19 @@
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
-      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } }
+      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
     <button class="launcher" id="launcher" type="button" aria-label="打开种马优选器">${ICONS.spark}<span>种马优选器</span></button>
     <div class="scrim" id="scrim"></div>
-    <aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
+    <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
         <div class="title-wrap"><div class="brand-mark">${ICONS.spark}</div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选</div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马优选器">${ICONS.close}</button>
       </header>
-      <main class="panel-body" id="body"></main>
+      <div class="panel-body" id="body"></div>
       <footer class="action-bar"><div class="status" id="status" aria-live="polite"></div><button class="primary" id="search-button" type="button">开始寻找合适种马</button></footer>
-    </aside>
+    </div>
   `;
 
   const elements = {
@@ -419,7 +457,7 @@
           <div class="selected-list">${entries.length ? entries.map((item) => {
             const key = ranking.factorKey(item.type, item.num);
             const itemMeta = factorVisualMeta(item);
-            return `<div class="selected-card" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前 P${tier}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
+            return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前 P${tier}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
               <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
               <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(item.subtype || "因子")}</div></div>
               <label class="compact-factor-field total-star-field">家系
@@ -478,12 +516,90 @@
       ${visible.length < matches.length ? `<button class="catalog-more" id="catalog-more" type="button">再显示 ${Math.min(60, matches.length - visible.length)} 项</button>` : ""}`;
   }
 
+  function recognitionMessage(value) {
+    if (typeof value === "string") return value;
+    return String(value?.message || value?.text || value?.code || "识别时出现未知问题");
+  }
+
+  function recognitionMatchLabel(kind) {
+    if (kind === "alias") return "安全简称匹配";
+    if (kind === "prefix") return "唯一简称补全";
+    return "目录名称匹配";
+  }
+
+  function renderRecognitionNotice() {
+    if (!state.recognitionNotice) return "";
+    const kind = state.recognitionNotice.kind === "error" ? "error" : "success";
+    return `<div class="recognition-notice ${kind}" id="recognition-notice" role="status">
+      <span>${escapeHtml(state.recognitionNotice.message)}</span>
+      ${state.importUndo ? '<button class="undo-import" id="undo-factor-import" type="button">撤销本次导入</button>' : ""}
+    </div>`;
+  }
+
+  function renderRecognitionPreview() {
+    const result = state.recognition;
+    if (!result) return "";
+    const resolved = Array.isArray(result.resolved) ? result.resolved : [];
+    const ambiguous = Array.isArray(result.ambiguous) ? result.ambiguous : [];
+    const unknown = Array.isArray(result.unknown) ? result.unknown : [];
+    const warnings = Array.isArray(result.warnings) ? result.warnings : [];
+    const errors = Array.isArray(result.errors) ? result.errors : [];
+    const items = resolved.map((item) => {
+      const factor = item.factor || item;
+      const meta = factorVisualMeta(factor);
+      const current = factor?.type === undefined || factor?.num === undefined
+        ? null
+        : state.selected.get(ranking.factorKey(factor.type, factor.num));
+      const totalStars = item.explicitTotal ? item.minStars : current?.minStars ?? 1;
+      const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? 1;
+      const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
+      const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
+      return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
+        <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(factor.subtype || "因子")} · ${recognitionMatchLabel(item.matchKind)}</div></div>
+        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}</div>
+      </div>`;
+    }).join("");
+    const ambiguityBlocks = ambiguous.map((item) => {
+      const candidates = (item.candidates || []).map((candidate) => candidate?.factor?.name || candidate?.name).filter(Boolean);
+      return `<div class="recognition-issue"><b>“${escapeHtml(item.sourceText || item.text || "未命名片段")}”存在歧义</b>${candidates.length ? `可能是：${escapeHtml(candidates.join("、"))}。` : "请补全正式因子名。"}</div>`;
+    }).join("");
+    const unknownBlocks = unknown.map((item) => {
+      const text = typeof item === "string" ? item : item?.sourceText || item?.text || item?.normalized;
+      return text ? `<div class="recognition-issue"><b>未识别片段</b>${escapeHtml(text)}；请检查名称或补充分隔符。</div>` : "";
+    }).join("");
+    const warningBlocks = warnings.map((item) => `<div class="recognition-issue"><b>识别提示</b>${escapeHtml(recognitionMessage(item))}</div>`).join("");
+    const errorBlocks = errors.map((item) => `<div class="recognition-issue error" role="alert"><b>无法应用</b>${escapeHtml(recognitionMessage(item))}</div>`).join("");
+    const canApply = Boolean(result.canApply && resolved.length && !errors.length);
+    return `<div class="recognition-feedback" id="recognition-feedback" aria-live="polite">
+      <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>歧义 ${ambiguous.length} · 未识别 ${unknown.length}</span></div>
+      ${items ? `<div class="recognition-list">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
+      ${ambiguityBlocks}${unknownBlocks}${warningBlocks}${errorBlocks}
+      <div class="recognition-preview-actions">
+        <button class="recognition-cancel" id="cancel-factor-recognition" type="button">返回修改</button>
+        <button class="recognition-apply" id="apply-factor-recognition" type="button" ${canApply ? "" : "disabled"}>加入 / 更新 ${resolved.length} 项</button>
+      </div>
+    </div>`;
+  }
+
+  function renderQuickRecognizer() {
+    const ready = Boolean(state.factorIndex && recognizer);
+    const disabled = !ready || !state.quickFactorText.trim();
+    return `<div class="quick-recognizer">
+      <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
+      <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
+      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 1★，并进入 P1。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
+      ${renderRecognitionNotice()}
+      ${renderRecognitionPreview()}
+    </div>`;
+  }
+
   function renderConfigurator() {
     const meta = activeFactorVisualMeta();
     const activeWhiteSubtype = state.activeColor === "white" ? WHITE_SUBTYPE_META[state.activeSubtype] : null;
     const searchLabel = activeWhiteSubtype ? `白因子·${activeWhiteSubtype.name}` : meta.name;
     const searchExamples = activeWhiteSubtype?.examples || meta.examples;
     return `
+      ${renderQuickRecognizer()}
       <div class="factor-tabs" role="tablist" aria-label="因子颜色">${state.colorOrder.map((colorId) => {
         const tabMeta = COLOR_META[colorId];
         return `<button type="button" role="tab" aria-selected="${state.activeColor === colorId}" class="factor-tab ${state.activeColor === colorId ? "active" : ""}" data-tab="${colorId}" style="--factor-color:${tabMeta.color};--factor-soft:${tabMeta.soft}">${tabMeta.name.replace("因子", "")}</button>`;
@@ -658,6 +774,98 @@
     shell.innerHTML = renderRoleCatalog(state.roleQuery);
   }
 
+  function cloneSelectedMap(source = state.selected) {
+    return new Map([...source.entries()].map(([key, value]) => [key, { ...value }]));
+  }
+
+  function invalidateFactorImportUndo() {
+    if (!state.importUndo) return;
+    state.importUndo = null;
+    state.recognitionNotice = null;
+    shadow.getElementById("recognition-notice")?.remove();
+  }
+
+  function recognizeQuickFactorText() {
+    const input = shadow.getElementById("bulk-factor-input");
+    state.quickFactorText = String(input?.value || state.quickFactorText || "");
+    if (!state.importUndo) state.recognitionNotice = null;
+    if (!recognizer || !state.factorIndex) {
+      state.recognition = null;
+      state.recognitionNotice = { kind: "error", message: "因子识别器尚未就绪，请刷新页面后重试。" };
+      render();
+      return;
+    }
+    try {
+      state.recognition = recognizer.recognizeFactorText(state.quickFactorText, state.factorIndex);
+    } catch (error) {
+      state.recognition = null;
+      state.recognitionNotice = { kind: "error", message: error instanceof Error ? error.message : String(error) };
+    }
+    render();
+    setTimeout(() => {
+      const apply = shadow.getElementById("apply-factor-recognition");
+      const target = apply && !apply.disabled ? apply : shadow.getElementById("bulk-factor-input");
+      target?.focus();
+      shadow.getElementById("recognition-feedback")?.scrollIntoView({ block: "nearest" });
+    }, 0);
+  }
+
+  function applyRecognizedFactors() {
+    const result = state.recognition;
+    const resolved = Array.isArray(result?.resolved) ? result.resolved : [];
+    if (!result?.canApply || !resolved.length || (result.errors || []).length) return;
+    const before = cloneSelectedMap();
+    let added = 0;
+    let updated = 0;
+    let unchanged = 0;
+    for (const item of resolved) {
+      const factor = item.factor || item;
+      if (factor?.type === undefined || factor?.num === undefined) continue;
+      const key = ranking.factorKey(factor.type, factor.num);
+      const current = state.selected.get(key);
+      const next = {
+        ...factor,
+        tier: current ? ranking.clampTier(current.tier, 1) : 1,
+        minStars: item.explicitTotal
+          ? ranking.clampFactorStars(item.minStars)
+          : current ? ranking.clampFactorStars(current.minStars) : 1,
+        minSelfStars: item.explicitSelf
+          ? ranking.clampSelfStars(item.minSelfStars)
+          : current ? ranking.clampSelfStars(current.minSelfStars) : 1
+      };
+      if (!current) added += 1;
+      else if (
+        current.minStars !== next.minStars ||
+        current.minSelfStars !== next.minSelfStars ||
+        current.tier !== next.tier
+      ) updated += 1;
+      else unchanged += 1;
+      state.selected.set(key, next);
+    }
+    const changed = added + updated;
+    state.importUndo = changed ? { selected: before } : null;
+    const skipped = (result.ambiguous?.length || 0) + (result.unknown?.length || 0);
+    state.recognition = null;
+    state.quickFactorText = "";
+    state.recognitionNotice = {
+      kind: "success",
+      message: `已处理 ${resolved.length} 项：新增 ${added}、更新 ${updated}${unchanged ? `、保持 ${unchanged}` : ""}${skipped ? `；${skipped} 个疑似或未知片段未加入` : ""}。`
+    };
+    savePreferences();
+    render();
+    setTimeout(() => shadow.getElementById(state.importUndo ? "undo-factor-import" : "bulk-factor-input")?.focus(), 0);
+  }
+
+  function undoRecognizedFactorImport() {
+    if (!state.importUndo?.selected) return;
+    state.selected = cloneSelectedMap(state.importUndo.selected);
+    state.importUndo = null;
+    state.recognitionNotice = { kind: "success", message: "已撤销上一次一键识别导入。" };
+    savePreferences();
+    render();
+    setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
+  }
+
   function bindFactorTierDrag() {
     const cards = [...shadow.querySelectorAll(".selected-card[draggable='true']")];
     const blocks = [...shadow.querySelectorAll("[data-factor-tier]")];
@@ -701,6 +909,7 @@
         if (!item) return;
         const nextTier = ranking.clampTier(block.dataset.factorTier, item.tier);
         if (item.tier === nextTier) return;
+        invalidateFactorImportUndo();
         item.tier = nextTier;
         state.selected.set(key, item);
         savePreferences();
@@ -710,6 +919,34 @@
   }
 
   function bindRenderedEvents() {
+    const bulkInput = shadow.getElementById("bulk-factor-input");
+    const recognizeButton = shadow.getElementById("recognize-factor-text");
+    bulkInput?.addEventListener("input", () => {
+      state.quickFactorText = bulkInput.value;
+      recognizeButton.disabled = !state.factorIndex || !bulkInput.value.trim();
+      if (state.recognition) {
+        state.recognition = null;
+        shadow.getElementById("recognition-feedback")?.remove();
+      }
+      if (state.recognitionNotice?.kind === "error" && !state.importUndo) {
+        state.recognitionNotice = null;
+        shadow.getElementById("recognition-notice")?.remove();
+      }
+    });
+    bulkInput?.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !recognizeButton?.disabled) {
+        event.preventDefault();
+        recognizeQuickFactorText();
+      }
+    });
+    recognizeButton?.addEventListener("click", recognizeQuickFactorText);
+    shadow.getElementById("cancel-factor-recognition")?.addEventListener("click", () => {
+      state.recognition = null;
+      render();
+      setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
+    });
+    shadow.getElementById("apply-factor-recognition")?.addEventListener("click", applyRecognizedFactors);
+    shadow.getElementById("undo-factor-import")?.addEventListener("click", undoRecognizedFactorImport);
     const priorityList = shadow.getElementById("priority-list");
     if (priorityList) {
       bindPriorityDrag(priorityList);
@@ -777,6 +1014,7 @@
       }
       const selectedKey = event.target.closest("[data-selected-factor]")?.dataset.selectedFactor;
       if (selectedKey) {
+        invalidateFactorImportUndo();
         state.selected.delete(selectedKey);
         savePreferences();
         render();
@@ -788,6 +1026,7 @@
       const key = event.target.closest("[data-add-factor]")?.dataset.addFactor;
       const factor = state.factors.find((item) => ranking.factorKey(item.type, item.num) === key);
       if (!factor) return;
+      invalidateFactorImportUndo();
       state.selected.set(key, { ...factor, tier: 1, minStars: 1, minSelfStars: 1 });
       savePreferences();
       render();
@@ -798,6 +1037,7 @@
     shadow.querySelectorAll("[data-total-star-key]").forEach((select) => select.addEventListener("change", () => {
       const item = state.selected.get(select.dataset.totalStarKey);
       if (!item) return;
+      invalidateFactorImportUndo();
       item.minStars = ranking.clampFactorStars(select.value);
       state.selected.set(select.dataset.totalStarKey, item);
       savePreferences();
@@ -805,6 +1045,7 @@
     shadow.querySelectorAll("[data-self-star-key]").forEach((select) => select.addEventListener("change", () => {
       const item = state.selected.get(select.dataset.selfStarKey);
       if (!item) return;
+      invalidateFactorImportUndo();
       item.minSelfStars = ranking.clampSelfStars(select.value);
       state.selected.set(select.dataset.selfStarKey, item);
       savePreferences();
@@ -812,6 +1053,7 @@
     shadow.querySelectorAll("[data-tier-key]").forEach((select) => select.addEventListener("change", () => {
       const item = state.selected.get(select.dataset.tierKey);
       if (!item) return;
+      invalidateFactorImportUndo();
       item.tier = ranking.clampTier(select.value, item.tier);
       state.selected.set(select.dataset.tierKey, item);
       savePreferences();
@@ -924,6 +1166,8 @@
       state.roles = ranking.flattenHeroCardResponse(roleResponse.data);
       if (!state.factors.length) throw new Error("因子目录为空，请刷新页面重试。");
       if (!state.roles.length) throw new Error("角色目录为空，请刷新页面重试。");
+      if (!recognizer?.buildCatalogIndex) throw new Error("因子识别模块未加载，请重新加载扩展后刷新页面。");
+      state.factorIndex = recognizer.buildCatalogIndex(state.factors);
       const liveRoleIds = new Set(state.roles.map((role) => String(role.card_id)));
       state.selectedRoleIds = new Set(
         [...state.selectedRoleIds].filter((cardId) => liveRoleIds.has(cardId))
