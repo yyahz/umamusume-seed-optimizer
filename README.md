@@ -24,6 +24,8 @@
 
 ## 安装
 
+普通用户优先从 Chrome 网上应用店或 Microsoft Edge 加载项商店安装。商店审核完成前，也可以继续使用下方的开发者模式安装方法。项目维护者可按[商店发布指南](./store-listing/STORE_SUBMISSION.md)生成并提交精简发布包。
+
 ### 准备工作
 
 - Chrome 或 Microsoft Edge 的较新版本。
@@ -109,6 +111,8 @@
 - 因子目录、角色目录和好友种马搜索均为只读用途；扩展不会关注玩家、修改账号资料或执行游戏内操作。
 - 安装前可直接审阅全部源码；仓库不包含远程加载的扩展代码。
 
+完整说明见[隐私政策](./PRIVACY.md)。
+
 ## 已知限制
 
 - 搜索依赖当前登录状态、吗哩吗哩网页结构和公开网页接口；其中任一项变化都可能导致暂时不可用。
@@ -140,6 +144,9 @@ node --check content.js
 | `content.js` | 面板 UI、交互、偏好存储与搜索流程 |
 | `tests/` | Node.js 单元测试与浏览器静态检查页 |
 | `reverse-notes/` | 接口字段和行为的复核记录 |
+| `scripts/build-store-packages.ps1` | 生成并校验 Chrome / Edge 商店 ZIP |
+| `store-listing/` | 商店文案、权限说明、审核备注与提交流程 |
+| `store-assets/` | 已脱敏的商店图标、宣传图和离线截图 |
 
 ## 免责声明
 

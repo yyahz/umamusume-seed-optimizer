@@ -694,6 +694,7 @@
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
         </div>
         <p class="settings-note">每页包含 20 位候选。“每组”指默认推荐池、高优先组合及最多 12 个单因子查询；重复 ID 会合并。页数越多，候选覆盖更广，但请求更多、等待更久。</p>
+        <p class="settings-note">隐私提示：点击搜索后，所选条件会通过 HTTPS 发送给 B 站游戏接口并使用当前页面的登录状态；筛选偏好只保存在本机，扩展不会读取或保存 Cookie。</p>
       </section>
       ${renderResults()}`;
     elements.status.textContent = state.status;
