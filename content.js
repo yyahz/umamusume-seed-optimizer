@@ -478,7 +478,7 @@
               </label>
               <label class="compact-factor-field self-star-field">本体至少
                 <select class="star-select" data-self-star-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}最低本体星数">
-                  ${Array.from({ length: ranking.MAX_SELF_STARS }, (_, index) => index + 1).map((stars) => `<option value="${stars}" ${stars === ranking.clampSelfStars(item.minSelfStars) ? "selected" : ""}>${stars}★</option>`).join("")}
+                  ${Array.from({ length: ranking.MAX_SELF_STARS + 1 }, (_, stars) => stars).map((stars) => `<option value="${stars}" ${stars === ranking.clampSelfStars(item.minSelfStars) ? "selected" : ""}>${stars}★${stars === 0 ? " · 本体无要求" : ""}</option>`).join("")}
                 </select>
               </label>
               <label class="tier-field">优先级
@@ -684,7 +684,7 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重），优先于 P1 / P2 / P3。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛；本体 0★ 表示本体可以没有该因子。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重）。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">

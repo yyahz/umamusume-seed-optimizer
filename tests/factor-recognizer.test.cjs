@@ -169,6 +169,16 @@ test("does not propagate thresholds to the next factor", () => {
   assert.equal(byName(result, "英里").explicitSelf, false);
 });
 
+test("accepts zero self stars as no self-factor requirement", () => {
+  const result = recognizer.recognizeFactorText("毅力9本体0", index);
+  const match = byName(result, "毅力");
+
+  assert.equal(result.canApply, true);
+  assert.equal(match.minStars, 9);
+  assert.equal(match.minSelfStars, 0);
+  assert.equal(match.explicitSelf, true);
+});
+
 test("consolidates duplicates with maximum explicit thresholds and a warning", () => {
   const result = recognizer.recognizeFactorText("毅力3，毅力9本体2，毅力本体3", index);
   const match = byName(result, "毅力");

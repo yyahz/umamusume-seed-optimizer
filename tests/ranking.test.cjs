@@ -227,18 +227,39 @@ test("factor filters preserve each selected 1-9 star threshold", () => {
 test("self and discovery filters use the observed self_rarity encoding", () => {
   const factors = [
     { type: 1, num: 1, minStars: 9, minSelfStars: 1 },
-    { type: 2, num: 31, minStars: 3, minSelfStars: 3 }
+    { type: 2, num: 31, minStars: 3, minSelfStars: 3 },
+    { type: 4, num: 20001, minStars: 5, minSelfStars: 0 }
   ];
   assert.deepEqual(ranking.buildFactorFilters(factors, "self"), [
     { type: 1, values: [{ num: 1, self_rarity: 1 }] },
-    { type: 2, values: [{ num: 31, self_rarity: 3 }] }
+    { type: 2, values: [{ num: 31, self_rarity: 3 }] },
+    { type: 4, values: [{ num: 20001, rarity: 5 }] }
   ]);
   assert.deepEqual(ranking.buildFactorFilters(factors, "discovery"), [
     { type: 1, values: [{ num: 1, rarity: 9 }] },
-    { type: 2, values: [{ num: 31, self_rarity: 3 }] }
+    { type: 2, values: [{ num: 31, self_rarity: 3 }] },
+    { type: 4, values: [{ num: 20001, rarity: 5 }] }
   ]);
-  assert.equal(ranking.clampSelfStars(0), 1);
+  assert.equal(ranking.clampSelfStars(0), 0);
+  assert.equal(ranking.clampSelfStars(undefined), 1);
   assert.equal(ranking.clampSelfStars(8), 3);
+});
+
+test("zero self stars only requires the factor to exist in the family", () => {
+  const familyOnly = candidate("family-only", [
+    { type: 1, num: 1, name: "速度", stars: 7, rarity: 0 }
+  ]);
+  const [result] = ranking.rankCandidates([familyOnly], {
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [
+      { type: 1, num: 1, name: "速度", tier: 1, minStars: 7, minSelfStars: 0, colorId: "blue" }
+    ]
+  });
+
+  assert.equal(result.matches[0].selfStars, 0);
+  assert.equal(result.matches[0].meetsSelfThreshold, true);
+  assert.equal(result.matches[0].meetsThreshold, true);
+  assert.equal(result.breakdown.blue.score, 100);
 });
 
 test("ranking requires family and self thresholds at the same time", () => {

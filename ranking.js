@@ -20,8 +20,9 @@
   const TIER_WEIGHTS = Object.freeze({ 1: 9, 2: 3, 3: 1, [REQUIRED_TIER]: 100 });
   const MIN_FACTOR_STARS = 1;
   const MAX_FACTOR_STARS = 9;
-  const MIN_SELF_STARS = 1;
+  const MIN_SELF_STARS = 0;
   const MAX_SELF_STARS = 3;
+  const DEFAULT_SELF_STARS = 1;
   const TYPE_TO_COLOR = new Map(
     COLOR_DEFINITIONS.flatMap((definition) =>
       definition.types.map((type) => [type, definition.id])
@@ -52,7 +53,7 @@
     );
   }
 
-  function clampSelfStars(value, fallback = MIN_SELF_STARS) {
+  function clampSelfStars(value, fallback = DEFAULT_SELF_STARS) {
     return Math.min(
       MAX_SELF_STARS,
       Math.max(MIN_SELF_STARS, Math.trunc(toFiniteNumber(value, fallback)))
@@ -171,7 +172,9 @@
         const meetsSelfThreshold = Boolean(actual) && selfStars >= preference.minSelfStars;
         const meetsThreshold = meetsTotalThreshold && meetsSelfThreshold;
         const totalProgress = actual ? Math.min(stars / preference.minStars, 1) : 0;
-        const selfProgress = actual ? Math.min(selfStars / preference.minSelfStars, 1) : 0;
+        const selfProgress = actual
+          ? preference.minSelfStars === 0 ? 1 : Math.min(selfStars / preference.minSelfStars, 1)
+          : 0;
         // Blue/red factors and required white factors are binary hard gates.
         // Other colors/tiers retain partial progress for near misses.
         const hardThreshold = colorId === "blue"
@@ -280,7 +283,7 @@
   function factorFilterValue(factor, mode) {
     const totalStars = clampFactorStars(factor.minStars);
     const selfStars = clampSelfStars(factor.minSelfStars);
-    if (mode === "self") return { num: factor.num, self_rarity: selfStars };
+    if (mode === "self" && selfStars > 0) return { num: factor.num, self_rarity: selfStars };
     if (mode === "discovery" && selfStars / MAX_SELF_STARS >= totalStars / MAX_FACTOR_STARS) {
       return { num: factor.num, self_rarity: selfStars };
     }
@@ -376,6 +379,7 @@
     MAX_FACTOR_STARS,
     MIN_SELF_STARS,
     MAX_SELF_STARS,
+    DEFAULT_SELF_STARS,
     TYPE_NAMES,
     factorKey,
     clampFactorStars,

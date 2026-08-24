@@ -274,12 +274,12 @@
         self = selfDigits.value;
         cursor = selfDigits.end;
         if (text[cursor] === "星") cursor += 1;
-        if (!Number.isInteger(self) || self < 1 || self > 3) {
+        if (!Number.isInteger(self) || self < 0 || self > 3) {
           validationErrors.push({
             code: "self-stars-out-of-range",
             field: "minSelfStars",
             value: self,
-            message: `本体星数 ${selfDigits.raw} 超出 1–3 星范围。`
+            message: `本体星数 ${selfDigits.raw} 超出 0–3 星范围。`
           });
         }
       } else {
@@ -287,7 +287,7 @@
           code: "self-stars-missing",
           field: "minSelfStars",
           value: null,
-          message: "“本体”后缺少 1–3 星数字。"
+          message: "“本体”后缺少 0–3 星数字。"
         });
         // Consuming the marker lets the global segmenter report a focused
         // error. A no-suffix candidate is also retained as an alternative.

@@ -48,3 +48,9 @@ test("white factors expose required after P1, P2, and P3", () => {
   assert.match(contentSource, /必须双门槛达标/);
   assert.match(contentSource, /必需达标/);
 });
+
+test("self star selectors include zero as no self-factor requirement", () => {
+  assert.match(contentSource, /MAX_SELF_STARS \+ 1/);
+  assert.match(contentSource, /stars === 0 \? " · 本体无要求"/);
+  assert.match(contentSource, /本体 0★ 表示本体可以没有该因子/);
+});
