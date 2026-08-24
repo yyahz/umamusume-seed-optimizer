@@ -54,3 +54,7 @@ test("self star selectors include zero as no self-factor requirement", () => {
   assert.match(contentSource, /stars === 0 \? " · 本体无要求"/);
   assert.match(contentSource, /本体 0★ 表示本体可以没有该因子/);
 });
+
+test("color order explains its equal-score tie breaker", () => {
+  assert.match(contentSource, /综合分相同时也会严格按本顺序逐色比较/);
+});

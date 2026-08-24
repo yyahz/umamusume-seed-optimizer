@@ -162,6 +162,8 @@
       let earned = 0;
       let available = 0;
       let matched = 0;
+      let weightedTotalStars = 0;
+      let weightedSelfStars = 0;
 
       for (const preference of group) {
         const tierWeight = TIER_WEIGHTS[preference.tier];
@@ -191,6 +193,8 @@
               : 0.7 * (totalProgress + selfProgress) / 2;
         available += tierWeight;
         earned += tierWeight * strength;
+        weightedTotalStars += tierWeight * stars;
+        weightedSelfStars += tierWeight * selfStars;
         if (actual) {
           matched += 1;
           const match = {
@@ -230,7 +234,9 @@
           return candidateFactorSelfStars(actual) >= preference.minSelfStars;
         }).length,
         requested: group.length,
-        weight: colorWeight
+        weight: colorWeight,
+        weightedTotalStars,
+        weightedSelfStars
       };
     }
 
@@ -258,10 +264,34 @@
   }
 
   function rankCandidates(candidates, preferences) {
+    const colorOrder = normalizeColorOrder(preferences?.colorOrder);
     return (Array.isArray(candidates) ? candidates : [])
       .map((candidate) => scoreCandidate(candidate, preferences))
       .sort((left, right) => {
         if (right.score !== left.score) return right.score - left.score;
+        // Equal overall scores obey the user's color order before any global
+        // counts, race wins, or ID fallback. Within a color, P-tier weights
+        // also apply to actual family and self stars above the minimum.
+        for (const colorId of colorOrder) {
+          const leftColor = left.breakdown[colorId];
+          const rightColor = right.breakdown[colorId];
+          if (!leftColor && !rightColor) continue;
+          if (!leftColor) return 1;
+          if (!rightColor) return -1;
+          if (rightColor.score !== leftColor.score) return rightColor.score - leftColor.score;
+          if (rightColor.satisfied !== leftColor.satisfied) {
+            return rightColor.satisfied - leftColor.satisfied;
+          }
+          if (rightColor.matched !== leftColor.matched) {
+            return rightColor.matched - leftColor.matched;
+          }
+          if (rightColor.weightedTotalStars !== leftColor.weightedTotalStars) {
+            return rightColor.weightedTotalStars - leftColor.weightedTotalStars;
+          }
+          if (rightColor.weightedSelfStars !== leftColor.weightedSelfStars) {
+            return rightColor.weightedSelfStars - leftColor.weightedSelfStars;
+          }
+        }
         if (right.requiredSatisfiedCount !== left.requiredSatisfiedCount) {
           return right.requiredSatisfiedCount - left.requiredSatisfiedCount;
         }

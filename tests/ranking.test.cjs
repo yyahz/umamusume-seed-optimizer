@@ -124,6 +124,35 @@ test("blue and red factors receive zero credit unless both thresholds are met", 
   assert.equal(meetsScore.breakdown.red.score, 100);
 });
 
+test("equal scores use the user-selected color order before wins and ids", () => {
+  const tiePreferences = {
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [
+      { type: 1, num: 1, name: "速度", tier: 1, minStars: 7, minSelfStars: 2, colorId: "blue" },
+      { type: 2, num: 31, name: "短距离", tier: 1, minStars: 5, minSelfStars: 2, colorId: "red" }
+    ]
+  };
+  const blueBetter = candidate("999", [
+    { type: 1, num: 1, stars: 9, rarity: 3 },
+    { type: 2, num: 31, stars: 5, rarity: 2 }
+  ], 1);
+  const redBetter = candidate("111", [
+    { type: 1, num: 1, stars: 7, rarity: 2 },
+    { type: 2, num: 31, stars: 9, rarity: 3 }
+  ], 99);
+
+  const blueFirst = ranking.rankCandidates([redBetter, blueBetter], tiePreferences);
+  const redFirst = ranking.rankCandidates([blueBetter, redBetter], {
+    ...tiePreferences,
+    colorOrder: ["red", "blue", "green", "white"]
+  });
+
+  assert.equal(blueFirst[0].score, 100);
+  assert.equal(blueFirst[1].score, 100);
+  assert.equal(blueFirst[0].candidate.role_id, "999");
+  assert.equal(redFirst[0].candidate.role_id, "111");
+});
+
 test("required white factors are hard thresholds and outweigh P1", () => {
   const requiredPreferences = {
     colorOrder: ["blue", "red", "green", "white"],

@@ -680,7 +680,7 @@
         ${state.loadingRoles ? '<div class="loading-line" aria-label="正在加载角色目录"></div>' : renderRoleSelector()}
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>2. 拖动颜色优先度</h2><p class="helper">可一次拖到任意位置；绿色横线表示最终落点。触屏或键盘用户可用右侧上下按钮。</p></div></div>
+        <div class="section-head"><div><h2>2. 拖动颜色优先度</h2><p class="helper">可一次拖到任意位置；综合分相同时也会严格按本顺序逐色比较。触屏或键盘用户可用右侧上下按钮。</p></div></div>
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
