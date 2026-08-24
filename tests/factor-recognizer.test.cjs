@@ -102,6 +102,22 @@ test("normalization removes the middle dot but preserves meaningful circles", ()
   assert.equal(wrongCircle.resolved.length, 0);
 });
 
+test("preserves plus signs so base and enhanced factor names stay distinct", () => {
+  const plusIndex = recognizer.buildCatalogIndex([
+    factor(4, 1, "点燃青春·智"),
+    factor(4, 2, "点燃青春·智+")
+  ]);
+  const base = recognizer.recognizeFactorText("点燃青春智", plusIndex);
+  const enhanced = recognizer.recognizeFactorText("点燃青春智+", plusIndex);
+  const fullwidth = recognizer.recognizeFactorText("点燃青春智＋", plusIndex);
+
+  assert.deepEqual(base.resolved.map((item) => item.factor.name), ["点燃青春·智"]);
+  assert.equal(base.ambiguous.length, 0);
+  assert.deepEqual(enhanced.resolved.map((item) => item.factor.name), ["点燃青春·智+"]);
+  assert.deepEqual(fullwidth.resolved.map((item) => item.factor.name), ["点燃青春·智+"]);
+  assert.equal(recognizer.normalizeWithMap("点燃青春·智+").text, "点燃青春智+");
+});
+
 test("matches Latin factor text without case sensitivity", () => {
   for (const text of ["ura剧本", "URA剧本", "ＵｒＡ剧本"]) {
     const result = recognizer.recognizeFactorText(text, index);

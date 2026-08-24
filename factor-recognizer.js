@@ -20,13 +20,13 @@
   const SHORT_FACTOR_LENGTH = 3;
 
   function isMeaningfulCharacter(character) {
-    return character === "○" || character === "◎" || /[\p{L}\p{N}]/u.test(character);
+    return character === "○" || character === "◎" || character === "+" || /[\p{L}\p{N}]/u.test(character);
   }
 
   /**
    * NFKC-normalize input while retaining a map back to UTF-16 offsets in the
-   * original string. Decorative punctuation is discarded, except ○ and ◎,
-   * which are meaningful parts of several factor names.
+   * original string. Decorative punctuation is discarded, except ○, ◎ and
+   * +, which distinguish official factor names.
    */
   function normalizeWithMap(input) {
     const source = String(input ?? "");
