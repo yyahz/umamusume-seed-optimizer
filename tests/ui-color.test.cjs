@@ -41,3 +41,10 @@ test("selected factors can be reset in one click and restored", () => {
   assert.match(contentSource, /角色、颜色顺序和搜索范围保持不变/);
   assert.match(contentSource, /state\.results = Array\.isArray\(undo\.results\)/);
 });
+
+test("white factors expose required after P1, P2, and P3", () => {
+  assert.match(contentSource, /\[1, 2, 3, \.\.\.\(colorId === "white" \? \[ranking\.REQUIRED_TIER\]/);
+  assert.match(contentSource, /value === ranking\.REQUIRED_TIER \? "必需" : `P\$\{value\}`/);
+  assert.match(contentSource, /必须双门槛达标/);
+  assert.match(contentSource, /必需达标/);
+});

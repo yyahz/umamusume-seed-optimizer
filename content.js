@@ -139,7 +139,7 @@
           type: Number(factor.type),
           num: factor.num,
           name: String(factor.name || factor.num),
-          tier: ranking.clampTier(factor.tier),
+          tier: ranking.clampTier(factor.tier, 2, [4, 5, 6].includes(Number(factor.type))),
           minStars: ranking.clampFactorStars(factor.minStars),
           minSelfStars: ranking.clampSelfStars(factor.minSelfStars),
           colorId: factor.colorId,
@@ -266,6 +266,9 @@
       .selected-empty { padding:18px 10px; color:var(--muted); text-align:center; font-size:13px; }
       .tier-block { margin-top:10px; overflow:hidden; border:1px dashed color-mix(in srgb,var(--factor-color) 48%,var(--line)); border-radius:14px; background:color-mix(in srgb,var(--factor-soft) 48%,white); transition:border-color 160ms ease-out,background 160ms ease-out,box-shadow 160ms ease-out; }
       .tier-block.factor-drop-active { border-style:solid; border-color:var(--factor-color); background:var(--factor-soft); box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--factor-color) 24%,transparent); }
+      .tier-block.required-tier { border-style:solid; border-width:2px; }
+      .tier-block.required-tier .tier-label { background:color-mix(in srgb,var(--factor-soft) 72%,white); }
+      .tier-block.required-tier .tier-label b { font-size:14px; }
       .tier-label { min-height:40px; display:flex; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid color-mix(in srgb,var(--factor-color) 18%,var(--line)); color:var(--muted); font-size:12px; font-weight:700; }
       .tier-label b { color:var(--factor-color); font-size:13px; }
       .tier-help { margin-left:auto; font-size:10px; font-weight:600; }
@@ -452,16 +455,20 @@
     const selected = [...state.selected.values()]
       .filter((item) => item.colorId === colorId)
       .filter((item) => colorId !== "white" || item.subtype === state.activeSubtype);
-    return [1, 2, 3].map((tier) => {
+    const tiers = colorId === "white" ? [1, 2, 3, ranking.REQUIRED_TIER] : [1, 2, 3];
+    return tiers.map((tier) => {
       const entries = selected.filter((item) => Number(item.tier) === tier);
-      const tierNames = ["最高优先", "较高优先", "一般优先"];
+      const required = tier === ranking.REQUIRED_TIER;
+      const tierName = required ? "必须双门槛达标" : ["最高优先", "较高优先", "一般优先"][tier - 1];
+      const tierLabel = required ? "必需" : `P${tier}`;
+      const tierOptions = [1, 2, 3, ...(colorId === "white" ? [ranking.REQUIRED_TIER] : [])];
       return `
-        <div class="tier-block" data-factor-tier="${tier}">
-          <div class="tier-label"><span class="tier-dot" style="--tier-opacity:${1 - (tier - 1) * .28}"></span><b>P${tier}</b>${tierNames[tier - 1]}<span class="tier-help">拖动因子到此处</span></div>
+        <div class="tier-block ${required ? "required-tier" : ""}" data-factor-tier="${tier}">
+          <div class="tier-label"><span class="tier-dot" style="--tier-opacity:${required ? 1 : 1 - (tier - 1) * .28}"></span><b>${tierLabel}</b>${tierName}<span class="tier-help">拖动因子到此处</span></div>
           <div class="selected-list">${entries.length ? entries.map((item) => {
             const key = ranking.factorKey(item.type, item.num);
             const itemMeta = factorVisualMeta(item);
-            return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前 P${tier}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
+            return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前${required ? "必需" : ` P${tier}`}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
               <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
               <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(item.subtype || "因子")}</div></div>
               <label class="compact-factor-field total-star-field">家系至少
@@ -474,13 +481,13 @@
                   ${Array.from({ length: ranking.MAX_SELF_STARS }, (_, index) => index + 1).map((stars) => `<option value="${stars}" ${stars === ranking.clampSelfStars(item.minSelfStars) ? "selected" : ""}>${stars}★</option>`).join("")}
                 </select>
               </label>
-              <label class="tier-field">P级
+              <label class="tier-field">优先级
                 <select class="tier-select" data-tier-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}优先级">
-                  ${[1, 2, 3].map((value) => `<option value="${value}" ${value === tier ? "selected" : ""}>P${value}</option>`).join("")}
+                  ${tierOptions.map((value) => `<option value="${value}" ${value === tier ? "selected" : ""}>${value === ranking.REQUIRED_TIER ? "必需" : `P${value}`}</option>`).join("")}
                 </select>
               </label>
             </div>`;
-          }).join("") : `<div class="tier-empty">${selected.length ? `暂无 P${tier} 因子，可拖动到这里` : "请先从上方目录选择因子"}</div>`}</div>
+          }).join("") : `<div class="tier-empty">${selected.length ? `暂无${required ? "必需" : ` P${tier}`}因子，可拖动到这里` : "请先从上方目录选择因子"}</div>`}</div>
         </div>`;
     }).join("");
   }
@@ -640,7 +647,8 @@
           const resultMeta = [
             heroName ? `ID ${id}` : "",
             `${Number(hero.win_race_count || 0)} 胜`,
-            `双门槛达标 ${item.satisfiedCount}/${item.requestedCount}`
+            `双门槛达标 ${item.satisfiedCount}/${item.requestedCount}`,
+            item.requiredRequestedCount ? `必需达标 ${item.requiredSatisfiedCount}/${item.requiredRequestedCount}` : ""
           ].filter(Boolean).join(" · ");
           const image = hero.icon_url || "";
           const totalShortfallCount = item.matches.filter((match) => !match.meetsTotalThreshold).length;
@@ -655,7 +663,7 @@
             <div class="breakdown">${renderBreakdown(item)}</div>
             <div class="match-list">${item.matches.slice(0, 10).map((match) => {
               const matchMeta = factorVisualMeta(match);
-              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${escapeHtml(match.name)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(match.name)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
             }).join("")}</div>
             <div class="result-actions"><span class="scope-note">第 ${index + 1} 名 · 缺少 ${item.misses.length} 项 · 家系不足 ${totalShortfallCount} 项 · 本体不足 ${selfShortfallCount} 项</span><button class="copy-button" type="button" data-copy-id="${escapeHtml(id)}">${ICONS.copy}复制 ID</button></div>
           </article>`;
@@ -676,7 +684,7 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">家系与本体星级均为最低门槛：选择 1★ 时，2★、3★等更高星级同样达标。新因子默认进入 P1；再次点击目录中的同一因子即可取消。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重），优先于 P1 / P2 / P3。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">
@@ -837,7 +845,7 @@
       const current = state.selected.get(key);
       const next = {
         ...factor,
-        tier: current ? ranking.clampTier(current.tier, 1) : 1,
+        tier: current ? ranking.clampTier(current.tier, 1, factor.colorId === "white") : 1,
         minStars: item.explicitTotal
           ? ranking.clampFactorStars(item.minStars)
           : current ? ranking.clampFactorStars(current.minStars) : 1,
@@ -955,7 +963,7 @@
         const item = state.selected.get(key);
         clearActiveBlocks();
         if (!item) return;
-        const nextTier = ranking.clampTier(block.dataset.factorTier, item.tier);
+        const nextTier = ranking.clampTier(block.dataset.factorTier, item.tier, item.colorId === "white");
         if (item.tier === nextTier) return;
         invalidateFactorImportUndo();
         item.tier = nextTier;
@@ -1103,7 +1111,7 @@
       const item = state.selected.get(select.dataset.tierKey);
       if (!item) return;
       invalidateFactorImportUndo();
-      item.tier = ranking.clampTier(select.value, item.tier);
+      item.tier = ranking.clampTier(select.value, item.tier, item.colorId === "white");
       state.selected.set(select.dataset.tierKey, item);
       savePreferences();
       render();

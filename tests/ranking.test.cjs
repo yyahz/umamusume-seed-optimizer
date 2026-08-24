@@ -81,6 +81,8 @@ test("color drag ordering supports full-range before and after drops", () => {
   assert.equal(ranking.clampTier(0), 1);
   assert.equal(ranking.clampTier(2), 2);
   assert.equal(ranking.clampTier(9), 3);
+  assert.equal(ranking.clampTier(4), 3);
+  assert.equal(ranking.clampTier(4, 2, true), ranking.REQUIRED_TIER);
 });
 
 test("ranking prioritizes the stronger high-priority color match", () => {
@@ -95,6 +97,52 @@ test("ranking prioritizes the stronger high-priority color match", () => {
   const result = ranking.rankCandidates([lowerColors, blueStrong], preferences);
   assert.equal(result[0].candidate.role_id, "blue-strong");
   assert.ok(result[0].score > result[1].score);
+});
+
+test("blue and red factors receive zero credit unless both thresholds are met", () => {
+  const hardPreferences = {
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [
+      { type: 1, num: 1, name: "速度", tier: 1, minStars: 7, minSelfStars: 2, colorId: "blue" },
+      { type: 2, num: 31, name: "短距离", tier: 1, minStars: 5, minSelfStars: 2, colorId: "red" }
+    ]
+  };
+  const below = candidate("below", [
+    { type: 1, num: 1, stars: 6, rarity: 3 },
+    { type: 2, num: 31, stars: 9, rarity: 1 }
+  ]);
+  const meets = candidate("meets", [
+    { type: 1, num: 1, stars: 7, rarity: 2 },
+    { type: 2, num: 31, stars: 5, rarity: 2 }
+  ]);
+  const belowScore = ranking.scoreCandidate(below, hardPreferences);
+  const meetsScore = ranking.scoreCandidate(meets, hardPreferences);
+
+  assert.equal(belowScore.breakdown.blue.score, 0);
+  assert.equal(belowScore.breakdown.red.score, 0);
+  assert.equal(meetsScore.breakdown.blue.score, 100);
+  assert.equal(meetsScore.breakdown.red.score, 100);
+});
+
+test("required white factors are hard thresholds and outweigh P1", () => {
+  const requiredPreferences = {
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [
+      { type: 6, num: 30001, name: "URA剧本", tier: ranking.REQUIRED_TIER, minStars: 3, minSelfStars: 1, colorId: "white" },
+      { type: 4, num: 20001, name: "顺时针○", tier: 1, minStars: 3, minSelfStars: 1, colorId: "white" }
+    ]
+  };
+  const requiredOnly = candidate("required", [{ type: 6, num: 30001, stars: 3, rarity: 1 }]);
+  const p1Only = candidate("p1", [{ type: 4, num: 20001, stars: 9, rarity: 3 }]);
+  const requiredBelow = candidate("required-below", [{ type: 6, num: 30001, stars: 2, rarity: 3 }]);
+  const ranked = ranking.rankCandidates([p1Only, requiredOnly], requiredPreferences);
+  const belowScore = ranking.scoreCandidate(requiredBelow, requiredPreferences);
+
+  assert.equal(ranked[0].candidate.role_id, "required");
+  assert.equal(ranked[0].requiredSatisfiedCount, 1);
+  assert.equal(ranked[0].requiredRequestedCount, 1);
+  assert.equal(belowScore.requiredSatisfiedCount, 0);
+  assert.equal(belowScore.matches[0].meetsThreshold, false);
 });
 
 test("category normalization prevents a long white wishlist from multiplying its color weight", () => {
@@ -141,6 +189,25 @@ test("query planner includes baseline, combined top six, and bounded single-fact
   assert.equal(plans[1].id, "combined");
   assert.equal(plans[1].filters[0].values.length, 6);
   assert.equal(plans.filter((plan) => plan.id.startsWith("factor-")).length, 12);
+});
+
+test("required white factors are discovered before white P1, P2, and P3", () => {
+  const plans = ranking.planQueries({
+    colorOrder: ["blue", "red", "green", "white"],
+    desiredFactors: [1, 2, 3, ranking.REQUIRED_TIER].map((tier) => ({
+      type: 4,
+      num: 40_000 + tier,
+      name: tier === ranking.REQUIRED_TIER ? "必需白" : `P${tier}白`,
+      tier,
+      minStars: 1,
+      minSelfStars: 1,
+      colorId: "white"
+    }))
+  }, 12);
+  assert.deepEqual(
+    plans.filter((plan) => plan.id.startsWith("factor-")).map((plan) => plan.label),
+    ["必需白", "P1白", "P2白", "P3白"]
+  );
 });
 
 test("factor filters preserve each selected 1-9 star threshold", () => {

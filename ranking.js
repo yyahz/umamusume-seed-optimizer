@@ -16,7 +16,8 @@
   ]);
   const DEFAULT_COLOR_ORDER = Object.freeze(COLOR_DEFINITIONS.map((item) => item.id));
   const COLOR_WEIGHTS = Object.freeze([8, 4, 2, 1]);
-  const TIER_WEIGHTS = Object.freeze({ 1: 9, 2: 3, 3: 1 });
+  const REQUIRED_TIER = 4;
+  const TIER_WEIGHTS = Object.freeze({ 1: 9, 2: 3, 3: 1, [REQUIRED_TIER]: 100 });
   const MIN_FACTOR_STARS = 1;
   const MAX_FACTOR_STARS = 9;
   const MIN_SELF_STARS = 1;
@@ -58,8 +59,14 @@
     );
   }
 
-  function clampTier(value, fallback = 2) {
-    return Math.min(3, Math.max(1, Math.trunc(toFiniteNumber(value, fallback))));
+  function clampTier(value, fallback = 2, allowRequired = false) {
+    const parsed = Math.trunc(toFiniteNumber(value, fallback));
+    if (allowRequired && parsed === REQUIRED_TIER) return REQUIRED_TIER;
+    return Math.min(3, Math.max(1, parsed));
+  }
+
+  function tierPriorityRank(tier) {
+    return Number(tier) === REQUIRED_TIER ? 0 : clampTier(tier) ;
   }
 
   function candidateFactorNumber(factor) {
@@ -110,7 +117,7 @@
       type,
       num: raw.num,
       name: String(raw.name || raw.num || "未命名因子"),
-      tier: clampTier(raw.tier),
+      tier: clampTier(raw.tier, 2, colorId === "white"),
       minStars: clampFactorStars(raw.minStars),
       minSelfStars: clampSelfStars(raw.minSelfStars),
       colorId,
@@ -165,15 +172,20 @@
         const meetsThreshold = meetsTotalThreshold && meetsSelfThreshold;
         const totalProgress = actual ? Math.min(stars / preference.minStars, 1) : 0;
         const selfProgress = actual ? Math.min(selfStars / preference.minSelfStars, 1) : 0;
-        // Reaching the selected threshold matters most. Partial progress still
-        // receives credit so a near miss ranks above a completely absent factor.
-        const strength = !actual
-          ? 0
-          : meetsThreshold
-            ? 0.85
-              + 0.1 * Math.min(stars, MAX_FACTOR_STARS) / MAX_FACTOR_STARS
-              + 0.05 * Math.min(selfStars, MAX_SELF_STARS) / MAX_SELF_STARS
-            : 0.7 * (totalProgress + selfProgress) / 2;
+        // Blue/red factors and required white factors are binary hard gates.
+        // Other colors/tiers retain partial progress for near misses.
+        const hardThreshold = colorId === "blue"
+          || colorId === "red"
+          || (colorId === "white" && preference.tier === REQUIRED_TIER);
+        const strength = hardThreshold
+          ? (meetsThreshold ? 1 : 0)
+          : !actual
+            ? 0
+            : meetsThreshold
+              ? 0.85
+                + 0.1 * Math.min(stars, MAX_FACTOR_STARS) / MAX_FACTOR_STARS
+                + 0.05 * Math.min(selfStars, MAX_SELF_STARS) / MAX_SELF_STARS
+              : 0.7 * (totalProgress + selfProgress) / 2;
         available += tierWeight;
         earned += tierWeight * strength;
         if (actual) {
@@ -219,6 +231,12 @@
       };
     }
 
+    const required = desired.filter((item) => item.colorId === "white" && item.tier === REQUIRED_TIER);
+    const requiredSatisfiedCount = required.filter((preference) => {
+      const actual = candidateFactors.get(factorKey(preference.type, preference.num));
+      return candidateFactorStars(actual) >= preference.minStars
+        && candidateFactorSelfStars(actual) >= preference.minSelfStars;
+    }).length;
     const score = activeColorWeight ? weightedScore / activeColorWeight * 100 : 0;
     return {
       candidate,
@@ -230,7 +248,9 @@
       satisfied,
       matchedCount: matches.length,
       satisfiedCount: satisfied.length,
-      requestedCount: desired.length
+      requestedCount: desired.length,
+      requiredSatisfiedCount,
+      requiredRequestedCount: required.length
     };
   }
 
@@ -239,6 +259,9 @@
       .map((candidate) => scoreCandidate(candidate, preferences))
       .sort((left, right) => {
         if (right.score !== left.score) return right.score - left.score;
+        if (right.requiredSatisfiedCount !== left.requiredSatisfiedCount) {
+          return right.requiredSatisfiedCount - left.requiredSatisfiedCount;
+        }
         if (right.satisfiedCount !== left.satisfiedCount) {
           return right.satisfiedCount - left.satisfiedCount;
         }
@@ -282,7 +305,8 @@
       .sort((left, right) => {
         const colorDelta = colorOrder.indexOf(left.colorId) - colorOrder.indexOf(right.colorId);
         if (colorDelta) return colorDelta;
-        if (left.tier !== right.tier) return left.tier - right.tier;
+        const tierDelta = tierPriorityRank(left.tier) - tierPriorityRank(right.tier);
+        if (tierDelta) return tierDelta;
         if (left.minStars !== right.minStars) return right.minStars - left.minStars;
         if (left.minSelfStars !== right.minSelfStars) return right.minSelfStars - left.minSelfStars;
         return left.name.localeCompare(right.name, "zh-CN");
@@ -347,6 +371,7 @@
     DEFAULT_COLOR_ORDER,
     COLOR_WEIGHTS,
     TIER_WEIGHTS,
+    REQUIRED_TIER,
     MIN_FACTOR_STARS,
     MAX_FACTOR_STARS,
     MIN_SELF_STARS,
@@ -356,6 +381,7 @@
     clampFactorStars,
     clampSelfStars,
     clampTier,
+    tierPriorityRank,
     normalizeColorOrder,
     reorderColor,
     scoreCandidate,
