@@ -32,3 +32,12 @@ test("result cards keep names, star values, and the copy action compact", () => 
   assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
   assert.match(contentSource, /每页包含 20 位候选/);
 });
+
+test("selected factors can be reset in one click and restored", () => {
+  assert.match(contentSource, /id="reset-factors"[^>]*>重置因子<\/button>/);
+  assert.match(contentSource, /function resetSelectedFactors\(\)/);
+  assert.match(contentSource, /state\.selected\.clear\(\)/);
+  assert.match(contentSource, /撤销本次重置/);
+  assert.match(contentSource, /角色、颜色顺序和搜索范围保持不变/);
+  assert.match(contentSource, /state\.results = Array\.isArray\(undo\.results\)/);
+});

@@ -210,6 +210,9 @@
       .role-rarity { margin-top:3px; color:#9a6700; font-size:10px; font-weight:800; letter-spacing:.04em; }
       .selected-role-summary { min-height:36px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; border-radius:11px; padding:6px 9px; color:var(--muted); background:var(--surface-2); font-size:11px; }
       .clear-roles { min-height:44px; flex:0 0 auto; border:0; border-radius:10px; padding:0 12px; color:var(--brand-dark); background:#e9f7ef; font-size:12px; font-weight:750; }
+      .section-head-actions { display:flex; flex:0 0 auto; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:7px; }
+      .reset-factors { min-height:44px; border:1px solid #e7b9b4; border-radius:10px; padding:0 11px; color:var(--danger); background:#fff7f6; font-size:12px; font-weight:800; }
+      .reset-factors:hover { border-color:var(--danger); background:#fff0ee; }
       .quick-recognizer { margin-bottom:12px; border:1px solid #cfe3d6; border-radius:14px; padding:12px; background:#f6fbf8; }
       .recognizer-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
       .recognizer-label { display:block; color:var(--ink); font-size:13px; font-weight:800; }
@@ -531,9 +534,10 @@
   function renderRecognitionNotice() {
     if (!state.recognitionNotice) return "";
     const kind = state.recognitionNotice.kind === "error" ? "error" : "success";
+    const undoLabel = state.importUndo?.kind === "reset" ? "撤销本次重置" : "撤销本次导入";
     return `<div class="recognition-notice ${kind}" id="recognition-notice" role="status">
       <span>${escapeHtml(state.recognitionNotice.message)}</span>
-      ${state.importUndo ? '<button class="undo-import" id="undo-factor-import" type="button">撤销本次导入</button>' : ""}
+      ${state.importUndo ? `<button class="undo-import" id="undo-factor-import" type="button">${undoLabel}</button>` : ""}
     </div>`;
   }
 
@@ -672,7 +676,7 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">家系与本体星级均为最低门槛：选择 1★ 时，2★、3★等更高星级同样达标。新因子默认进入 P1；再次点击目录中的同一因子即可取消。</p></div><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">家系与本体星级均为最低门槛：选择 1★ 时，2★、3★等更高星级同样达标。新因子默认进入 P1；再次点击目录中的同一因子即可取消。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">
@@ -851,7 +855,7 @@
       state.selected.set(key, next);
     }
     const changed = added + updated;
-    state.importUndo = changed ? { selected: before } : null;
+    state.importUndo = changed ? { kind: "import", selected: before } : null;
     const skipped = (result.ambiguous?.length || 0) + (result.unknown?.length || 0);
     state.recognition = null;
     state.quickFactorText = "";
@@ -866,12 +870,48 @@
 
   function undoRecognizedFactorImport() {
     if (!state.importUndo?.selected) return;
-    state.selected = cloneSelectedMap(state.importUndo.selected);
+    const undo = state.importUndo;
+    const undoKind = undo.kind;
+    state.selected = cloneSelectedMap(undo.selected);
+    if (undoKind === "reset") {
+      state.results = Array.isArray(undo.results) ? undo.results : [];
+      state.status = undo.status || "已恢复重置前的因子选择。";
+      state.statusKind = undo.statusKind || "neutral";
+    }
     state.importUndo = null;
-    state.recognitionNotice = { kind: "success", message: "已撤销上一次一键识别导入。" };
+    state.recognitionNotice = {
+      kind: "success",
+      message: undoKind === "reset" ? "已恢复重置前的因子选择。" : "已撤销上一次一键识别导入。"
+    };
     savePreferences();
     render();
     setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
+  }
+
+  function resetSelectedFactors() {
+    if (!state.selected.size) return;
+    const before = cloneSelectedMap();
+    const clearedCount = state.selected.size;
+    const undo = {
+      kind: "reset",
+      selected: before,
+      results: state.results,
+      status: state.status,
+      statusKind: state.statusKind
+    };
+    state.selected.clear();
+    state.results = [];
+    state.recognition = null;
+    state.importUndo = undo;
+    state.recognitionNotice = {
+      kind: "success",
+      message: `已重置 ${clearedCount} 个已选因子；角色、颜色顺序和搜索范围保持不变。`
+    };
+    state.statusKind = "neutral";
+    state.status = "已清空因子选择；可以重新选择或撤销本次重置。";
+    savePreferences();
+    render();
+    setTimeout(() => shadow.getElementById("undo-factor-import")?.focus(), 0);
   }
 
   function bindFactorTierDrag() {
@@ -955,6 +995,7 @@
     });
     shadow.getElementById("apply-factor-recognition")?.addEventListener("click", applyRecognizedFactors);
     shadow.getElementById("undo-factor-import")?.addEventListener("click", undoRecognizedFactorImport);
+    shadow.getElementById("reset-factors")?.addEventListener("click", resetSelectedFactors);
     const priorityList = shadow.getElementById("priority-list");
     if (priorityList) {
       bindPriorityDrag(priorityList);
