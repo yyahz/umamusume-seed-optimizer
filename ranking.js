@@ -22,7 +22,7 @@
   const MAX_FACTOR_STARS = 9;
   const MIN_SELF_STARS = 0;
   const MAX_SELF_STARS = 3;
-  const DEFAULT_SELF_STARS = 1;
+  const DEFAULT_SELF_STARS = 0;
   const TYPE_TO_COLOR = new Map(
     COLOR_DEFINITIONS.flatMap((definition) =>
       definition.types.map((type) => [type, definition.id])

@@ -563,7 +563,7 @@
         ? null
         : state.selected.get(ranking.factorKey(factor.type, factor.num));
       const totalStars = item.explicitTotal ? item.minStars : current?.minStars ?? 1;
-      const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? 1;
+      const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? ranking.DEFAULT_SELF_STARS;
       const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
       const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
       return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
@@ -599,7 +599,7 @@
     return `<div class="quick-recognizer">
       <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
       <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
-      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 1★，并进入 P1。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
+      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★，并进入 P1。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
       ${renderRecognitionNotice()}
       ${renderRecognitionPreview()}
     </div>`;
@@ -851,7 +851,7 @@
           : current ? ranking.clampFactorStars(current.minStars) : 1,
         minSelfStars: item.explicitSelf
           ? ranking.clampSelfStars(item.minSelfStars)
-          : current ? ranking.clampSelfStars(current.minSelfStars) : 1
+          : current ? ranking.clampSelfStars(current.minSelfStars) : ranking.DEFAULT_SELF_STARS
       };
       if (!current) added += 1;
       else if (
@@ -1084,7 +1084,7 @@
       const factor = state.factors.find((item) => ranking.factorKey(item.type, item.num) === key);
       if (!factor) return;
       invalidateFactorImportUndo();
-      state.selected.set(key, { ...factor, tier: 1, minStars: 1, minSelfStars: 1 });
+      state.selected.set(key, { ...factor, tier: 1, minStars: 1, minSelfStars: ranking.DEFAULT_SELF_STARS });
       savePreferences();
       render();
       const nextSearch = shadow.getElementById("factor-search");

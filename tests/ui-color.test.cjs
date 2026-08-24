@@ -58,3 +58,8 @@ test("self star selectors include zero as no self-factor requirement", () => {
 test("color order explains its equal-score tie breaker", () => {
   assert.match(contentSource, /综合分相同时也会严格按本顺序逐色比较/);
 });
+
+test("new factors default to zero self stars", () => {
+  assert.match(contentSource, /默认家系 1★、本体 0★/);
+  assert.match(contentSource, /minSelfStars: ranking\.DEFAULT_SELF_STARS/);
+});

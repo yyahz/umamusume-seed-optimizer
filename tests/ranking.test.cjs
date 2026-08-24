@@ -270,7 +270,8 @@ test("self and discovery filters use the observed self_rarity encoding", () => {
     { type: 4, values: [{ num: 20001, rarity: 5 }] }
   ]);
   assert.equal(ranking.clampSelfStars(0), 0);
-  assert.equal(ranking.clampSelfStars(undefined), 1);
+  assert.equal(ranking.DEFAULT_SELF_STARS, 0);
+  assert.equal(ranking.clampSelfStars(undefined), 0);
   assert.equal(ranking.clampSelfStars(8), 3);
 });
 
