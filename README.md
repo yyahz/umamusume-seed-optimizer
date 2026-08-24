@@ -24,20 +24,22 @@
 
 ## 安装
 
-普通用户优先从 Chrome 网上应用店或 Microsoft Edge 加载项商店安装。商店审核完成前，也可以继续使用下方的开发者模式安装方法。项目维护者可按[商店发布指南](./store-listing/STORE_SUBMISSION.md)生成并提交精简发布包。
+本扩展通过 GitHub Releases 分发，不需要 Chrome 或 Edge 扩展商店。
 
 ### 准备工作
 
 - Chrome 或 Microsoft Edge 的较新版本。
-- 本仓库完整目录；不要只下载某一个 JavaScript 文件。
+- 从 [GitHub Releases](https://github.com/yyahz/umamusume-seed-optimizer/releases/latest) 下载最新的 `umamusume-seed-optimizer-v版本号.zip`。
 - 可正常访问吗哩吗哩工具箱的 B 站账号。
+
+下载 ZIP 后，先将它完整解压到一个不会被随意删除的文件夹。不要直接在压缩包预览窗口中加载，也不要只解压某一个 JavaScript 文件。
 
 ### Chrome
 
 1. 打开 `chrome://extensions`。
 2. 打开页面右上角的“开发者模式”。
 3. 点击“加载已解压的扩展程序”。
-4. 选择本仓库根目录，也就是包含 `manifest.json` 的目录。
+4. 选择刚刚解压、并且直接包含 `manifest.json` 的目录。
 5. 打开[吗哩吗哩工具箱](https://game.bilibili.com/tool/pd)，手动登录后刷新页面。
 6. 点击页面右下角的“种马优选器”。
 
@@ -46,11 +48,13 @@
 1. 打开 `edge://extensions`。
 2. 打开左侧的“开发人员模式”。
 3. 点击“加载解压缩的扩展”。
-4. 选择本仓库根目录，也就是包含 `manifest.json` 的目录。
+4. 选择刚刚解压、并且直接包含 `manifest.json` 的目录。
 5. 打开[吗哩吗哩工具箱](https://game.bilibili.com/tool/pd)，手动登录后刷新页面。
 6. 点击页面右下角的“种马优选器”。
 
 如果没有看到“加载已解压”按钮，请先确认开发者模式已经打开；浏览器受学校或公司策略管理时，该功能也可能被管理员禁用。
+
+更新版本时，重新下载最新 ZIP，解压并替换原文件，然后在扩展管理页点击“重新加载”。角色、因子和优先级偏好通常仍会保存在浏览器的扩展本地存储中。
 
 ## 使用
 
@@ -144,9 +148,7 @@ node --check content.js
 | `content.js` | 面板 UI、交互、偏好存储与搜索流程 |
 | `tests/` | Node.js 单元测试与浏览器静态检查页 |
 | `reverse-notes/` | 接口字段和行为的复核记录 |
-| `scripts/build-store-packages.ps1` | 生成并校验 Chrome / Edge 商店 ZIP |
-| `store-listing/` | 商店文案、权限说明、审核备注与提交流程 |
-| `store-assets/` | 已脱敏的商店图标、宣传图和离线截图 |
+| `scripts/build-release.ps1` | 生成并校验供 GitHub Releases 分发的安装 ZIP |
 
 ## 免责声明
 

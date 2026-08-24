@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "闪耀优俊少女 · 种马优选器",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "在吗哩吗哩工具箱内一键识别因子要求，并按角色、星级和优先级搜索排序好友种马。",
   "icons": {
     "16": "icons/icon-16.png",
