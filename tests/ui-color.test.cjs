@@ -39,6 +39,11 @@ test("result cards append unrequested blue and red lineage factors without dupli
   assert.equal(contentSource.includes("item.matches.slice(0, 10)"), false);
 });
 
+test("result cards place all blue and red factors before green and white matches", () => {
+  assert.match(contentSource, /match\.colorId === "blue" \|\| match\.colorId === "red"/);
+  assert.match(contentSource, /return \[\.\.\.requestedBlueRed, \.\.\.additional, \.\.\.requestedOther\]\.join\(""\)/);
+});
+
 test("selected factors can be reset in one click and restored", () => {
   assert.match(contentSource, /id="reset-factors"[^>]*>重置因子<\/button>/);
   assert.match(contentSource, /function resetSelectedFactors\(\)/);

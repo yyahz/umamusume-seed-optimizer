@@ -709,16 +709,20 @@
     );
     const additionalBlueRed = ranking.summarizeCandidateFactors(item.candidate, [1, 2])
       .filter((factor) => !requestedKeys.has(ranking.factorKey(factor.type, factor.num)));
-    const requested = item.matches.map((match) => {
+    const requestedBlueRed = [];
+    const requestedOther = [];
+    for (const match of item.matches) {
       const matchMeta = factorVisualMeta(match);
       const matchName = match.virtualGold ? `${match.name} → ${match.lowerSkillName}` : match.name;
-      return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
-    });
+      const chip = `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+      if (match.colorId === "blue" || match.colorId === "red") requestedBlueRed.push(chip);
+      else requestedOther.push(chip);
+    }
     const additional = additionalBlueRed.map((factor) => {
       const factorMeta = factorVisualMeta(factor);
       return `<span class="match-chip lineage-factor" title="额外${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factor.name)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
     });
-    return [...requested, ...additional].join("");
+    return [...requestedBlueRed, ...additional, ...requestedOther].join("");
   }
 
   function renderResults() {
