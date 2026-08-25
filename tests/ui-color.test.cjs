@@ -32,6 +32,13 @@ test("result cards keep names, star values, and the copy action compact", () => 
   assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
 });
 
+test("result cards append unrequested blue and red lineage factors without duplicates", () => {
+  assert.match(contentSource, /summarizeCandidateFactors\(item\.candidate, \[1, 2\]\)/);
+  assert.match(contentSource, /requestedKeys\.has\(ranking\.factorKey\(factor\.type, factor\.num\)\)/);
+  assert.match(contentSource, /title="额外\$\{factorMeta\.name\}"/);
+  assert.equal(contentSource.includes("item.matches.slice(0, 10)"), false);
+});
+
 test("selected factors can be reset in one click and restored", () => {
   assert.match(contentSource, /id="reset-factors"[^>]*>重置因子<\/button>/);
   assert.match(contentSource, /function resetSelectedFactors\(\)/);

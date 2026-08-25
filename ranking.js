@@ -144,6 +144,29 @@
     return indexed;
   }
 
+  function summarizeCandidateFactors(candidate, includedTypes = [1, 2]) {
+    const allowedTypes = new Set(
+      (Array.isArray(includedTypes) ? includedTypes : [includedTypes])
+        .map(Number)
+        .filter(Number.isFinite)
+    );
+    return [...indexCandidateFactors(candidate).values()]
+      .filter((factor) => allowedTypes.has(Number(factor.type)))
+      .map((factor) => {
+        const type = Number(factor.type);
+        const num = candidateFactorNumber(factor);
+        return {
+          type,
+          num,
+          name: String(factor.name || factor.factor_name || num || "未命名因子"),
+          stars: candidateFactorStars(factor),
+          selfStars: candidateFactorSelfStars(factor),
+          colorId: TYPE_TO_COLOR.get(type),
+          subtype: TYPE_NAMES[type] || "其他"
+        };
+      });
+  }
+
   function scoreCandidate(candidate, preferences) {
     const colorOrder = normalizeColorOrder(preferences?.colorOrder);
     const desired = (preferences?.desiredFactors || [])
@@ -422,6 +445,7 @@
     reorderColor,
     scoreCandidate,
     rankCandidates,
+    summarizeCandidateFactors,
     buildFactorFilters,
     planQueries,
     flattenFactorResponse,

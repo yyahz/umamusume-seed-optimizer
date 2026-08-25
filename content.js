@@ -703,6 +703,24 @@
     }).join("");
   }
 
+  function renderResultFactors(item) {
+    const requestedKeys = new Set(
+      item.matches.map((match) => ranking.factorKey(match.type, match.num))
+    );
+    const additionalBlueRed = ranking.summarizeCandidateFactors(item.candidate, [1, 2])
+      .filter((factor) => !requestedKeys.has(ranking.factorKey(factor.type, factor.num)));
+    const requested = item.matches.map((match) => {
+      const matchMeta = factorVisualMeta(match);
+      const matchName = match.virtualGold ? `${match.name} → ${match.lowerSkillName}` : match.name;
+      return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+    });
+    const additional = additionalBlueRed.map((factor) => {
+      const factorMeta = factorVisualMeta(factor);
+      return `<span class="match-chip lineage-factor" title="额外${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factor.name)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
+    });
+    return [...requested, ...additional].join("");
+  }
+
   function renderResults() {
     if (!state.results.length) return "";
     return `
@@ -731,11 +749,7 @@
             </div>
             <div class="score-track" role="progressbar" aria-label="综合匹配" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${item.score.toFixed(1)}"><div class="score-fill" style="width:${Math.max(0, Math.min(100, item.score))}%"></div></div>
             <div class="breakdown">${renderBreakdown(item)}</div>
-            <div class="match-list">${item.matches.slice(0, 10).map((match) => {
-              const matchMeta = factorVisualMeta(match);
-              const matchName = match.virtualGold ? `${match.name} → ${match.lowerSkillName}` : match.name;
-              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
-            }).join("")}</div>
+            <div class="match-list">${renderResultFactors(item)}</div>
             <div class="result-actions"><span class="scope-note">第 ${index + 1} 名 · 缺少 ${item.misses.length} 项 · 家系不足 ${totalShortfallCount} 项 · 本体不足 ${selfShortfallCount} 项</span><button class="copy-button" type="button" data-copy-id="${escapeHtml(id)}">${ICONS.copy}复制 ID</button></div>
           </article>`;
         }).join("")}</div>

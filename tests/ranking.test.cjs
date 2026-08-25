@@ -326,6 +326,21 @@ test("family and self star selections are minimum thresholds, not exact matches"
   assert.equal(result.satisfiedCount, 1);
 });
 
+test("candidate summaries expose all blue and red factors without white factors", () => {
+  const source = candidate("factor-summary", [
+    { type: 1, num: 1, name: "速度", total_rarity: 7, rarity: 2 },
+    { type: 1, num: 2, name: "耐力", total_rarity: 5, rarity: 1 },
+    { type: 2, num: 31, name: "英里", total_rarity: 9, rarity: 3 },
+    { type: 4, num: 20001, name: "顺时针○", total_rarity: 6, rarity: 2 }
+  ]);
+
+  assert.deepEqual(ranking.summarizeCandidateFactors(source), [
+    { type: 1, num: 1, name: "速度", stars: 7, selfStars: 2, colorId: "blue", subtype: "属性" },
+    { type: 1, num: 2, name: "耐力", stars: 5, selfStars: 1, colorId: "blue", subtype: "属性" },
+    { type: 2, num: 31, name: "英里", stars: 9, selfStars: 3, colorId: "red", subtype: "适性" }
+  ]);
+});
+
 test("factor response flattener preserves the three white subtypes", () => {
   const factors = ranking.flattenFactorResponse([{ factor_groups: [
     { type: 4, factors: [{ type: 4, num: 1, name: "技能白" }] },
