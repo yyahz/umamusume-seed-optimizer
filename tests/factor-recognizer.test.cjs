@@ -28,7 +28,10 @@ const catalog = [
   factor(4, 904, "沙浴○"),
   factor(4, 905, "领跑弯道○"),
   factor(4, 906, "太阳的睿智"),
-  factor(4, 907, "无法阻挡的热情冲刺")
+  factor(4, 907, "无法阻挡的热情冲刺"),
+  factor(4, 908, "马力全开"),
+  factor(4, 909, "马力全开！"),
+  factor(3, 910, "向着，更远的地方……")
 ];
 
 const index = recognizer.buildCatalogIndex(catalog, {
@@ -298,6 +301,40 @@ test("long names allow proportional multi-character OCR correction without relax
   assert.equal(traditional.resolved[0].matchKind, "traditional-fuzzy-multi");
   assert.equal(tooManyErrors.resolved.length, 0);
   assert.equal(shortNoise.resolved.length, 0);
+});
+
+test("restores a missing circle for an exact two-character skill base only", () => {
+  const restored = recognizer.recognizeFactorText("沙浴。", index);
+  const unrelated = recognizer.recognizeFactorText("猛中", index);
+
+  assert.equal(byName(restored, "沙浴○").matchKind, "fuzzy");
+  assert.equal(restored.canApply, true);
+  assert.equal(unrelated.resolved.length, 0);
+});
+
+test("uses literal punctuation to distinguish otherwise normalized canonical collisions", () => {
+  const white = recognizer.recognizeFactorText("马力全开", index);
+  const gold = recognizer.recognizeFactorText("马力全开！", index);
+
+  assert.deepEqual(white.resolved.map((item) => item.factor.name), ["马力全开"]);
+  assert.deepEqual(gold.resolved.map((item) => item.factor.name), ["马力全开！"]);
+  assert.equal(white.ambiguous.length, 0);
+  assert.equal(gold.ambiguous.length, 0);
+});
+
+test("joins two adjacent independently unknown OCR lines into one long factor", () => {
+  const result = recognizer.recognizeFactorText("向着，更\n更远的地方.", index);
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), ["向着，更远的地方……"]);
+  assert.equal(result.ambiguous.length, 0);
+  assert.equal(result.canApply, true);
+});
+
+test("does not join recommendation headers or relax the rejected short OCR sample", () => {
+  const result = recognizer.recognizeFactorText("领跑推荐\n领跑选学\n医猛中", index);
+
+  assert.equal(result.resolved.length, 0);
+  assert.equal(result.warnings.filter((warning) => warning.code === "ignored-line").length, 3);
 });
 
 test("single-line unknown residue remains strict", () => {

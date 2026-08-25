@@ -70,6 +70,10 @@
     return normalizeWithMap(input).text;
   }
 
+  function normalizeLiteralName(input) {
+    return String(input ?? "").normalize("NFKC").trim().replace(/\s+/g, " ");
+  }
+
   function factorKey(factor, normalizedName, ordinal) {
     if (factor && factor.key !== undefined && factor.key !== null) {
       return String(factor.key);
@@ -191,6 +195,7 @@
     const records = flattenFactorRecords(factors);
     const entries = [];
     const canonicalByName = new Map();
+    const literalByName = new Map();
     const entryByKey = new Map();
     const trie = createTrieNode();
     const issues = [];
@@ -209,6 +214,9 @@
       entries.push(entry);
       if (!canonicalByName.has(normalizedName)) canonicalByName.set(normalizedName, []);
       canonicalByName.get(normalizedName).push(entry);
+      const literalName = normalizeLiteralName(name);
+      if (!literalByName.has(literalName)) literalByName.set(literalName, []);
+      literalByName.get(literalName).push(entry);
       if (!entryByKey.has(entry.key)) entryByKey.set(entry.key, entry);
       insertSurface(trie, normalizedName, entry, "exact");
     });
@@ -278,6 +286,7 @@
       prefixLengths,
       aliases: installedAliases,
       issues,
+      literalByName,
       options: { ...options }
     };
   }
@@ -533,13 +542,17 @@
       });
     }
 
-    // OCR and voice input commonly replace or add one character. Only accept
-    // a whole-line, one-edit correction when it points to exactly one factor.
-    if (text.length >= 3 && !/[0-9○◎+]/.test(text)) {
+    // OCR and voice input commonly replace or add characters. Keep ordinary
+    // short names strict, but safely restore a missing ○ when a two-character
+    // whole line exactly equals that skill's base name (for example 沙浴。).
+    if (text.length >= 2 && !/[0-9○◎+]/.test(text)) {
       const fuzzyEntries = [
         ...index.entries.map((entry) => ({
           entry,
-          cost: fuzzyCorrectionCost(text, entry.normalizedName),
+          cost: text.length >= 3
+            || (entry.normalizedName.endsWith("○") && entry.normalizedName.slice(0, -1) === text)
+            ? fuzzyCorrectionCost(text, entry.normalizedName)
+            : null,
           matchKind: "fuzzy",
           surfaceLength: entry.normalizedName.length
         })),
@@ -547,7 +560,7 @@
           .filter((alias) => alias.matchKind === "traditional")
           .map((alias) => ({
             entry: alias.target,
-            cost: fuzzyCorrectionCost(text, alias.normalizedAlias),
+            cost: text.length >= 3 ? fuzzyCorrectionCost(text, alias.normalizedAlias) : null,
             matchKind: "traditional-fuzzy",
             surfaceLength: alias.normalizedAlias.length
           }))
@@ -756,7 +769,49 @@
     if (!index || !index.trie || !index.prefixMap) {
       throw new TypeError("recognizeFactorText requires an index from buildCatalogIndex().");
     }
-    const normalizedInput = normalizeWithMap(text);
+    const source = String(text ?? "");
+    const literalName = normalizeLiteralName(source);
+    const literalEntries = index.literalByName?.get(literalName) || [];
+    const uniqueLiteralEntries = new Map(literalEntries.map((entry) => [entry.key, entry]));
+    if (literalName && uniqueLiteralEntries.size === 1) {
+      const entry = [...uniqueLiteralEntries.values()][0];
+      const trimmedSource = source.trim();
+      const start = source.indexOf(trimmedSource);
+      const span = { start, end: start + trimmedSource.length };
+      const occurrence = {
+        sourceText: trimmedSource,
+        span,
+        minStars: null,
+        minSelfStars: null,
+        explicitTotal: false,
+        explicitSelf: false,
+        matchKind: "exact",
+        confidence: 1
+      };
+      return {
+        resolved: [{
+          factor: entry.factor,
+          key: entry.key,
+          minStars: null,
+          minSelfStars: null,
+          explicitTotal: false,
+          explicitSelf: false,
+          matchKind: "exact",
+          confidence: 1,
+          sourceText: trimmedSource,
+          span,
+          occurrences: [occurrence]
+        }],
+        ambiguous: [],
+        unknown: [],
+        warnings: [],
+        errors: [],
+        coverage: 1,
+        canApply: true
+      };
+    }
+
+    const normalizedInput = normalizeWithMap(source);
     if (!normalizedInput.text) {
       return {
         resolved: [],
@@ -865,11 +920,36 @@
     const ignoredWarnings = [];
     let normalizedLength = 0;
     let knownLength = 0;
-    for (const line of lines) {
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex];
       const normalizedLine = normalizeText(line);
       normalizedLength += normalizedLine.length;
-      const result = recognizeSingleFactorText(line, index);
-      knownLength += Math.round(result.coverage * normalizedLine.length);
+      let recognizedInputLength = normalizedLine.length;
+      let result = recognizeSingleFactorText(line, index);
+
+      // OCR may wrap one long factor across two neighboring lines. Only join
+      // lines that are both independently unrecognized and whose combined
+      // text resolves completely to one unique factor.
+      if (!result.resolved.length && !result.ambiguous.length && !result.errors.length
+        && lineIndex + 1 < lines.length) {
+        const nextLine = lines[lineIndex + 1];
+        const nextResult = recognizeSingleFactorText(nextLine, index);
+        const combinedResult = !nextResult.resolved.length
+          && !nextResult.ambiguous.length
+          && !nextResult.errors.length
+          ? recognizeSingleFactorText(`${line}${nextLine}`, index)
+          : null;
+        if (combinedResult?.canApply
+          && combinedResult.resolved.length === 1
+          && combinedResult.coverage === 1) {
+          const normalizedNextLine = normalizeText(nextLine);
+          result = combinedResult;
+          recognizedInputLength += normalizedNextLine.length;
+          normalizedLength += normalizedNextLine.length;
+          lineIndex += 1;
+        }
+      }
+      knownLength += Math.round(result.coverage * recognizedInputLength);
 
       if (!result.resolved.length && !result.ambiguous.length && !result.errors.length) {
         ignoredWarnings.push({
