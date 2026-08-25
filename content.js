@@ -181,7 +181,7 @@
       svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
       .launcher { position:fixed; right:18px; bottom:90px; z-index:2147483646; min-height:52px; border:0; border-radius:18px; padding:0 18px; display:flex; align-items:center; gap:9px; color:#fff; background:linear-gradient(135deg,#0d7848,#075834); box-shadow:0 12px 28px #075e3638; font-weight:700; }
       .launcher:hover { filter:brightness(1.04); }
-      .launcher svg { fill:currentColor; stroke:none; }
+      .launcher-icon { width:30px; height:30px; flex:0 0 auto; border-radius:9px; object-fit:cover; box-shadow:0 1px 5px #053d2530; }
       .scrim { position:fixed; inset:0; z-index:2147483645; background:#0d1d1566; opacity:0; pointer-events:none; transition:opacity 180ms ease-out; }
       .scrim.open { opacity:1; pointer-events:auto; }
       .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100vw,clamp(420px,40vw,620px)); height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
@@ -355,12 +355,12 @@
       @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .role-catalog { max-height:240px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
-    <button class="launcher" id="launcher" type="button" aria-label="打开种马优选器">${ICONS.spark}<span>种马优选器</span></button>
+    <button class="launcher" id="launcher" type="button" aria-label="打开种马搜索器"><img class="launcher-icon" src="${extensionIconUrl}" alt="" aria-hidden="true"><span>种马搜索器</span></button>
     <div class="scrim" id="scrim"></div>
     <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
-        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">by Songe</span></div></div></div>
-        <button class="icon-button" id="close" type="button" aria-label="关闭种马优选器">${ICONS.close}</button>
+        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">by Songe</span></div></div></div>
+        <button class="icon-button" id="close" type="button" aria-label="关闭种马搜索器">${ICONS.close}</button>
       </header>
       <div class="panel-body" id="body"></div>
       <footer class="action-bar"><div class="status" id="status" aria-live="polite"></div><button class="primary" id="search-button" type="button">开始寻找合适种马</button></footer>
@@ -565,6 +565,7 @@
   function recognitionMatchLabel(kind) {
     if (kind === "alias") return "安全简称匹配";
     if (kind === "prefix") return "唯一简称补全";
+    if (kind === "fuzzy") return "一字容错纠正";
     return "目录名称匹配";
   }
 

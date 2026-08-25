@@ -85,8 +85,17 @@ test("all factor names wrap instead of being truncated with an ellipsis", () => 
 test("panel header uses the packaged extension icon and subtle Songe credit", () => {
   assert.match(contentSource, /chrome\.runtime\.getURL\("icons\/icon-48\.png"\)/);
   assert.match(contentSource, /class="brand-mark"><img/);
+  assert.match(contentSource, /class="launcher-icon" src="\$\{extensionIconUrl\}"/);
+  assert.match(contentSource, /\.launcher-icon\s*\{[^}]*width:30px[^}]*height:30px/);
   assert.match(contentSource, /class="byline">by Songe<\/span>/);
   assert.match(contentSource, /\.byline\s*\{[^}]*opacity:\.62/);
+});
+
+test("product-facing text consistently uses the searcher name", () => {
+  assert.match(contentSource, /aria-label="打开种马搜索器"/);
+  assert.match(contentSource, /<span>种马搜索器<\/span>/);
+  assert.match(contentSource, /id="optimizer-title">种马搜索器<\/h1>/);
+  assert.equal(contentSource.includes("种马优选器"), false);
 });
 
 test("panel and catalogs respond to browser width and height", () => {

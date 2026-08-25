@@ -21,7 +21,12 @@ const catalog = [
   factor(4, 407, "顺时针○"),
   factor(6, 601, "URA剧本"),
   factor(4, 777, "777"),
-  factor(4, 900, "神速闪耀王")
+  factor(4, 900, "神速闪耀王"),
+  factor(4, 901, "夏日天空下的光晕"),
+  factor(4, 902, "逃脱术"),
+  factor(4, 903, "抢先"),
+  factor(4, 904, "沙浴○"),
+  factor(4, 905, "领跑弯道○")
 ];
 
 const index = recognizer.buildCatalogIndex(catalog);
@@ -237,4 +242,35 @@ test("avoids short-name prose false positives but accepts compact short lists", 
   assert.equal(prose.resolved.length, 0);
   assert.deepEqual(list.resolved.map((item) => item.factor.name), ["速度", "力量", "毅力"]);
   assert.equal(list.canApply, true);
+});
+
+test("multiline OCR lists correct one wrong or extra character and ignore noise lines", () => {
+  const result = recognizer.recognizeFactorText(
+    "愿者上钩\n领跑选学\n夏日天空下的光量\n位置感\n医逃脱术\n圆抢先\n园沙浴。\n领跑弯道。\n大\nb:",
+    index
+  );
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), [
+    "夏日天空下的光晕",
+    "位置感",
+    "逃脱术",
+    "抢先",
+    "沙浴○",
+    "领跑弯道○"
+  ]);
+  assert.equal(byName(result, "夏日天空下的光晕").matchKind, "fuzzy");
+  assert.equal(byName(result, "逃脱术").matchKind, "fuzzy");
+  assert.equal(byName(result, "抢先").matchKind, "fuzzy");
+  assert.equal(byName(result, "沙浴○").matchKind, "fuzzy");
+  assert.equal(byName(result, "领跑弯道○").matchKind, "prefix");
+  assert.equal(result.unknown.length, 0);
+  assert.ok(result.warnings.some((item) => item.text === "领跑选学"));
+  assert.ok(result.warnings.some((item) => item.text === "大"));
+  assert.equal(result.canApply, true);
+});
+
+test("single-line unknown residue remains strict", () => {
+  const result = recognizer.recognizeFactorText("毅力9火箭URA剧本", index);
+  assert.deepEqual(result.unknown.map((item) => item.normalized), ["火箭"]);
+  assert.equal(result.canApply, false);
 });

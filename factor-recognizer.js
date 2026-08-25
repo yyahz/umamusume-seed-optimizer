@@ -13,7 +13,7 @@
     "URA": "URA剧本"
   });
 
-  const MATCH_PRIORITY = Object.freeze({ exact: 3, alias: 2, prefix: 1 });
+  const MATCH_PRIORITY = Object.freeze({ exact: 4, alias: 3, prefix: 2, fuzzy: 1 });
   const MIN_PREFIX_LENGTH = 4;
   const MAX_PREFIX_MISSING = 2;
   const MIN_PREFIX_RATIO = 0.75;
@@ -131,6 +131,44 @@
     return [...byKey.values()].sort((left, right) =>
       left.entry.key.localeCompare(right.entry.key, "zh-CN")
     );
+  }
+
+  function boundedEditDistance(left, right, maximum = 1) {
+    if (Math.abs(left.length - right.length) > maximum) return maximum + 1;
+    let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+    for (let row = 1; row <= left.length; row += 1) {
+      const current = [row];
+      let rowMinimum = current[0];
+      for (let column = 1; column <= right.length; column += 1) {
+        const substitution = previous[column - 1] + (left[row - 1] === right[column - 1] ? 0 : 1);
+        current[column] = Math.min(previous[column] + 1, current[column - 1] + 1, substitution);
+        rowMinimum = Math.min(rowMinimum, current[column]);
+      }
+      if (rowMinimum > maximum) return maximum + 1;
+      previous = current;
+    }
+    return previous[right.length];
+  }
+
+  function fuzzyCorrectionCost(input, canonical) {
+    if (/[○◎+]/.test(input)) return null;
+
+    // A normal Chinese full stop is discarded during normalization. When a
+    // whole list line exactly names the lower ○ skill, safely restore ○ only;
+    // never infer ◎ or +, which change the requested factor.
+    if (canonical.endsWith("○")) {
+      const base = canonical.slice(0, -1);
+      if (input === base) return 1;
+      if (input.length === base.length + 1
+        && (input.slice(1) === base || input.slice(0, -1) === base)) return 2;
+      return null;
+    }
+    if (/[◎+]/.test(canonical)) return null;
+
+    if (canonical.length >= 3 && boundedEditDistance(input, canonical, 1) === 1) return 1;
+    if (canonical.length >= 2 && input.length === canonical.length + 1
+      && (input.slice(1) === canonical || input.slice(0, -1) === canonical)) return 1;
+    return null;
   }
 
   /** Build a reusable recognition index from the current live factor catalog. */
@@ -345,7 +383,7 @@
       );
       const confidence = terminalInfo.matchKind === "prefix"
         ? Math.min(0.9, (nameEnd - start) / canonicalLength * 0.9)
-        : 1;
+        : terminalInfo.matchKind === "fuzzy" ? 0.65 : 1;
       return {
         type: "ambiguous",
         start,
@@ -370,7 +408,9 @@
       ? 1
       : terminal.matchKind === "alias"
         ? 0.97
-        : Math.min(0.9, matchedLength / canonicalLength * 0.9);
+        : terminal.matchKind === "fuzzy"
+          ? 0.65
+          : Math.min(0.9, matchedLength / canonicalLength * 0.9);
     return {
       type: "resolved",
       start,
@@ -464,6 +504,27 @@
         const rightKey = right.entry?.key || right.entries.map((entry) => entry.key).join(",");
         return leftKey.localeCompare(rightKey, "zh-CN");
       });
+    }
+
+    // OCR and voice input commonly replace or add one character. Only accept
+    // a whole-line, one-edit correction when it points to exactly one factor.
+    if (text.length >= 3 && !/[0-9○◎+]/.test(text)) {
+      const fuzzyEntries = index.entries
+        .map((entry) => ({ entry, cost: fuzzyCorrectionCost(text, entry.normalizedName) }))
+        .filter((item) => item.cost !== null);
+      const minimumCost = fuzzyEntries.length
+        ? Math.min(...fuzzyEntries.map((item) => item.cost))
+        : null;
+      const unique = new Map(fuzzyEntries
+        .filter((item) => item.cost === minimumCost)
+        .map((item) => [item.entry.key, item.entry]));
+      if (unique.size === 1) {
+        const entry = [...unique.values()][0];
+        addActionVariants(byStart[0], normalizedInput, 0, text.length, {
+          ambiguous: false,
+          terminal: { entry, matchKind: "fuzzy" }
+        });
+      }
     }
 
     return byStart;
@@ -644,7 +705,7 @@
    * The returned thresholds remain null when omitted. Invalid values are kept
    * verbatim and surfaced through errors; callers must respect canApply.
    */
-  function recognizeFactorText(text, index) {
+  function recognizeSingleFactorText(text, index) {
     if (!index || !index.trie || !index.prefixMap) {
       throw new TypeError("recognizeFactorText requires an index from buildCatalogIndex().");
     }
@@ -726,6 +787,82 @@
       errors,
       coverage,
       canApply
+    };
+  }
+
+  function actionsFromResolved(records) {
+    return records.flatMap((record) => (record.occurrences || [record]).map((occurrence) => ({
+      type: "resolved",
+      entry: { factor: record.factor, key: record.key, name: record.factor?.name || record.key },
+      sourceText: occurrence.sourceText || record.sourceText,
+      span: occurrence.span || record.span,
+      minStars: occurrence.minStars ?? record.minStars,
+      minSelfStars: occurrence.minSelfStars ?? record.minSelfStars,
+      explicitTotal: occurrence.explicitTotal ?? record.explicitTotal,
+      explicitSelf: occurrence.explicitSelf ?? record.explicitSelf,
+      matchKind: occurrence.matchKind || record.matchKind,
+      confidence: occurrence.confidence ?? record.confidence,
+      validationErrors: []
+    })));
+  }
+
+  function recognizeFactorText(text, index) {
+    if (!index || !index.trie || !index.prefixMap) {
+      throw new TypeError("recognizeFactorText requires an index from buildCatalogIndex().");
+    }
+    const source = String(text ?? "");
+    const lines = source.split(/\r?\n/).filter((line) => normalizeText(line));
+    if (lines.length <= 1) return recognizeSingleFactorText(source, index);
+
+    const lineResults = [];
+    const ignoredWarnings = [];
+    let normalizedLength = 0;
+    let knownLength = 0;
+    for (const line of lines) {
+      const normalizedLine = normalizeText(line);
+      normalizedLength += normalizedLine.length;
+      const result = recognizeSingleFactorText(line, index);
+      knownLength += Math.round(result.coverage * normalizedLine.length);
+
+      if (!result.resolved.length && !result.ambiguous.length && !result.errors.length) {
+        ignoredWarnings.push({
+          code: normalizedLine.length === 1 ? "ignored-noise" : "ignored-line",
+          text: line.trim(),
+          message: `已忽略未识别内容“${line.trim()}”。`
+        });
+        continue;
+      }
+
+      if (result.unknown.length) {
+        ignoredWarnings.push(...result.unknown.map((item) => ({
+          code: "ignored-residue",
+          text: item.text,
+          message: `已忽略“${item.text}”中的未识别字符。`
+        })));
+      }
+      lineResults.push(result);
+    }
+
+    const consolidated = consolidateResolved(actionsFromResolved(
+      lineResults.flatMap((result) => result.resolved)
+    ));
+    const ambiguous = lineResults.flatMap((result) => result.ambiguous);
+    const errors = lineResults.flatMap((result) => result.errors);
+    const warnings = [
+      ...consolidated.warnings,
+      ...lineResults.flatMap((result) => result.warnings.filter((warning) => warning.code !== "duplicate-factor")),
+      ...ignoredWarnings
+    ];
+    const coverage = normalizedLength ? Math.round(knownLength / normalizedLength * 10000) / 10000 : 0;
+
+    return {
+      resolved: consolidated.resolved,
+      ambiguous,
+      unknown: [],
+      warnings,
+      errors,
+      coverage,
+      canApply: consolidated.resolved.length > 0 && ambiguous.length === 0 && errors.length === 0
     };
   }
 
