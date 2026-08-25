@@ -131,10 +131,17 @@
       body = JSON.parse(text);
     } catch (error) {
       const detail = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
-      throw new Error(`接口返回了非 JSON 内容（HTTP ${response.status}）：${detail || "空响应"}`);
+      const parseError = new Error(`接口返回了非 JSON 内容（HTTP ${response.status}）：${detail || "空响应"}`);
+      parseError.status = response.status;
+      parseError.retryAfter = response.headers?.get?.("retry-after") || "";
+      throw parseError;
     }
     if (!response.ok) {
-      throw new Error(`接口请求失败（HTTP ${response.status}）`);
+      const httpError = new Error(body?.message || `接口请求失败（HTTP ${response.status}）`);
+      httpError.status = response.status;
+      httpError.retryAfter = response.headers?.get?.("retry-after") || "";
+      httpError.riskControl = response.status === 403 || response.status === 429;
+      throw httpError;
     }
     return body;
   }
@@ -218,7 +225,12 @@
           channel: RESPONSE_CHANNEL,
           requestId: message.requestId,
           ok: false,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? {
+            message: error.message,
+            status: Number(error.status) || 0,
+            retryAfter: String(error.retryAfter || ""),
+            riskControl: error.riskControl === true
+          } : { message: String(error) }
         }, "*");
       }
     });

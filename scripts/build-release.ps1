@@ -22,6 +22,7 @@ $releaseFiles = @(
     'gold-skill-map.js',
     'traditional-name-map.js',
     'factor-recognizer.js',
+    'request-guard.js',
     'content.js',
     'README.md',
     'PRIVACY.md',

@@ -136,6 +136,7 @@
 - 一键识别的原始文本、预览结果和撤销快照只保留在当前页面内存中，不写入扩展存储。
 - 金技能和繁中名称映射均是随扩展打包的静态公开资料；运行时不会请求 BWIKI，也不会向其发送任何用户数据。
 - 因子目录、角色目录和好友种马搜索均为只读用途；扩展不会关注玩家、修改账号资料或执行游戏内操作。
+- 好友候选请求始终串行并间隔 350～500 毫秒；相同查询仅在当前页面内存中缓存 60 秒，完整搜索后冷却 8 秒。遇到接口限流或风控提示时会停止搜索并延长冷却，不会持续重试。
 - 安装前可直接审阅全部源码；仓库不包含远程加载的扩展代码。
 
 完整说明见[隐私政策](./PRIVACY.md)。
@@ -156,6 +157,7 @@ node --test
 node --check ranking.js
 node --check gold-skill-map.js
 node --check page-bridge.js
+node --check request-guard.js
 node --check content.js
 ```
 
@@ -171,6 +173,7 @@ node --check content.js
 | `gold-skill-map.js` | BWIKI 简中金技能到下位白技能的本地映射 |
 | `traditional-name-map.js` | BWIKI 繁中因子/金技能名到简中正式名称的本地映射 |
 | `factor-recognizer.js` | 本地文本规范化、因子分词、简称与星级识别 |
+| `request-guard.js` | 候选查询的串行限速、短期缓存、冷却与有限退避重试 |
 | `content.js` | 面板 UI、交互、偏好存储与搜索流程 |
 | `tests/` | Node.js 单元测试与浏览器静态检查页 |
 | `reverse-notes/` | 接口字段和行为的复核记录 |

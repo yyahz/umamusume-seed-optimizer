@@ -8,10 +8,13 @@
   const recognizer = globalThis.UmaFactorRecognizer;
   const goldSkillMap = globalThis.UmaGoldSkillMap;
   const traditionalNameMap = globalThis.UmaTraditionalNameMap;
+  const requestGuard = globalThis.UmaRequestGuard;
   const extensionIconUrl = chrome.runtime.getURL("icons/icon-48.png");
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
   const STORAGE_KEY = "umaSeedOptimizerPreferencesV1";
+  const searchGuard = requestGuard?.createSearchRequestGuard();
+  let cooldownRenderTimer = null;
   const COLOR_META = {
     blue: { name: "蓝因子", description: "基础属性", examples: "速度、耐力", color: "#008AC5", soft: "#DFF6FD" },
     red: { name: "红因子", description: "场地、距离、跑法适性", examples: "草地、短距离、领跑", color: "#E84B85", soft: "#FFECF1" },
@@ -72,7 +75,14 @@
     pending.delete(message.requestId);
     clearTimeout(resolver.timer);
     if (message.ok) resolver.resolve(message.result);
-    else resolver.reject(new Error(message.error || "页面接口请求失败"));
+    else {
+      const detail = message.error && typeof message.error === "object"
+        ? message.error
+        : { message: message.error };
+      const error = new Error(detail.message || "页面接口请求失败");
+      Object.assign(error, detail);
+      resolver.reject(error);
+    }
   });
 
   function bridgeRequest(action, payload = {}) {
@@ -98,6 +108,21 @@
 
   function clampDepth(value) {
     return Math.min(3, Math.max(1, Number(value) || 2));
+  }
+
+  function cooldownSeconds() {
+    return searchGuard ? Math.ceil(searchGuard.remainingCooldownMs() / 1000) : 0;
+  }
+
+  function scheduleCooldownRender() {
+    if (cooldownRenderTimer) clearTimeout(cooldownRenderTimer);
+    cooldownRenderTimer = null;
+    const remaining = searchGuard?.remainingCooldownMs() || 0;
+    if (remaining <= 0) return;
+    cooldownRenderTimer = setTimeout(() => {
+      cooldownRenderTimer = null;
+      if (!state.busy) render();
+    }, Math.min(1000, remaining + 20));
   }
 
   function factorVisualMeta(factorOrColor) {
@@ -740,13 +765,22 @@
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
         </div>
         <p class="settings-note">每页包含 20 位候选。“每组”指默认推荐池、高优先组合及最多 12 个单因子查询；重复 ID 会合并。页数越多，候选覆盖更广，但请求更多、等待更久。</p>
+        <p class="settings-note">访问保护：候选请求始终串行并带随机间隔；相同查询缓存 60 秒，完整搜索后冷却 8 秒。接口提示访问频繁时会立即停止。</p>
         <p class="settings-note">隐私提示：点击搜索后，所选条件会通过 HTTPS 发送给 B 站游戏接口并使用当前页面的登录状态；筛选偏好只保存在本机，扩展不会读取或保存 Cookie。</p>
       </section>
       ${renderResults()}`;
     elements.status.textContent = state.status;
     elements.status.className = `status ${state.statusKind}`;
-    elements.searchButton.disabled = state.busy || state.loadingFactors || state.loadingRoles || !state.selected.size;
-    elements.searchButton.textContent = state.busy ? "正在汇总并评分…" : "开始寻找合适种马";
+    const remainingCooldown = cooldownSeconds();
+    elements.searchButton.disabled = state.busy
+      || state.loadingFactors
+      || state.loadingRoles
+      || !state.selected.size
+      || remainingCooldown > 0;
+    elements.searchButton.textContent = state.busy
+      ? "正在汇总并评分…"
+      : remainingCooldown > 0 ? `请稍候 ${remainingCooldown} 秒` : "开始寻找合适种马";
+    scheduleCooldownRender();
     bindRenderedEvents();
   }
 
@@ -1208,6 +1242,19 @@
 
   async function searchCandidates() {
     if (state.busy || !state.selected.size) return;
+    if (!searchGuard) {
+      state.statusKind = "error";
+      state.status = "访问保护模块未加载，请重新加载扩展后刷新页面。";
+      render();
+      return;
+    }
+    const initialCooldown = cooldownSeconds();
+    if (initialCooldown > 0) {
+      state.statusKind = "neutral";
+      state.status = `为避免接口访问过快，请等待 ${initialCooldown} 秒后再搜索。`;
+      render();
+      return;
+    }
     state.busy = true;
     state.results = [];
     state.statusKind = "neutral";
@@ -1218,18 +1265,25 @@
     const totalSteps = plans.length * state.depth;
     const candidates = new Map();
     let completed = 0;
+    let cacheHits = 0;
     try {
       for (const plan of plans) {
         for (let page = 1; page <= state.depth; page += 1) {
           state.status = `正在搜索“${plan.label}” · ${Math.min(completed + 1, totalSteps)}/${totalSteps}`;
           render();
-          const response = await bridgeRequest("SEARCH_PAGE", {
+          const requestPayload = {
             filters: plan.filters,
             cardIds: preferences.cardIds,
             pageNum: page,
             pageSize: 20,
             filterFollowReachLimit: state.filterFull
-          });
+          };
+          const guarded = await searchGuard.request(
+            requestPayload,
+            () => bridgeRequest("SEARCH_PAGE", requestPayload)
+          );
+          const response = guarded.value;
+          if (guarded.cached) cacheHits += 1;
           if (response?.code !== 0) throw apiError(response);
           for (const candidate of responseRecords(response)) {
             const id = String(candidate.role_id ?? "");
@@ -1237,13 +1291,12 @@
           }
           completed += 1;
           if (!response?.data?.has_next_page) break;
-          await new Promise((resolve) => setTimeout(resolve, 120));
         }
       }
       state.results = ranking.rankCandidates([...candidates.values()], preferences);
       state.statusKind = "success";
       state.status = state.results.length
-        ? `已合并 ${candidates.size} 位候选，并按当前优先级完成排序。`
+        ? `已合并 ${candidates.size} 位候选，并按当前优先级完成排序${cacheHits ? `；复用 ${cacheHits} 项缓存` : ""}。`
         : "没有找到带有所选因子的候选，请降低条件或增加搜索页数。";
       render();
       const resultsSection = shadow.getElementById("results-section");
@@ -1257,9 +1310,12 @@
       }
     } catch (error) {
       state.statusKind = "error";
-      state.status = error instanceof Error ? error.message : String(error);
+      state.status = error?.riskControl
+        ? "接口提示访问过于频繁，本页搜索已暂停 60 秒，请稍后再试。"
+        : error instanceof Error ? error.message : String(error);
       render();
     } finally {
+      searchGuard.finishSearch();
       state.busy = false;
       render();
     }

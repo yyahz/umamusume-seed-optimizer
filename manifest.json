@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "闪耀优俊少女 · 种马搜索器",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "在吗哩吗哩工具箱内识别因子要求，支持金技能映射，并按角色、星级和优先级搜索排序好友种马。",
   "icons": {
     "16": "icons/icon-16.png",
@@ -29,7 +29,7 @@
     },
     {
       "matches": ["https://game.bilibili.com/tool/pd*"],
-      "js": ["ranking.js", "gold-skill-map.js", "traditional-name-map.js", "factor-recognizer.js", "content.js"],
+      "js": ["ranking.js", "gold-skill-map.js", "traditional-name-map.js", "factor-recognizer.js", "request-guard.js", "content.js"],
       "run_at": "document_idle"
     }
   ]
