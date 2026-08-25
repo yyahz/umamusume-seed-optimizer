@@ -67,13 +67,24 @@ test("new factors default to zero self stars", () => {
 test("gold skills show their mapped lower white factor in catalog and selection UI", () => {
   assert.match(contentSource, /gold-skill/);
   assert.match(contentSource, /金技能 → \$\{factor\.lowerSkillName\}/);
-  assert.match(contentSource, /金 → \$\{escapeHtml\(factor\.lowerSkillName\)\}/);
+  assert.match(contentSource, /对应因子：\$\{escapeHtml\(factor\.lowerSkillName\)\}/);
   assert.match(contentSource, /goldSkillMap\.extendFactorCatalog\(liveFactors\)/);
+});
+
+test("long gold skill names wrap instead of appearing partially loaded", () => {
+  assert.match(contentSource, /\.gold-skill \.factor-option-name\s*\{[^}]*white-space:normal/);
+  assert.match(contentSource, /\.factor-option-mapping\s*\{[^}]*overflow-wrap:anywhere/);
+});
+
+test("all factor names wrap instead of being truncated with an ellipsis", () => {
+  assert.match(contentSource, /\.factor-option-name\s*\{[^}]*white-space:normal/);
+  assert.match(contentSource, /\.factor-option-name\s*\{[^}]*overflow-wrap:anywhere/);
+  assert.equal(/\.factor-option-name\s*\{[^}]*text-overflow:ellipsis/.test(contentSource), false);
 });
 
 test("panel header uses the packaged extension icon and subtle Songe credit", () => {
   assert.match(contentSource, /chrome\.runtime\.getURL\("icons\/icon-48\.png"\)/);
   assert.match(contentSource, /class="brand-mark"><img/);
-  assert.match(contentSource, /class="byline">By Songe<\/span>/);
+  assert.match(contentSource, /class="byline">by Songe<\/span>/);
   assert.match(contentSource, /\.byline\s*\{[^}]*opacity:\.62/);
 });

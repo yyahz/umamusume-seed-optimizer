@@ -24,6 +24,13 @@ test("manifest declares every standard extension icon size", () => {
   });
 });
 
+test("panel icon is exposed to the matched toolbox page", () => {
+  assert.deepEqual(manifest.web_accessible_resources, [{
+    resources: ["icons/icon-48.png"],
+    matches: ["https://game.bilibili.com/*"]
+  }]);
+});
+
 test("declared extension icons are valid square PNGs at their exact sizes", () => {
   for (const [size, relativePath] of Object.entries(manifest.icons)) {
     const filePath = path.join(root, relativePath);

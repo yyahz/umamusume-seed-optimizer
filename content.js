@@ -273,13 +273,17 @@
       .catalog-shell { margin:8px 0 14px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; }
       .catalog-head { min-height:40px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 10px; border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
       .factor-catalog { max-height:286px; overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; padding:6px; overscroll-behavior:contain; }
-      .factor-option { min-height:48px; display:flex; align-items:center; justify-content:space-between; gap:7px; border:1px solid transparent; border-radius:10px; padding:7px 9px; color:var(--ink); background:#fff; text-align:left; }
+      .factor-option { min-height:48px; display:flex; align-items:flex-start; justify-content:space-between; gap:7px; border:1px solid transparent; border-radius:10px; padding:7px 9px; color:var(--ink); background:#fff; text-align:left; }
       .factor-option:hover { border-color:var(--factor-color); background:var(--factor-soft); }
       .factor-option.selected { color:var(--factor-color); border-color:var(--factor-color); background:var(--factor-soft); }
       .factor-option.gold-skill { border-color:#d7a72f; background:linear-gradient(135deg,#fffdf3,#fff5c8); }
       .factor-option.gold-skill:hover,.factor-option.gold-skill.selected { border-color:#b98200; background:linear-gradient(135deg,#fff8d8,#ffe99a); }
-      .factor-option-name { min-width:0; overflow:hidden; font-size:12px; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
+      .factor-option-name { min-width:0; overflow:visible; font-size:12px; font-weight:650; line-height:1.4; white-space:normal; overflow-wrap:anywhere; text-overflow:clip; }
       .factor-option-state { flex:0 0 auto; color:var(--factor-color); font-size:10px; font-weight:800; }
+      .factor-option.gold-skill { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name badge" "mapping mapping"; align-items:center; }
+      .gold-skill .factor-option-name { grid-area:name; overflow:visible; white-space:normal; line-height:1.35; text-overflow:clip; }
+      .gold-skill .factor-option-state { grid-area:badge; align-self:start; }
+      .factor-option-mapping { grid-area:mapping; min-width:0; margin-top:2px; overflow:hidden; color:#806000; font-size:10px; font-weight:650; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
       .catalog-more { min-height:44px; width:100%; border:0; border-top:1px solid var(--line); color:var(--factor-color); background:var(--factor-soft); font-size:12px; font-weight:750; }
       .badge { flex:0 0 auto; border-radius:999px; padding:3px 8px; color:var(--factor-color); background:var(--factor-soft); font-size:11px; font-weight:700; }
       .selected-empty { padding:18px 10px; color:var(--muted); text-align:center; font-size:13px; }
@@ -353,7 +357,7 @@
     <div class="scrim" id="scrim"></div>
     <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
-        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">By Songe</span></div></div></div>
+        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">by Songe</span></div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马优选器">${ICONS.close}</button>
       </header>
       <div class="panel-body" id="body"></div>
@@ -541,7 +545,8 @@
         const mapping = factor.virtualGold ? ` → ${factor.lowerSkillName}` : "";
         return `<button class="factor-option ${factor.virtualGold ? "gold-skill" : ""} ${selected ? "selected" : ""}" type="button" ${selected ? `data-selected-factor="${escapeHtml(key)}"` : `data-add-factor="${escapeHtml(catalogKey)}"`} aria-pressed="${selected}" title="${escapeHtml(factor.name)}${escapeHtml(mapping)} · ${selected ? "再次点击取消选择" : equivalent ? "点击改用此名称显示" : escapeHtml(factor.subtype)}">
           <span class="factor-option-name">${escapeHtml(factor.name)}</span>
-          <span class="factor-option-state">${selected ? "再点取消" : factor.virtualGold ? `金 → ${escapeHtml(factor.lowerSkillName)}` : equivalent ? "同一下位" : escapeHtml(factor.subtype)}</span>
+          <span class="factor-option-state">${selected ? "再点取消" : factor.virtualGold ? "金技能" : equivalent ? "同一下位" : escapeHtml(factor.subtype)}</span>
+          ${factor.virtualGold ? `<span class="factor-option-mapping">对应因子：${escapeHtml(factor.lowerSkillName)}</span>` : ""}
         </button>`;
       }).join("")
       : '<div class="selected-empty" style="grid-column:1/-1">没有找到符合条件的因子。</div>';
