@@ -70,3 +70,10 @@ test("gold skills show their mapped lower white factor in catalog and selection 
   assert.match(contentSource, /金 → \$\{escapeHtml\(factor\.lowerSkillName\)\}/);
   assert.match(contentSource, /goldSkillMap\.extendFactorCatalog\(liveFactors\)/);
 });
+
+test("panel header uses the packaged extension icon and subtle Songe credit", () => {
+  assert.match(contentSource, /chrome\.runtime\.getURL\("icons\/icon-48\.png"\)/);
+  assert.match(contentSource, /class="brand-mark"><img/);
+  assert.match(contentSource, /class="byline">By Songe<\/span>/);
+  assert.match(contentSource, /\.byline\s*\{[^}]*opacity:\.62/);
+});

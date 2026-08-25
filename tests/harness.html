@@ -28,6 +28,7 @@
       }
     };
     window.chrome = {
+      runtime: { getURL(path) { return `../${path}`; } },
       storage: {
         local: {
           async get(key) { return { [key]: saved[key] }; },

@@ -7,6 +7,7 @@
   const ranking = globalThis.UmaSeedRanking;
   const recognizer = globalThis.UmaFactorRecognizer;
   const goldSkillMap = globalThis.UmaGoldSkillMap;
+  const extensionIconUrl = chrome.runtime.getURL("icons/icon-48.png");
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
   const STORAGE_KEY = "umaSeedOptimizerPreferencesV1";
@@ -187,10 +188,11 @@
       .panel.open { transform:translateX(0); }
       .panel-header { position:relative; z-index:2; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; color:#fff; background:linear-gradient(145deg,#0b7144,#0d7848); }
       .title-wrap { display:flex; align-items:center; gap:12px; }
-      .brand-mark { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; background:#ffffff24; }
-      .brand-mark svg { fill:currentColor; stroke:none; }
+      .brand-mark { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; overflow:hidden; background:#ffffff24; box-shadow:0 2px 8px #053d2529; }
+      .brand-mark img { display:block; width:100%; height:100%; object-fit:cover; }
       h1 { margin:0; font-size:20px; line-height:1.25; }
       .subtitle { margin-top:2px; color:#e6fff1; font-size:12px; }
+      .byline { margin-left:5px; opacity:.62; font-size:10px; font-weight:500; letter-spacing:.02em; white-space:nowrap; }
       .icon-button { width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:12px; background:transparent; color:inherit; }
       .icon-button:hover { background:#0000000d; }
       .panel-header .icon-button:hover { background:#ffffff20; }
@@ -351,7 +353,7 @@
     <div class="scrim" id="scrim"></div>
     <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
-        <div class="title-wrap"><div class="brand-mark">${ICONS.spark}</div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选</div></div></div>
+        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马优选器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">By Songe</span></div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马优选器">${ICONS.close}</button>
       </header>
       <div class="panel-body" id="body"></div>
