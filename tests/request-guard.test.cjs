@@ -41,6 +41,21 @@ test("serializes candidate requests with jittered pacing and caches identical pa
   assert.deepEqual(clock.delays, [425]);
 });
 
+test("keeps candidate cache for five minutes and supports an explicit clear", async () => {
+  const clock = fakeClockOptions({ minimumIntervalMs: 0, intervalJitterMs: 0 });
+  const guard = requestGuard.createSearchRequestGuard(clock.options);
+  let calls = 0;
+  const operation = async () => ({ code: 0, data: { call: ++calls } });
+
+  await guard.request({ page: 1 }, operation);
+  clock.advance(299_999);
+  assert.equal((await guard.request({ page: 1 }, operation)).cached, true);
+  guard.clearCache();
+  assert.equal((await guard.request({ page: 1 }, operation)).cached, false);
+  assert.equal(calls, 2);
+  assert.equal(requestGuard.DEFAULTS.cacheTtlMs, 300_000);
+});
+
 test("retries transient failures with exponential backoff at most twice", async () => {
   const clock = fakeClockOptions({
     minimumIntervalMs: 0,

@@ -58,10 +58,12 @@
     factorIndex: null,
     quickFactorText: "",
     recognition: null,
+    recognitionBatches: [],
     recognitionNotice: null,
     importUndo: null,
     depth: 2,
     filterFull: true,
+    forceRefresh: false,
     status: "正在读取简中因子目录…",
     statusKind: "neutral",
     results: []
@@ -275,6 +277,10 @@
       .recognizer-button:disabled { cursor:not-allowed; opacity:.48; }
       .recognizer-button svg { width:18px; height:18px; }
       .recognition-feedback { display:grid; gap:8px; margin-top:10px; }
+      .recognition-draft { display:grid; gap:8px; margin-top:10px; border:1px solid #b9ddc8; border-radius:12px; padding:9px; background:#f7fcf9; }
+      .recognition-details { color:var(--ink); font-size:11px; }
+      .recognition-details summary { min-height:36px; display:flex; align-items:center; cursor:pointer; color:var(--brand-dark); font-weight:800; }
+      .recognition-details[open] summary { margin-bottom:6px; }
       .recognition-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; border-radius:10px; padding:8px 9px; color:var(--brand-dark); background:#e9f7ef; font-size:11px; font-weight:750; }
       .recognition-tier-note { border-radius:10px; padding:8px 9px; color:#31523f; background:#edf7f1; font-size:11px; line-height:1.5; }
       .recognition-list { display:grid; gap:5px; }
@@ -603,6 +609,75 @@
     return "目录名称匹配";
   }
 
+  function recognitionItemKey(item) {
+    const factor = item?.factor || item;
+    return factor?.type === undefined || factor?.num === undefined
+      ? ""
+      : ranking.factorKey(factor.type, factor.num);
+  }
+
+  function mergeRecognitionItems(extraItems = []) {
+    const merged = new Map();
+    const source = [
+      ...state.recognitionBatches.flatMap((batch) => batch.resolved || []),
+      ...(Array.isArray(extraItems) ? extraItems : [])
+    ];
+    for (const item of source) {
+      const key = recognitionItemKey(item);
+      if (!key) continue;
+      const current = merged.get(key);
+      if (!current) {
+        merged.set(key, { ...item, factor: { ...(item.factor || item) } });
+        continue;
+      }
+      if (item.explicitTotal) {
+        current.minStars = current.explicitTotal
+          ? Math.max(current.minStars, item.minStars)
+          : item.minStars;
+        current.explicitTotal = true;
+      }
+      if (item.explicitSelf) {
+        current.minSelfStars = current.explicitSelf
+          ? Math.max(current.minSelfStars, item.minSelfStars)
+          : item.minSelfStars;
+        current.explicitSelf = true;
+      }
+    }
+    return [...merged.values()];
+  }
+
+  function plannedRecognitionTiers(items) {
+    const newItems = items.filter((item) => !state.selected.has(recognitionItemKey(item)));
+    const planned = recognizer?.planSequentialSkillTiers?.(newItems) || [];
+    return new Map(newItems.map((item, index) => [recognitionItemKey(item), planned[index] ?? 1]));
+  }
+
+  function newRecognitionSkillCount(items) {
+    return items.filter((item) => {
+      const factor = item.factor || item;
+      return Number(factor?.type) === 4 && !state.selected.has(recognitionItemKey(item));
+    }).length;
+  }
+
+  function renderRecognitionItem(item, tierByKey) {
+    const factor = item.factor || item;
+    const key = recognitionItemKey(item);
+    const meta = factorVisualMeta(factor);
+    const current = key ? state.selected.get(key) : null;
+    const totalStars = item.explicitTotal ? item.minStars : current?.minStars ?? 1;
+    const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? ranking.DEFAULT_SELF_STARS;
+    const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
+    const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
+    const plannedTier = current
+      ? ranking.clampTier(current.tier, 1, factor.colorId === "white")
+      : tierByKey.get(key) ?? 1;
+    const tierNote = current ? " 保留当前" : " 本轮预排";
+    return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
+      <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
+      <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 ${["高", "中", "低"][plannedTier - 1]}${tierNote}</div>
+    </div>`;
+  }
+
   function renderRecognitionNotice() {
     if (!state.recognitionNotice) return "";
     const kind = state.recognitionNotice.kind === "error" ? "error" : "success";
@@ -621,25 +696,10 @@
     const unknown = Array.isArray(result.unknown) ? result.unknown : [];
     const warnings = Array.isArray(result.warnings) ? result.warnings : [];
     const errors = Array.isArray(result.errors) ? result.errors : [];
-    const plannedTiers = recognizer?.planSequentialSkillTiers?.(resolved) || [];
-    const autoTierCount = plannedTiers.filter((tier) => tier !== null).length;
-    const items = resolved.map((item, index) => {
-      const factor = item.factor || item;
-      const meta = factorVisualMeta(factor);
-      const current = factor?.type === undefined || factor?.num === undefined
-        ? null
-        : state.selected.get(ranking.factorKey(factor.type, factor.num));
-      const totalStars = item.explicitTotal ? item.minStars : current?.minStars ?? 1;
-      const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? ranking.DEFAULT_SELF_STARS;
-      const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
-      const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
-      const plannedTier = current ? ranking.clampTier(current.tier, 1, factor.colorId === "white") : plannedTiers[index] ?? 1;
-      const tierNote = current ? " 保留当前" : plannedTiers[index] !== null && plannedTiers[index] !== undefined ? " 自动" : " 默认";
-      return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
-        <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
-        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 ${["高", "中", "低"][plannedTier - 1]}${tierNote}</div>
-      </div>`;
-    }).join("");
+    const cumulative = mergeRecognitionItems(resolved);
+    const tierByKey = plannedRecognitionTiers(cumulative);
+    const skillCount = newRecognitionSkillCount(cumulative);
+    const items = resolved.map((item) => renderRecognitionItem(item, tierByKey)).join("");
     const ambiguityBlocks = ambiguous.map((item) => {
       const candidates = (item.candidates || []).map((candidate) => candidate?.factor?.name || candidate?.name).filter(Boolean);
       return `<div class="recognition-issue"><b>“${escapeHtml(item.sourceText || item.text || "未命名片段")}”存在歧义</b>${candidates.length ? `可能是：${escapeHtml(candidates.join("、"))}。` : "请补全正式因子名。"}</div>`;
@@ -653,12 +713,28 @@
     const canApply = Boolean(result.canApply && resolved.length && !errors.length);
     return `<div class="recognition-feedback" id="recognition-feedback" aria-live="polite">
       <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>歧义 ${ambiguous.length} · 未识别 ${unknown.length}</span></div>
-      ${autoTierCount ? `<div class="recognition-tier-note"><b>已按攻略顺序预排技能优先级：</b>前 10 项高，第 11–20 项中，第 21 项以后低；已有因子的手动优先级保持不变。</div>` : ""}
+      <div class="recognition-tier-note"><b>加入后的累计预排：</b>${skillCount >= 20 ? "前 10 项高，第 11–20 项中，第 21 项以后低" : `共 ${skillCount} 个新增技能，尚不足 20 个，本轮均为高`}；已有因子的手动优先级保持不变。</div>
       ${items ? `<div class="recognition-list">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
       ${ambiguityBlocks}${unknownBlocks}${warningBlocks}${errorBlocks}
       <div class="recognition-preview-actions">
         <button class="recognition-cancel" id="cancel-factor-recognition" type="button">返回修改</button>
-        <button class="recognition-apply" id="apply-factor-recognition" type="button" ${canApply ? "" : "disabled"}>加入 / 更新 ${resolved.length} 项</button>
+        <button class="recognition-apply" id="stage-factor-recognition" type="button" ${canApply ? "" : "disabled"}>加入待导入 · ${resolved.length} 项</button>
+      </div>
+    </div>`;
+  }
+
+  function renderPendingRecognition() {
+    const items = mergeRecognitionItems();
+    if (!items.length) return "";
+    const tierByKey = plannedRecognitionTiers(items);
+    const skillCount = newRecognitionSkillCount(items);
+    return `<div class="recognition-draft" id="recognition-draft" aria-live="polite">
+      <div class="recognition-summary"><span>待导入 ${state.recognitionBatches.length} 段 · ${items.length} 项</span><span>新增技能 ${skillCount} 项</span></div>
+      <div class="recognition-tier-note"><b>本轮累计优先级：</b>${skillCount >= 20 ? "前 10 项高，第 11–20 项中，第 21 项以后低" : "技能不足 20 个，全部为高"}；重复因子已合并。</div>
+      <details class="recognition-details"><summary>查看累计清单</summary><div class="recognition-list">${items.map((item) => renderRecognitionItem(item, tierByKey)).join("")}</div></details>
+      <div class="recognition-preview-actions">
+        <button class="recognition-cancel" id="clear-pending-recognition" type="button">清空待导入</button>
+        <button class="recognition-apply" id="apply-pending-recognition" type="button">应用全部 ${items.length} 项</button>
       </div>
     </div>`;
   }
@@ -667,10 +743,11 @@
     const ready = Boolean(state.factorIndex && recognizer);
     const disabled = !ready || !state.quickFactorText.trim();
     return `<div class="quick-recognizer">
-      <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名、繁中名称和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
+      <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">可分多段识别并累计到待导入清单，确认后一次应用。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
       <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
       <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★；识别至少 20 个技能时会按原文顺序自动分为高 / 中 / 低。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
       ${renderRecognitionNotice()}
+      ${renderPendingRecognition()}
       ${renderRecognitionPreview()}
     </div>`;
   }
@@ -762,6 +839,9 @@
 
   function render() {
     const selectedCount = state.selected.size;
+    const hasRecognitionWork = Boolean(
+      state.recognitionBatches.length || state.recognition || state.quickFactorText.trim()
+    );
     const activeMeta = activeFactorVisualMeta();
     elements.body.innerHTML = `
       <section class="section">
@@ -773,7 +853,7 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛；本体 0★ 表示本体可以没有该因子。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重）。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛；本体 0★ 表示本体可以没有该因子。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重）。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount || hasRecognitionWork ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">
@@ -781,6 +861,7 @@
         <div class="settings">
           <label class="field-label">每组候选页数<select class="select" id="depth"><option value="1" ${state.depth === 1 ? "selected" : ""}>1 页 · 最多 20 位</option><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 最多 40 位（推荐）</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 最多 60 位</option></select></label>
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
+          <label class="field-label">候选缓存<span class="toggle"><input id="force-refresh" type="checkbox" ${state.forceRefresh ? "checked" : ""}>本次强制刷新</span></label>
         </div>
       </section>
       ${renderResults()}`;
@@ -919,23 +1000,50 @@
     }
     render();
     setTimeout(() => {
-      const apply = shadow.getElementById("apply-factor-recognition");
+      const apply = shadow.getElementById("stage-factor-recognition");
       const target = apply && !apply.disabled ? apply : shadow.getElementById("bulk-factor-input");
       target?.focus();
       shadow.getElementById("recognition-feedback")?.scrollIntoView({ block: "nearest" });
     }, 0);
   }
 
-  function applyRecognizedFactors() {
+  function stageRecognizedFactors() {
     const result = state.recognition;
     const resolved = Array.isArray(result?.resolved) ? result.resolved : [];
     if (!result?.canApply || !resolved.length || (result.errors || []).length) return;
+    state.recognitionBatches.push({
+      resolved: resolved.map((item) => ({ ...item, factor: { ...(item.factor || item) } }))
+    });
+    state.recognition = null;
+    state.quickFactorText = "";
+    state.recognitionNotice = {
+      kind: "success",
+      message: `已加入第 ${state.recognitionBatches.length} 段；可以继续粘贴，或应用全部待导入因子。`
+    };
+    render();
+    setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
+  }
+
+  function clearPendingRecognition() {
+    const count = mergeRecognitionItems().length;
+    state.recognitionBatches = [];
+    state.recognition = null;
+    state.recognitionNotice = count
+      ? { kind: "success", message: `已清空 ${count} 个待导入因子，当前已选因子不受影响。` }
+      : null;
+    render();
+    setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
+  }
+
+  function applyPendingRecognizedFactors() {
+    const resolved = mergeRecognitionItems();
+    if (!resolved.length) return;
     const before = cloneSelectedMap();
-    const plannedTiers = recognizer?.planSequentialSkillTiers?.(resolved) || [];
+    const tierByKey = plannedRecognitionTiers(resolved);
     let added = 0;
     let updated = 0;
     let unchanged = 0;
-    for (const [index, item] of resolved.entries()) {
+    for (const item of resolved) {
       const factor = item.factor || item;
       if (factor?.type === undefined || factor?.num === undefined) continue;
       const key = ranking.factorKey(factor.type, factor.num);
@@ -944,7 +1052,7 @@
         ...factor,
         tier: current
           ? ranking.clampTier(current.tier, 1, factor.colorId === "white")
-          : plannedTiers[index] ?? 1,
+          : tierByKey.get(key) ?? 1,
         minStars: item.explicitTotal
           ? ranking.clampFactorStars(item.minStars)
           : current ? ranking.clampFactorStars(current.minStars) : 1,
@@ -963,12 +1071,13 @@
     }
     const changed = added + updated;
     state.importUndo = changed ? { kind: "import", selected: before } : null;
-    const skipped = (result.ambiguous?.length || 0) + (result.unknown?.length || 0);
+    const batchCount = state.recognitionBatches.length;
+    state.recognitionBatches = [];
     state.recognition = null;
     state.quickFactorText = "";
     state.recognitionNotice = {
       kind: "success",
-      message: `已处理 ${resolved.length} 项：新增 ${added}、更新 ${updated}${unchanged ? `、保持 ${unchanged}` : ""}${skipped ? `；${skipped} 个疑似或未知片段未加入` : ""}。`
+      message: `已应用 ${batchCount} 段共 ${resolved.length} 项：新增 ${added}、更新 ${updated}${unchanged ? `、保持 ${unchanged}` : ""}。`
     };
     savePreferences();
     render();
@@ -996,29 +1105,35 @@
   }
 
   function resetSelectedFactors() {
-    if (!state.selected.size) return;
+    const pendingCount = mergeRecognitionItems().length;
+    const hasRecognition = Boolean(state.recognition || state.quickFactorText.trim());
+    if (!state.selected.size && !pendingCount && !hasRecognition) return;
     const before = cloneSelectedMap();
     const clearedCount = state.selected.size;
-    const undo = {
+    const undo = clearedCount ? {
       kind: "reset",
       selected: before,
       results: state.results,
       status: state.status,
       statusKind: state.statusKind
-    };
+    } : null;
     state.selected.clear();
     state.results = [];
     state.recognition = null;
+    state.recognitionBatches = [];
+    state.quickFactorText = "";
     state.importUndo = undo;
     state.recognitionNotice = {
       kind: "success",
-      message: `已重置 ${clearedCount} 个已选因子；角色、颜色顺序和搜索范围保持不变。`
+      message: `已重置 ${clearedCount} 个已选因子${pendingCount ? `及 ${pendingCount} 个待导入因子` : ""}；角色、颜色顺序和搜索范围保持不变。`
     };
     state.statusKind = "neutral";
-    state.status = "已清空因子选择；可以重新选择或撤销本次重置。";
+    state.status = clearedCount
+      ? "已清空因子选择；可以重新选择或撤销本次重置。"
+      : "已清空识别内容，可以重新输入。";
     savePreferences();
     render();
-    setTimeout(() => shadow.getElementById("undo-factor-import")?.focus(), 0);
+    setTimeout(() => shadow.getElementById(undo ? "undo-factor-import" : "bulk-factor-input")?.focus(), 0);
   }
 
   function bindFactorTierDrag() {
@@ -1100,7 +1215,9 @@
       render();
       setTimeout(() => shadow.getElementById("bulk-factor-input")?.focus(), 0);
     });
-    shadow.getElementById("apply-factor-recognition")?.addEventListener("click", applyRecognizedFactors);
+    shadow.getElementById("stage-factor-recognition")?.addEventListener("click", stageRecognizedFactors);
+    shadow.getElementById("clear-pending-recognition")?.addEventListener("click", clearPendingRecognition);
+    shadow.getElementById("apply-pending-recognition")?.addEventListener("click", applyPendingRecognizedFactors);
     shadow.getElementById("undo-factor-import")?.addEventListener("click", undoRecognizedFactorImport);
     shadow.getElementById("reset-factors")?.addEventListener("click", resetSelectedFactors);
     const priorityList = shadow.getElementById("priority-list");
@@ -1230,6 +1347,9 @@
       state.filterFull = event.target.checked;
       savePreferences();
     });
+    shadow.getElementById("force-refresh")?.addEventListener("change", (event) => {
+      state.forceRefresh = event.target.checked;
+    });
     shadow.querySelectorAll("[data-copy-id]").forEach((button) => button.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(button.dataset.copyId);
@@ -1273,7 +1393,10 @@
     state.busy = true;
     state.results = [];
     state.statusKind = "neutral";
-    state.status = "正在准备候选查询…";
+    const forceRefresh = state.forceRefresh;
+    state.forceRefresh = false;
+    if (forceRefresh) searchGuard.clearCache();
+    state.status = forceRefresh ? "已清空候选缓存，正在重新查询…" : "正在准备候选查询…";
     render();
     const preferences = preferenceDocument();
     const plans = ranking.planQueries(preferences, 12);
@@ -1311,7 +1434,9 @@
       state.results = ranking.rankCandidates([...candidates.values()], preferences);
       state.statusKind = "success";
       state.status = state.results.length
-        ? `已合并 ${candidates.size} 位候选，并按当前优先级完成排序${cacheHits ? `；复用 ${cacheHits} 项缓存` : ""}。`
+        ? cacheHits
+          ? `已复用 ${cacheHits} 项候选缓存，并按新的颜色与因子优先级重新评分排序；共合并 ${candidates.size} 位候选。`
+          : `已重新查询并合并 ${candidates.size} 位候选，按当前优先级完成评分排序。`
         : "没有找到带有所选因子的候选，请降低条件或增加搜索页数。";
       render();
       const resultsSection = shadow.getElementById("results-section");

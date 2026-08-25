@@ -8,7 +8,7 @@
   const DEFAULTS = Object.freeze({
     minimumIntervalMs: 350,
     intervalJitterMs: 150,
-    cacheTtlMs: 60_000,
+    cacheTtlMs: 5 * 60_000,
     searchCooldownMs: 2_000,
     riskCooldownMs: 60_000,
     maximumRetries: 2,
@@ -64,6 +64,10 @@
 
     function finishSearch() {
       return extendCooldown(settings.searchCooldownMs);
+    }
+
+    function clearCache() {
+      cache.clear();
     }
 
     async function pace() {
@@ -124,6 +128,7 @@
       settings: { ...settings },
       request,
       finishSearch,
+      clearCache,
       extendCooldown,
       remainingCooldownMs,
       cacheSize: () => cache.size

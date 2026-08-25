@@ -112,11 +112,23 @@ test("product-facing text consistently uses the searcher name", () => {
   assert.equal(contentSource.includes("种马优选器"), false);
 });
 
-test("bulk recognition previews and applies sequential skill priority tiers", () => {
-  assert.match(contentSource, /planSequentialSkillTiers\?\.\(resolved\)/);
+test("bulk recognition accumulates batches and applies sequential skill priority tiers once", () => {
+  assert.match(contentSource, /recognitionBatches: \[\]/);
+  assert.match(contentSource, /function mergeRecognitionItems\(extraItems = \[\]\)/);
+  assert.match(contentSource, /id="stage-factor-recognition"/);
+  assert.match(contentSource, /id="apply-pending-recognition"/);
+  assert.match(contentSource, /id="clear-pending-recognition"/);
+  assert.match(contentSource, /planSequentialSkillTiers\?\.\(newItems\)/);
   assert.match(contentSource, /前 10 项高，第 11–20 项中，第 21 项以后低/);
   assert.match(contentSource, /优先级 \$\{\["高", "中", "低"\]\[plannedTier - 1\]\}\$\{tierNote\}/);
-  assert.match(contentSource, /plannedTiers\[index\] \?\? 1/);
+  assert.match(contentSource, /tierByKey\.get\(key\) \?\? 1/);
+  assert.match(contentSource, /state\.recognitionBatches = \[\]/);
+});
+
+test("search cache can be force-refreshed and cache hits are explicitly re-ranked", () => {
+  assert.match(contentSource, /id="force-refresh"/);
+  assert.match(contentSource, /searchGuard\.clearCache\(\)/);
+  assert.match(contentSource, /候选缓存，并按新的颜色与因子优先级重新评分排序/);
 });
 
 test("recognition labels distinguish proportional long-name OCR correction", () => {
