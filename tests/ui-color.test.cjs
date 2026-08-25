@@ -30,7 +30,6 @@ test("result cards keep names, star values, and the copy action compact", () => 
   assert.equal(contentSource.includes("${match.stars}/${match.minStars}★"), false);
   assert.equal(contentSource.includes("${match.selfStars}/${match.minSelfStars}★"), false);
   assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
-  assert.match(contentSource, /每页包含 20 位候选/);
 });
 
 test("selected factors can be reset in one click and restored", () => {
@@ -42,9 +41,9 @@ test("selected factors can be reset in one click and restored", () => {
   assert.match(contentSource, /state\.results = Array\.isArray\(undo\.results\)/);
 });
 
-test("white factors expose required after P1, P2, and P3", () => {
+test("white factors expose required after high, medium, and low", () => {
   assert.match(contentSource, /\[1, 2, 3, \.\.\.\(colorId === "white" \? \[ranking\.REQUIRED_TIER\]/);
-  assert.match(contentSource, /value === ranking\.REQUIRED_TIER \? "必需" : `P\$\{value\}`/);
+  assert.match(contentSource, /value === ranking\.REQUIRED_TIER \? "必需" : \["高", "中", "低"\]\[value - 1\]/);
   assert.match(contentSource, /必须双门槛达标/);
   assert.match(contentSource, /必需达标/);
 });
@@ -103,8 +102,8 @@ test("product-facing text consistently uses the searcher name", () => {
 
 test("bulk recognition previews and applies sequential skill priority tiers", () => {
   assert.match(contentSource, /planSequentialSkillTiers\?\.\(resolved\)/);
-  assert.match(contentSource, /前 10 项 P1，第 11–20 项 P2，第 21 项以后 P3/);
-  assert.match(contentSource, /优先级 P\$\{plannedTier\}\$\{tierNote\}/);
+  assert.match(contentSource, /前 10 项高，第 11–20 项中，第 21 项以后低/);
+  assert.match(contentSource, /优先级 \$\{\["高", "中", "低"\]\[plannedTier - 1\]\}\$\{tierNote\}/);
   assert.match(contentSource, /plannedTiers\[index\] \?\? 1/);
 });
 
@@ -125,5 +124,6 @@ test("panel and catalogs respond to browser width and height", () => {
 test("normal searches skip cooldown while fifteen-factor searches use two seconds", () => {
   assert.match(contentSource, /MANY_FACTOR_COOLDOWN_THRESHOLD\s*=\s*15/);
   assert.match(contentSource, /preferences\.desiredFactors\.length\s*>=\s*MANY_FACTOR_COOLDOWN_THRESHOLD/);
-  assert.match(contentSource, /至少 15 个因子时搜索后冷却 2 秒，普通搜索不冷却/);
+  assert.equal(contentSource.includes("访问保护：候选请求始终串行"), false);
+  assert.equal(contentSource.includes("隐私提示：点击搜索后"), false);
 });

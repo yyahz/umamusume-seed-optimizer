@@ -377,7 +377,6 @@
       .result-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px 10px; border-top:1px solid #edf0ed; }
       .copy-button { min-height:44px; flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); border-radius:11px; padding:0 12px; color:var(--brand-dark); background:#fff; font-weight:700; white-space:nowrap; }
       .scope-note { min-width:0; color:var(--muted); font-size:11px; }
-      .settings-note { margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.55; }
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
@@ -515,8 +514,8 @@
     return tiers.map((tier) => {
       const entries = selected.filter((item) => Number(item.tier) === tier);
       const required = tier === ranking.REQUIRED_TIER;
-      const tierName = required ? "必须双门槛达标" : ["最高优先", "较高优先", "一般优先"][tier - 1];
-      const tierLabel = required ? "必需" : `P${tier}`;
+      const tierName = required ? "必须双门槛达标" : "优先级";
+      const tierLabel = required ? "必需" : ["高", "中", "低"][tier - 1];
       const tierOptions = [1, 2, 3, ...(colorId === "white" ? [ranking.REQUIRED_TIER] : [])];
       return `
         <div class="tier-block ${required ? "required-tier" : ""}" data-factor-tier="${tier}">
@@ -524,7 +523,7 @@
           <div class="selected-list">${entries.length ? entries.map((item) => {
             const key = ranking.factorKey(item.type, item.num);
             const itemMeta = factorVisualMeta(item);
-            return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前${required ? "必需" : ` P${tier}`}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
+            return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前${required ? "必需" : `${tierLabel}优先级`}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
               <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
               <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(selectedFactorSubtitle(item))}</div></div>
               <label class="compact-factor-field total-star-field">家系至少
@@ -539,11 +538,11 @@
               </label>
               <label class="tier-field">优先级
                 <select class="tier-select" data-tier-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}优先级">
-                  ${tierOptions.map((value) => `<option value="${value}" ${value === tier ? "selected" : ""}>${value === ranking.REQUIRED_TIER ? "必需" : `P${value}`}</option>`).join("")}
+                  ${tierOptions.map((value) => `<option value="${value}" ${value === tier ? "selected" : ""}>${value === ranking.REQUIRED_TIER ? "必需" : ["高", "中", "低"][value - 1]}</option>`).join("")}
                 </select>
               </label>
             </div>`;
-          }).join("") : `<div class="tier-empty">${selected.length ? `暂无${required ? "必需" : ` P${tier}`}因子，可拖动到这里` : "请先从上方目录选择因子"}</div>`}</div>
+          }).join("") : `<div class="tier-empty">${selected.length ? `暂无${required ? "必需" : `${tierLabel}优先级`}因子，可拖动到这里` : "请先从上方目录选择因子"}</div>`}</div>
         </div>`;
     }).join("");
   }
@@ -638,7 +637,7 @@
       const tierNote = current ? " 保留当前" : plannedTiers[index] !== null && plannedTiers[index] !== undefined ? " 自动" : " 默认";
       return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
         <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
-        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 P${plannedTier}${tierNote}</div>
+        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 ${["高", "中", "低"][plannedTier - 1]}${tierNote}</div>
       </div>`;
     }).join("");
     const ambiguityBlocks = ambiguous.map((item) => {
@@ -654,7 +653,7 @@
     const canApply = Boolean(result.canApply && resolved.length && !errors.length);
     return `<div class="recognition-feedback" id="recognition-feedback" aria-live="polite">
       <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>歧义 ${ambiguous.length} · 未识别 ${unknown.length}</span></div>
-      ${autoTierCount ? `<div class="recognition-tier-note"><b>已按攻略顺序预排技能优先级：</b>前 10 项 P1，第 11–20 项 P2，第 21 项以后 P3；已有因子的手动优先级保持不变。</div>` : ""}
+      ${autoTierCount ? `<div class="recognition-tier-note"><b>已按攻略顺序预排技能优先级：</b>前 10 项高，第 11–20 项中，第 21 项以后低；已有因子的手动优先级保持不变。</div>` : ""}
       ${items ? `<div class="recognition-list">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
       ${ambiguityBlocks}${unknownBlocks}${warningBlocks}${errorBlocks}
       <div class="recognition-preview-actions">
@@ -670,7 +669,7 @@
     return `<div class="quick-recognizer">
       <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名、繁中名称和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
       <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
-      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★；识别至少 20 个技能时会按原文顺序自动分为 P1 / P2 / P3。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
+      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★；识别至少 20 个技能时会按原文顺序自动分为高 / 中 / 低。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
       ${renderRecognitionNotice()}
       ${renderRecognitionPreview()}
     </div>`;
@@ -765,9 +764,6 @@
           <label class="field-label">每组候选页数<select class="select" id="depth"><option value="1" ${state.depth === 1 ? "selected" : ""}>1 页 · 最多 20 位</option><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 最多 40 位（推荐）</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 最多 60 位</option></select></label>
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
         </div>
-        <p class="settings-note">每页包含 20 位候选。“每组”指默认推荐池、高优先组合及最多 12 个单因子查询；重复 ID 会合并。页数越多，候选覆盖更广，但请求更多、等待更久。</p>
-        <p class="settings-note">访问保护：候选请求始终串行并带随机间隔；相同查询缓存 60 秒。选择至少 15 个因子时搜索后冷却 2 秒，普通搜索不冷却；接口提示访问频繁时会立即停止。</p>
-        <p class="settings-note">隐私提示：点击搜索后，所选条件会通过 HTTPS 发送给 B 站游戏接口并使用当前页面的登录状态；筛选偏好只保存在本机，扩展不会读取或保存 Cookie。</p>
       </section>
       ${renderResults()}`;
     elements.status.textContent = state.status;
