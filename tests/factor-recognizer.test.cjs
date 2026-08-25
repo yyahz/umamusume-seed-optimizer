@@ -274,10 +274,15 @@ test("multiline OCR lists correct one wrong or extra character and ignore noise 
   assert.equal(result.canApply, true);
 });
 
-test("does not treat the mistaken mixed-script summer name as an official alias", () => {
-  const result = recognizer.recognizeFactorText("夏日天空下的光量", index);
-  assert.equal(result.resolved.length, 0);
-  assert.equal(result.canApply, false);
+test("corrects one OCR character in a Traditional alias before mapping to Simplified Chinese", () => {
+  const summer = recognizer.recognizeFactorText("夏日天空下的光量", index);
+  const wisdom = recognizer.recognizeFactorText("太陽的睿慧", index);
+  assert.equal(summer.resolved[0].factor.name, "夏日光晕");
+  assert.equal(summer.resolved[0].matchKind, "traditional-fuzzy");
+  assert.equal(summer.canApply, true);
+  assert.equal(wisdom.resolved[0].factor.name, "太阳的睿智");
+  assert.equal(wisdom.resolved[0].matchKind, "traditional-fuzzy");
+  assert.equal(wisdom.canApply, true);
 });
 
 test("single-line unknown residue remains strict", () => {

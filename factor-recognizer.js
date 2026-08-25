@@ -13,7 +13,14 @@
     "URA": "URA剧本"
   });
 
-  const MATCH_PRIORITY = Object.freeze({ exact: 4, alias: 3, traditional: 3, prefix: 2, fuzzy: 1 });
+  const MATCH_PRIORITY = Object.freeze({
+    exact: 4,
+    alias: 3,
+    traditional: 3,
+    prefix: 2,
+    fuzzy: 1,
+    "traditional-fuzzy": 1
+  });
   const MIN_PREFIX_LENGTH = 4;
   const MAX_PREFIX_MISSING = 2;
   const MIN_PREFIX_RATIO = 0.75;
@@ -391,7 +398,9 @@
       );
       const confidence = terminalInfo.matchKind === "prefix"
         ? Math.min(0.9, (nameEnd - start) / canonicalLength * 0.9)
-        : terminalInfo.matchKind === "fuzzy" ? 0.65 : 1;
+        : terminalInfo.matchKind === "fuzzy" || terminalInfo.matchKind === "traditional-fuzzy"
+          ? 0.65
+          : 1;
       return {
         type: "ambiguous",
         start,
@@ -416,7 +425,7 @@
       ? 1
       : terminal.matchKind === "alias" || terminal.matchKind === "traditional"
         ? 0.97
-        : terminal.matchKind === "fuzzy"
+        : terminal.matchKind === "fuzzy" || terminal.matchKind === "traditional-fuzzy"
           ? 0.65
           : Math.min(0.9, matchedLength / canonicalLength * 0.9);
     return {
@@ -517,20 +526,33 @@
     // OCR and voice input commonly replace or add one character. Only accept
     // a whole-line, one-edit correction when it points to exactly one factor.
     if (text.length >= 3 && !/[0-9○◎+]/.test(text)) {
-      const fuzzyEntries = index.entries
-        .map((entry) => ({ entry, cost: fuzzyCorrectionCost(text, entry.normalizedName) }))
+      const fuzzyEntries = [
+        ...index.entries.map((entry) => ({
+          entry,
+          cost: fuzzyCorrectionCost(text, entry.normalizedName),
+          matchKind: "fuzzy"
+        })),
+        ...index.aliases
+          .filter((alias) => alias.matchKind === "traditional")
+          .map((alias) => ({
+            entry: alias.target,
+            cost: fuzzyCorrectionCost(text, alias.normalizedAlias),
+            matchKind: "traditional-fuzzy"
+          }))
+      ]
         .filter((item) => item.cost !== null);
       const minimumCost = fuzzyEntries.length
         ? Math.min(...fuzzyEntries.map((item) => item.cost))
         : null;
-      const unique = new Map(fuzzyEntries
-        .filter((item) => item.cost === minimumCost)
-        .map((item) => [item.entry.key, item.entry]));
+      const unique = new Map();
+      for (const item of fuzzyEntries.filter((candidate) => candidate.cost === minimumCost)) {
+        if (!unique.has(item.entry.key)) unique.set(item.entry.key, item);
+      }
       if (unique.size === 1) {
-        const entry = [...unique.values()][0];
+        const candidate = [...unique.values()][0];
         addActionVariants(byStart[0], normalizedInput, 0, text.length, {
           ambiguous: false,
-          terminal: { entry, matchKind: "fuzzy" }
+          terminal: { entry: candidate.entry, matchKind: candidate.matchKind }
         });
       }
     }

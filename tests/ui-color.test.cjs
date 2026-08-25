@@ -82,13 +82,15 @@ test("all factor names wrap instead of being truncated with an ellipsis", () => 
   assert.equal(/\.factor-option-name\s*\{[^}]*text-overflow:ellipsis/.test(contentSource), false);
 });
 
-test("panel header uses the packaged extension icon and subtle Songe credit", () => {
+test("panel header uses the packaged extension icon and a safe BWIKI source link", () => {
   assert.match(contentSource, /chrome\.runtime\.getURL\("icons\/icon-48\.png"\)/);
   assert.match(contentSource, /class="brand-mark"><img/);
   assert.match(contentSource, /class="launcher-icon" src="\$\{extensionIconUrl\}"/);
   assert.match(contentSource, /\.launcher-icon\s*\{[^}]*width:30px[^}]*height:30px/);
-  assert.match(contentSource, /class="byline">by Songe<\/span>/);
-  assert.match(contentSource, /\.byline\s*\{[^}]*opacity:\.62/);
+  assert.match(contentSource, /class="source-link" href="https:\/\/wiki\.biligame\.com\/umamusume\/"/);
+  assert.match(contentSource, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(contentSource, />数据来源：BWIKI<\/a>/);
+  assert.equal(contentSource.includes("by Songe"), false);
 });
 
 test("product-facing text consistently uses the searcher name", () => {

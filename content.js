@@ -193,7 +193,9 @@
       .brand-mark img { display:block; width:100%; height:100%; object-fit:cover; }
       h1 { margin:0; font-size:20px; line-height:1.25; }
       .subtitle { margin-top:2px; color:#e6fff1; font-size:12px; line-height:1.4; }
-      .byline { margin-left:5px; opacity:.62; font-size:10px; font-weight:500; letter-spacing:.02em; white-space:nowrap; }
+      .source-link { min-height:24px; display:inline-flex; align-items:center; color:inherit; font-weight:650; text-decoration:underline; text-decoration-color:#e6fff180; text-underline-offset:3px; }
+      .source-link:hover { color:#fff; text-decoration-color:currentColor; }
+      .source-link:focus-visible { border-radius:4px; outline:2px solid #fff; outline-offset:2px; }
       .icon-button { width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:12px; background:transparent; color:inherit; }
       .icon-button:hover { background:#0000000d; }
       .panel-header .icon-button:hover { background:#ffffff20; }
@@ -360,7 +362,7 @@
     <div class="scrim" id="scrim"></div>
     <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
-        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器</h1><div class="subtitle">按你的因子偏好重排实时好友候选<span class="byline">by Songe</span></div></div></div>
+        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器</h1><div class="subtitle"><a class="source-link" href="https://wiki.biligame.com/umamusume/" target="_blank" rel="noopener noreferrer" aria-label="打开赛马娘 BWIKI 数据来源（新窗口）">数据来源：BWIKI</a></div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马搜索器">${ICONS.close}</button>
       </header>
       <div class="panel-body" id="body"></div>
@@ -566,6 +568,7 @@
   function recognitionMatchLabel(kind) {
     if (kind === "alias") return "安全简称匹配";
     if (kind === "traditional") return "繁中名称映射";
+    if (kind === "traditional-fuzzy") return "繁中名称容错";
     if (kind === "prefix") return "唯一简称补全";
     if (kind === "fuzzy") return "一字容错纠正";
     return "目录名称匹配";
