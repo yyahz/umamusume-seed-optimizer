@@ -100,6 +100,13 @@ test("product-facing text consistently uses the searcher name", () => {
   assert.equal(contentSource.includes("种马优选器"), false);
 });
 
+test("bulk recognition previews and applies sequential skill priority tiers", () => {
+  assert.match(contentSource, /planSequentialSkillTiers\?\.\(resolved\)/);
+  assert.match(contentSource, /前 10 项 P1，第 11–20 项 P2，第 21 项以后 P3/);
+  assert.match(contentSource, /优先级 P\$\{plannedTier\}\$\{tierNote\}/);
+  assert.match(contentSource, /plannedTiers\[index\] \?\? 1/);
+});
+
 test("panel and catalogs respond to browser width and height", () => {
   assert.match(contentSource, /width:min\(100vw,clamp\(420px,40vw,620px\)\)/);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);

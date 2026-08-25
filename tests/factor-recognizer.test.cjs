@@ -290,3 +290,22 @@ test("single-line unknown residue remains strict", () => {
   assert.deepEqual(result.unknown.map((item) => item.normalized), ["火箭"]);
   assert.equal(result.canApply, false);
 });
+
+test("auto priority tiers only activate for at least twenty recognized skills", () => {
+  const skills = Array.from({ length: 30 }, (_, index) => ({
+    factor: factor(4, 1000 + index, `技能${index + 1}`)
+  }));
+  const shortList = recognizer.planSequentialSkillTiers(skills.slice(0, 19));
+  const longList = recognizer.planSequentialSkillTiers([
+    { factor: factor(1, 1, "速度") },
+    ...skills,
+    { factor: factor(6, 1, "URA剧本") }
+  ]);
+
+  assert.deepEqual(shortList, Array(19).fill(null));
+  assert.equal(longList[0], null);
+  assert.deepEqual(longList.slice(1, 11), Array(10).fill(1));
+  assert.deepEqual(longList.slice(11, 21), Array(10).fill(2));
+  assert.deepEqual(longList.slice(21, 31), Array(10).fill(3));
+  assert.equal(longList[31], null);
+});

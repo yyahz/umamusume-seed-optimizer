@@ -25,6 +25,8 @@
   const MAX_PREFIX_MISSING = 2;
   const MIN_PREFIX_RATIO = 0.75;
   const SHORT_FACTOR_LENGTH = 3;
+  const AUTO_TIER_SKILL_THRESHOLD = 20;
+  const AUTO_TIER_BAND_SIZE = 10;
 
   function isMeaningfulCharacter(character) {
     return character === "○" || character === "◎" || character === "+" || /[\p{L}\p{N}]/u.test(character);
@@ -896,10 +898,29 @@
     };
   }
 
+  function planSequentialSkillTiers(items) {
+    const source = Array.isArray(items) ? items : [];
+    const skillIndexes = source
+      .map((item, index) => ({ index, type: Number((item.factor || item)?.type) }))
+      .filter((item) => item.type === 4)
+      .map((item) => item.index);
+    const planned = Array(source.length).fill(null);
+    if (skillIndexes.length < AUTO_TIER_SKILL_THRESHOLD) return planned;
+    skillIndexes.forEach((sourceIndex, skillIndex) => {
+      planned[sourceIndex] = skillIndex < AUTO_TIER_BAND_SIZE
+        ? 1
+        : skillIndex < AUTO_TIER_BAND_SIZE * 2 ? 2 : 3;
+    });
+    return planned;
+  }
+
   return {
     DEFAULT_ALIASES,
+    AUTO_TIER_SKILL_THRESHOLD,
+    AUTO_TIER_BAND_SIZE,
     normalizeWithMap,
     buildCatalogIndex,
-    recognizeFactorText
+    recognizeFactorText,
+    planSequentialSkillTiers
   };
 });

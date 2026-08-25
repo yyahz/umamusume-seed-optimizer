@@ -249,6 +249,7 @@
       .recognizer-button svg { width:18px; height:18px; }
       .recognition-feedback { display:grid; gap:8px; margin-top:10px; }
       .recognition-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; border-radius:10px; padding:8px 9px; color:var(--brand-dark); background:#e9f7ef; font-size:11px; font-weight:750; }
+      .recognition-tier-note { border-radius:10px; padding:8px 9px; color:#31523f; background:#edf7f1; font-size:11px; line-height:1.5; }
       .recognition-list { display:grid; gap:5px; }
       .recognition-item { min-height:48px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:10px; padding:6px 8px; background:var(--factor-soft); }
       .recognition-name { overflow:hidden; font-size:12px; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
@@ -592,7 +593,9 @@
     const unknown = Array.isArray(result.unknown) ? result.unknown : [];
     const warnings = Array.isArray(result.warnings) ? result.warnings : [];
     const errors = Array.isArray(result.errors) ? result.errors : [];
-    const items = resolved.map((item) => {
+    const plannedTiers = recognizer?.planSequentialSkillTiers?.(resolved) || [];
+    const autoTierCount = plannedTiers.filter((tier) => tier !== null).length;
+    const items = resolved.map((item, index) => {
       const factor = item.factor || item;
       const meta = factorVisualMeta(factor);
       const current = factor?.type === undefined || factor?.num === undefined
@@ -602,9 +605,11 @@
       const selfStars = item.explicitSelf ? item.minSelfStars : current?.minSelfStars ?? ranking.DEFAULT_SELF_STARS;
       const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
       const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
+      const plannedTier = current ? ranking.clampTier(current.tier, 1, factor.colorId === "white") : plannedTiers[index] ?? 1;
+      const tierNote = current ? " 保留当前" : plannedTiers[index] !== null && plannedTiers[index] !== undefined ? " 自动" : " 默认";
       return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
         <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
-        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}</div>
+        <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 P${plannedTier}${tierNote}</div>
       </div>`;
     }).join("");
     const ambiguityBlocks = ambiguous.map((item) => {
@@ -620,6 +625,7 @@
     const canApply = Boolean(result.canApply && resolved.length && !errors.length);
     return `<div class="recognition-feedback" id="recognition-feedback" aria-live="polite">
       <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>歧义 ${ambiguous.length} · 未识别 ${unknown.length}</span></div>
+      ${autoTierCount ? `<div class="recognition-tier-note"><b>已按攻略顺序预排技能优先级：</b>前 10 项 P1，第 11–20 项 P2，第 21 项以后 P3；已有因子的手动优先级保持不变。</div>` : ""}
       ${items ? `<div class="recognition-list">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
       ${ambiguityBlocks}${unknownBlocks}${warningBlocks}${errorBlocks}
       <div class="recognition-preview-actions">
@@ -635,7 +641,7 @@
     return `<div class="quick-recognizer">
       <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名、繁中名称和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
       <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
-      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★，并进入 P1。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
+      <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★；识别至少 20 个技能时会按原文顺序自动分为 P1 / P2 / P3。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
       ${renderRecognitionNotice()}
       ${renderRecognitionPreview()}
     </div>`;
@@ -873,17 +879,20 @@
     const resolved = Array.isArray(result?.resolved) ? result.resolved : [];
     if (!result?.canApply || !resolved.length || (result.errors || []).length) return;
     const before = cloneSelectedMap();
+    const plannedTiers = recognizer?.planSequentialSkillTiers?.(resolved) || [];
     let added = 0;
     let updated = 0;
     let unchanged = 0;
-    for (const item of resolved) {
+    for (const [index, item] of resolved.entries()) {
       const factor = item.factor || item;
       if (factor?.type === undefined || factor?.num === undefined) continue;
       const key = ranking.factorKey(factor.type, factor.num);
       const current = state.selected.get(key);
       const next = {
         ...factor,
-        tier: current ? ranking.clampTier(current.tier, 1, factor.colorId === "white") : 1,
+        tier: current
+          ? ranking.clampTier(current.tier, 1, factor.colorId === "white")
+          : plannedTiers[index] ?? 1,
         minStars: item.explicitTotal
           ? ranking.clampFactorStars(item.minStars)
           : current ? ranking.clampFactorStars(current.minStars) : 1,
