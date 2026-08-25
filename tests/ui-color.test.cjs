@@ -90,13 +90,14 @@ test("panel header uses the packaged extension icon and a safe BWIKI source link
   assert.match(contentSource, /class="source-link" href="https:\/\/wiki\.biligame\.com\/umamusume\/"/);
   assert.match(contentSource, /target="_blank" rel="noopener noreferrer"/);
   assert.match(contentSource, />数据来源：BWIKI<\/a>/);
-  assert.equal(contentSource.includes("by Songe"), false);
+  assert.match(contentSource, /种马搜索器<span class="brand-credit">by Songe<\/span>/);
+  assert.match(contentSource, /\.brand-credit\s*\{[^}]*opacity:\.68[^}]*font-size:10px/);
 });
 
 test("product-facing text consistently uses the searcher name", () => {
   assert.match(contentSource, /aria-label="打开种马搜索器"/);
   assert.match(contentSource, /<span>种马搜索器<\/span>/);
-  assert.match(contentSource, /id="optimizer-title">种马搜索器<\/h1>/);
+  assert.match(contentSource, /id="optimizer-title">种马搜索器<span class="brand-credit">by Songe<\/span><\/h1>/);
   assert.equal(contentSource.includes("种马优选器"), false);
 });
 

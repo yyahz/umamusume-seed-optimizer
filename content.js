@@ -191,7 +191,8 @@
       .title-wrap { min-width:0; display:flex; align-items:center; gap:12px; }
       .brand-mark { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; overflow:hidden; background:#ffffff24; box-shadow:0 2px 8px #053d2529; }
       .brand-mark img { display:block; width:100%; height:100%; object-fit:cover; }
-      h1 { margin:0; font-size:20px; line-height:1.25; }
+      h1 { margin:0; display:flex; align-items:baseline; gap:6px; font-size:20px; line-height:1.25; }
+      .brand-credit { flex:0 0 auto; opacity:.68; font-size:10px; font-weight:500; letter-spacing:.02em; white-space:nowrap; }
       .subtitle { margin-top:2px; color:#e6fff1; font-size:12px; line-height:1.4; }
       .source-link { min-height:24px; display:inline-flex; align-items:center; color:inherit; font-weight:650; text-decoration:underline; text-decoration-color:#e6fff180; text-underline-offset:3px; }
       .source-link:hover { color:#fff; text-decoration-color:currentColor; }
@@ -355,7 +356,7 @@
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
       @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .role-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
-      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .brand-credit { font-size:9px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
       @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .role-catalog { max-height:240px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
@@ -363,7 +364,7 @@
     <div class="scrim" id="scrim"></div>
     <div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="optimizer-title" aria-hidden="true" inert>
       <header class="panel-header">
-        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器</h1><div class="subtitle"><a class="source-link" href="https://wiki.biligame.com/umamusume/" target="_blank" rel="noopener noreferrer" aria-label="打开赛马娘 BWIKI 数据来源（新窗口）">数据来源：BWIKI</a></div></div></div>
+        <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器<span class="brand-credit">by Songe</span></h1><div class="subtitle"><a class="source-link" href="https://wiki.biligame.com/umamusume/" target="_blank" rel="noopener noreferrer" aria-label="打开赛马娘 BWIKI 数据来源（新窗口）">数据来源：BWIKI</a></div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马搜索器">${ICONS.close}</button>
       </header>
       <div class="panel-body" id="body"></div>
