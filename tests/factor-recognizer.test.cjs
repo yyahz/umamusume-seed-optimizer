@@ -27,7 +27,8 @@ const catalog = [
   factor(4, 903, "抢先"),
   factor(4, 904, "沙浴○"),
   factor(4, 905, "领跑弯道○"),
-  factor(4, 906, "太阳的睿智")
+  factor(4, 906, "太阳的睿智"),
+  factor(4, 907, "无法阻挡的热情冲刺")
 ];
 
 const index = recognizer.buildCatalogIndex(catalog, {
@@ -283,6 +284,20 @@ test("corrects one OCR character in a Traditional alias before mapping to Simpli
   assert.equal(wisdom.resolved[0].factor.name, "太阳的睿智");
   assert.equal(wisdom.resolved[0].matchKind, "traditional-fuzzy");
   assert.equal(wisdom.canApply, true);
+});
+
+test("long names allow proportional multi-character OCR correction without relaxing short names", () => {
+  const simplified = recognizer.recognizeFactorText("无法阻档的热清冲刺", index);
+  const traditional = recognizer.recognizeFactorText("夏日天空上的光量", index);
+  const tooManyErrors = recognizer.recognizeFactorText("无发阻档的热清冲刺", index);
+  const shortNoise = recognizer.recognizeFactorText("领跑推荐", index);
+
+  assert.equal(simplified.resolved[0].factor.name, "无法阻挡的热情冲刺");
+  assert.equal(simplified.resolved[0].matchKind, "fuzzy-multi");
+  assert.equal(traditional.resolved[0].factor.name, "夏日光晕");
+  assert.equal(traditional.resolved[0].matchKind, "traditional-fuzzy-multi");
+  assert.equal(tooManyErrors.resolved.length, 0);
+  assert.equal(shortNoise.resolved.length, 0);
 });
 
 test("single-line unknown residue remains strict", () => {

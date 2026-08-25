@@ -19,7 +19,9 @@
     traditional: 3,
     prefix: 2,
     fuzzy: 1,
-    "traditional-fuzzy": 1
+    "traditional-fuzzy": 1,
+    "fuzzy-multi": 1,
+    "traditional-fuzzy-multi": 1
   });
   const MIN_PREFIX_LENGTH = 4;
   const MAX_PREFIX_MISSING = 2;
@@ -174,7 +176,11 @@
     }
     if (/[◎+]/.test(canonical)) return null;
 
-    if (canonical.length >= 3 && boundedEditDistance(input, canonical, 1) === 1) return 1;
+    if (canonical.length >= 3) {
+      const maximumDistance = Math.min(4, Math.max(1, Math.floor(canonical.length * 0.25)));
+      const distance = boundedEditDistance(input, canonical, maximumDistance);
+      if (distance >= 1 && distance <= maximumDistance) return distance;
+    }
     if (canonical.length >= 2 && input.length === canonical.length + 1
       && (input.slice(1) === canonical || input.slice(0, -1) === canonical)) return 1;
     return null;
@@ -400,7 +406,7 @@
       );
       const confidence = terminalInfo.matchKind === "prefix"
         ? Math.min(0.9, (nameEnd - start) / canonicalLength * 0.9)
-        : terminalInfo.matchKind === "fuzzy" || terminalInfo.matchKind === "traditional-fuzzy"
+        : ["fuzzy", "traditional-fuzzy", "fuzzy-multi", "traditional-fuzzy-multi"].includes(terminalInfo.matchKind)
           ? 0.65
           : 1;
       return {
@@ -427,8 +433,10 @@
       ? 1
       : terminal.matchKind === "alias" || terminal.matchKind === "traditional"
         ? 0.97
-        : terminal.matchKind === "fuzzy" || terminal.matchKind === "traditional-fuzzy"
+        : ["fuzzy", "traditional-fuzzy"].includes(terminal.matchKind)
           ? 0.65
+          : ["fuzzy-multi", "traditional-fuzzy-multi"].includes(terminal.matchKind)
+            ? 0.55
           : Math.min(0.9, matchedLength / canonicalLength * 0.9);
     return {
       type: "resolved",
@@ -532,14 +540,16 @@
         ...index.entries.map((entry) => ({
           entry,
           cost: fuzzyCorrectionCost(text, entry.normalizedName),
-          matchKind: "fuzzy"
+          matchKind: "fuzzy",
+          surfaceLength: entry.normalizedName.length
         })),
         ...index.aliases
           .filter((alias) => alias.matchKind === "traditional")
           .map((alias) => ({
             entry: alias.target,
             cost: fuzzyCorrectionCost(text, alias.normalizedAlias),
-            matchKind: "traditional-fuzzy"
+            matchKind: "traditional-fuzzy",
+            surfaceLength: alias.normalizedAlias.length
           }))
       ]
         .filter((item) => item.cost !== null);
@@ -548,6 +558,11 @@
         : null;
       const unique = new Map();
       for (const item of fuzzyEntries.filter((candidate) => candidate.cost === minimumCost)) {
+        if (item.cost > 1 && item.surfaceLength >= 8) {
+          item.matchKind = item.matchKind === "traditional-fuzzy"
+            ? "traditional-fuzzy-multi"
+            : "fuzzy-multi";
+        }
         if (!unique.has(item.entry.key)) unique.set(item.entry.key, item);
       }
       if (unique.size === 1) {

@@ -571,8 +571,10 @@
     if (kind === "alias") return "安全简称匹配";
     if (kind === "traditional") return "繁中名称映射";
     if (kind === "traditional-fuzzy") return "繁中名称容错";
+    if (kind === "traditional-fuzzy-multi") return "繁中长名称多字容错";
     if (kind === "prefix") return "唯一简称补全";
     if (kind === "fuzzy") return "一字容错纠正";
+    if (kind === "fuzzy-multi") return "长名称多字容错";
     return "目录名称匹配";
   }
 

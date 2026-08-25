@@ -108,6 +108,11 @@ test("bulk recognition previews and applies sequential skill priority tiers", ()
   assert.match(contentSource, /plannedTiers\[index\] \?\? 1/);
 });
 
+test("recognition labels distinguish proportional long-name OCR correction", () => {
+  assert.match(contentSource, /traditional-fuzzy-multi[^\n]+繁中长名称多字容错/);
+  assert.match(contentSource, /fuzzy-multi[^\n]+长名称多字容错/);
+});
+
 test("panel and catalogs respond to browser width and height", () => {
   assert.match(contentSource, /width:min\(100vw,clamp\(420px,40vw,620px\)\)/);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
