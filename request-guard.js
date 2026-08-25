@@ -9,7 +9,7 @@
     minimumIntervalMs: 350,
     intervalJitterMs: 150,
     cacheTtlMs: 60_000,
-    searchCooldownMs: 8_000,
+    searchCooldownMs: 2_000,
     riskCooldownMs: 60_000,
     maximumRetries: 2,
     retryBaseMs: 800

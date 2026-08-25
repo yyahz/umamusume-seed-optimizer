@@ -96,11 +96,11 @@ test("treats an explicit frequent-access API message as risk control", async () 
   assert.equal(guard.remainingCooldownMs(), 60_000);
 });
 
-test("applies an eight-second cooldown after every completed search", () => {
+test("provides a two-second cooldown for explicitly large searches", () => {
   const clock = fakeClockOptions();
   const guard = requestGuard.createSearchRequestGuard(clock.options);
 
-  assert.equal(guard.finishSearch(), 8_000);
-  clock.advance(3_000);
-  assert.equal(guard.remainingCooldownMs(), 5_000);
+  assert.equal(guard.finishSearch(), 2_000);
+  clock.advance(1_250);
+  assert.equal(guard.remainingCooldownMs(), 750);
 });

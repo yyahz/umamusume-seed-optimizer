@@ -121,3 +121,9 @@ test("panel and catalogs respond to browser width and height", () => {
   assert.match(contentSource, /\.role-catalog\s*\{[^}]*max-height:clamp\(240px,38dvh,440px\)/);
   assert.match(contentSource, /@media \(max-height:700px\)/);
 });
+
+test("normal searches skip cooldown while twelve-factor searches use two seconds", () => {
+  assert.match(contentSource, /MANY_FACTOR_COOLDOWN_THRESHOLD\s*=\s*12/);
+  assert.match(contentSource, /preferences\.desiredFactors\.length\s*>=\s*MANY_FACTOR_COOLDOWN_THRESHOLD/);
+  assert.match(contentSource, /至少 12 个因子时搜索后冷却 2 秒，普通搜索不冷却/);
+});
