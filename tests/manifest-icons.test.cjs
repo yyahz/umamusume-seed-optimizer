@@ -31,6 +31,18 @@ test("panel icon is exposed to the matched toolbox page", () => {
   }]);
 });
 
+test("manifest stays within the Chrome APIs supported by current 360 Chromium browsers", () => {
+  assert.equal(manifest.manifest_version, 3);
+  assert.deepEqual(manifest.permissions, ["storage"]);
+  assert.equal(manifest.background, undefined);
+  assert.equal(manifest.action, undefined);
+  assert.equal(manifest.side_panel, undefined);
+
+  const mainWorldBridge = manifest.content_scripts.find((entry) => entry.world === "MAIN");
+  assert.deepEqual(mainWorldBridge.js, ["page-bridge.js"]);
+  assert.equal(mainWorldBridge.run_at, "document_start");
+});
+
 test("request protection loads before the content search workflow", () => {
   const isolatedScripts = manifest.content_scripts.find((entry) => entry.world !== "MAIN").js;
   assert.ok(isolatedScripts.includes("request-guard.js"));
