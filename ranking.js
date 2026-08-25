@@ -122,7 +122,9 @@
       minStars: clampFactorStars(raw.minStars),
       minSelfStars: clampSelfStars(raw.minSelfStars),
       colorId,
-      subtype: TYPE_NAMES[type] || "其他"
+      subtype: TYPE_NAMES[type] || "其他",
+      virtualGold: raw.virtualGold === true,
+      lowerSkillName: raw.lowerSkillName ? String(raw.lowerSkillName) : ""
     };
   }
 

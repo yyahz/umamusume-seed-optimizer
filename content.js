@@ -6,6 +6,7 @@
 
   const ranking = globalThis.UmaSeedRanking;
   const recognizer = globalThis.UmaFactorRecognizer;
+  const goldSkillMap = globalThis.UmaGoldSkillMap;
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
   const STORAGE_KEY = "umaSeedOptimizerPreferencesV1";
@@ -104,6 +105,15 @@
     return { ...base, ...(WHITE_SUBTYPE_META[factorOrColor?.subtype] || {}) };
   }
 
+  function catalogFactorKey(factor) {
+    return String(factor?.catalogKey || factor?.key || ranking.factorKey(factor?.type, factor?.num));
+  }
+
+  function selectedFactorSubtitle(factor) {
+    if (factor?.virtualGold) return `金技能 → ${factor.lowerSkillName}`;
+    return factor?.subtype || "因子";
+  }
+
   function activeFactorVisualMeta() {
     return factorVisualMeta({ colorId: state.activeColor, subtype: state.activeSubtype });
   }
@@ -143,7 +153,12 @@
           minStars: ranking.clampFactorStars(factor.minStars),
           minSelfStars: ranking.clampSelfStars(factor.minSelfStars),
           colorId: factor.colorId,
-          subtype: factor.subtype
+          subtype: factor.subtype,
+          virtualGold: factor.virtualGold === true,
+          goldSkillName: factor.goldSkillName,
+          lowerSkillName: factor.lowerSkillName,
+          catalogKey: factor.catalogKey,
+          key: factor.key
         });
       }
     }
@@ -259,6 +274,8 @@
       .factor-option { min-height:48px; display:flex; align-items:center; justify-content:space-between; gap:7px; border:1px solid transparent; border-radius:10px; padding:7px 9px; color:var(--ink); background:#fff; text-align:left; }
       .factor-option:hover { border-color:var(--factor-color); background:var(--factor-soft); }
       .factor-option.selected { color:var(--factor-color); border-color:var(--factor-color); background:var(--factor-soft); }
+      .factor-option.gold-skill { border-color:#d7a72f; background:linear-gradient(135deg,#fffdf3,#fff5c8); }
+      .factor-option.gold-skill:hover,.factor-option.gold-skill.selected { border-color:#b98200; background:linear-gradient(135deg,#fff8d8,#ffe99a); }
       .factor-option-name { min-width:0; overflow:hidden; font-size:12px; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
       .factor-option-state { flex:0 0 auto; color:var(--factor-color); font-size:10px; font-weight:800; }
       .catalog-more { min-height:44px; width:100%; border:0; border-top:1px solid var(--line); color:var(--factor-color); background:var(--factor-soft); font-size:12px; font-weight:750; }
@@ -470,7 +487,7 @@
             const itemMeta = factorVisualMeta(item);
             return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前${required ? "必需" : ` P${tier}`}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
               <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
-              <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(item.subtype || "因子")}</div></div>
+              <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(selectedFactorSubtitle(item))}</div></div>
               <label class="compact-factor-field total-star-field">家系至少
                 <select class="star-select" data-total-star-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}最低家系合计星数">
                   ${Array.from({ length: ranking.MAX_FACTOR_STARS }, (_, index) => index + 1).map((stars) => `<option value="${stars}" ${stars === ranking.clampFactorStars(item.minStars) ? "selected" : ""}>${stars}★</option>`).join("")}
@@ -515,10 +532,14 @@
     const items = visible.length
       ? visible.map((factor) => {
         const key = ranking.factorKey(factor.type, factor.num);
-        const selected = state.selected.has(key);
-        return `<button class="factor-option ${selected ? "selected" : ""}" type="button" ${selected ? `data-selected-factor="${escapeHtml(key)}"` : `data-add-factor="${escapeHtml(key)}"`} aria-pressed="${selected}" title="${escapeHtml(factor.name)} · ${selected ? "再次点击取消选择" : escapeHtml(factor.subtype)}">
+        const selectedItem = state.selected.get(key);
+        const selected = Boolean(selectedItem && catalogFactorKey(selectedItem) === catalogFactorKey(factor));
+        const equivalent = Boolean(selectedItem && !selected);
+        const catalogKey = catalogFactorKey(factor);
+        const mapping = factor.virtualGold ? ` → ${factor.lowerSkillName}` : "";
+        return `<button class="factor-option ${factor.virtualGold ? "gold-skill" : ""} ${selected ? "selected" : ""}" type="button" ${selected ? `data-selected-factor="${escapeHtml(key)}"` : `data-add-factor="${escapeHtml(catalogKey)}"`} aria-pressed="${selected}" title="${escapeHtml(factor.name)}${escapeHtml(mapping)} · ${selected ? "再次点击取消选择" : equivalent ? "点击改用此名称显示" : escapeHtml(factor.subtype)}">
           <span class="factor-option-name">${escapeHtml(factor.name)}</span>
-          <span class="factor-option-state">${selected ? "再点取消" : escapeHtml(factor.subtype)}</span>
+          <span class="factor-option-state">${selected ? "再点取消" : factor.virtualGold ? `金 → ${escapeHtml(factor.lowerSkillName)}` : equivalent ? "同一下位" : escapeHtml(factor.subtype)}</span>
         </button>`;
       }).join("")
       : '<div class="selected-empty" style="grid-column:1/-1">没有找到符合条件的因子。</div>';
@@ -567,7 +588,7 @@
       const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
       const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
       return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
-        <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(factor.subtype || "因子")} · ${recognitionMatchLabel(item.matchKind)}</div></div>
+        <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
         <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}</div>
       </div>`;
     }).join("");
@@ -663,7 +684,8 @@
             <div class="breakdown">${renderBreakdown(item)}</div>
             <div class="match-list">${item.matches.slice(0, 10).map((match) => {
               const matchMeta = factorVisualMeta(match);
-              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(match.name)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+              const matchName = match.virtualGold ? `${match.name} → ${match.lowerSkillName}` : match.name;
+              return `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
             }).join("")}</div>
             <div class="result-actions"><span class="scope-note">第 ${index + 1} 名 · 缺少 ${item.misses.length} 项 · 家系不足 ${totalShortfallCount} 项 · 本体不足 ${selfShortfallCount} 项</span><button class="copy-button" type="button" data-copy-id="${escapeHtml(id)}">${ICONS.copy}复制 ID</button></div>
           </article>`;
@@ -1082,10 +1104,17 @@
         return;
       }
       const key = event.target.closest("[data-add-factor]")?.dataset.addFactor;
-      const factor = state.factors.find((item) => ranking.factorKey(item.type, item.num) === key);
+      const factor = state.factors.find((item) => catalogFactorKey(item) === key);
       if (!factor) return;
       invalidateFactorImportUndo();
-      state.selected.set(key, { ...factor, tier: 1, minStars: 1, minSelfStars: ranking.DEFAULT_SELF_STARS });
+      const targetKey = ranking.factorKey(factor.type, factor.num);
+      const previous = state.selected.get(targetKey);
+      state.selected.set(targetKey, {
+        ...factor,
+        tier: previous?.tier ?? 1,
+        minStars: previous?.minStars ?? 1,
+        minSelfStars: previous?.minSelfStars ?? ranking.DEFAULT_SELF_STARS
+      });
       savePreferences();
       render();
       const nextSearch = shadow.getElementById("factor-search");
@@ -1220,7 +1249,9 @@
       ]);
       if (factorResponse?.code !== 0) throw apiError(factorResponse);
       if (roleResponse?.code !== 0) throw apiError(roleResponse);
-      state.factors = ranking.flattenFactorResponse(factorResponse.data);
+      const liveFactors = ranking.flattenFactorResponse(factorResponse.data);
+      if (!goldSkillMap?.extendFactorCatalog) throw new Error("金技能映射模块未加载，请重新加载扩展后刷新页面。");
+      state.factors = goldSkillMap.extendFactorCatalog(liveFactors);
       state.roles = ranking.flattenHeroCardResponse(roleResponse.data);
       if (!state.factors.length) throw new Error("因子目录为空，请刷新页面重试。");
       if (!state.roles.length) throw new Error("角色目录为空，请刷新页面重试。");
@@ -1232,7 +1263,11 @@
       );
       // Rehydrate persisted records against the current live catalog.
       for (const [key, selected] of state.selected.entries()) {
-        const current = state.factors.find((factor) => ranking.factorKey(factor.type, factor.num) === key);
+        const current = state.factors.find((factor) =>
+          ranking.factorKey(factor.type, factor.num) === key
+          && Boolean(factor.virtualGold) === Boolean(selected.virtualGold)
+          && (!selected.virtualGold || factor.goldSkillName === selected.goldSkillName)
+        ) || liveFactors.find((factor) => ranking.factorKey(factor.type, factor.num) === key);
         if (current) state.selected.set(key, {
           ...current,
           tier: selected.tier,
@@ -1243,7 +1278,8 @@
       }
       state.loadingFactors = false;
       state.loadingRoles = false;
-      state.status = `已读取 ${state.roles.length} 个角色和 ${state.factors.length} 个简中因子；请选择偏好后搜索。`;
+      const goldCount = state.factors.filter((factor) => factor.virtualGold).length;
+      state.status = `已读取 ${state.roles.length} 个角色、${liveFactors.length} 个简中因子，并加入 ${goldCount} 个可映射金技能；请选择偏好后搜索。`;
       savePreferences();
     } catch (error) {
       state.loadingFactors = false;

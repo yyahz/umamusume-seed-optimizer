@@ -19,6 +19,7 @@ $releaseFiles = @(
     'manifest.json',
     'page-bridge.js',
     'ranking.js',
+    'gold-skill-map.js',
     'factor-recognizer.js',
     'content.js',
     'README.md',

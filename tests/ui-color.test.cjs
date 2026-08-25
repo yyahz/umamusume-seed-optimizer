@@ -61,5 +61,12 @@ test("color order explains its equal-score tie breaker", () => {
 
 test("new factors default to zero self stars", () => {
   assert.match(contentSource, /默认家系 1★、本体 0★/);
-  assert.match(contentSource, /minSelfStars: ranking\.DEFAULT_SELF_STARS/);
+  assert.match(contentSource, /minSelfStars: previous\?\.minSelfStars \?\? ranking\.DEFAULT_SELF_STARS/);
+});
+
+test("gold skills show their mapped lower white factor in catalog and selection UI", () => {
+  assert.match(contentSource, /gold-skill/);
+  assert.match(contentSource, /金技能 → \$\{factor\.lowerSkillName\}/);
+  assert.match(contentSource, /金 → \$\{escapeHtml\(factor\.lowerSkillName\)\}/);
+  assert.match(contentSource, /goldSkillMap\.extendFactorCatalog\(liveFactors\)/);
 });
