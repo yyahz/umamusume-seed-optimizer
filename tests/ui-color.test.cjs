@@ -88,3 +88,12 @@ test("panel header uses the packaged extension icon and subtle Songe credit", ()
   assert.match(contentSource, /class="byline">by Songe<\/span>/);
   assert.match(contentSource, /\.byline\s*\{[^}]*opacity:\.62/);
 });
+
+test("panel and catalogs respond to browser width and height", () => {
+  assert.match(contentSource, /width:min\(100vw,clamp\(420px,40vw,620px\)\)/);
+  assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
+  assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
+  assert.match(contentSource, /\.factor-catalog\s*\{[^}]*max-height:clamp\(220px,34dvh,400px\)/);
+  assert.match(contentSource, /\.role-catalog\s*\{[^}]*max-height:clamp\(240px,38dvh,440px\)/);
+  assert.match(contentSource, /@media \(max-height:700px\)/);
+});

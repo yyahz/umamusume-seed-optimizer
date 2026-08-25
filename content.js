@@ -184,14 +184,14 @@
       .launcher svg { fill:currentColor; stroke:none; }
       .scrim { position:fixed; inset:0; z-index:2147483645; background:#0d1d1566; opacity:0; pointer-events:none; transition:opacity 180ms ease-out; }
       .scrim.open { opacity:1; pointer-events:auto; }
-      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(468px,100vw); height:100dvh; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
+      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100vw,clamp(420px,40vw,620px)); height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
       .panel.open { transform:translateX(0); }
       .panel-header { position:relative; z-index:2; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; color:#fff; background:linear-gradient(145deg,#0b7144,#0d7848); }
-      .title-wrap { display:flex; align-items:center; gap:12px; }
+      .title-wrap { min-width:0; display:flex; align-items:center; gap:12px; }
       .brand-mark { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; overflow:hidden; background:#ffffff24; box-shadow:0 2px 8px #053d2529; }
       .brand-mark img { display:block; width:100%; height:100%; object-fit:cover; }
       h1 { margin:0; font-size:20px; line-height:1.25; }
-      .subtitle { margin-top:2px; color:#e6fff1; font-size:12px; }
+      .subtitle { margin-top:2px; color:#e6fff1; font-size:12px; line-height:1.4; }
       .byline { margin-left:5px; opacity:.62; font-size:10px; font-weight:500; letter-spacing:.02em; white-space:nowrap; }
       .icon-button { width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:12px; background:transparent; color:inherit; }
       .icon-button:hover { background:#0000000d; }
@@ -217,7 +217,7 @@
       .role-tab { min-height:44px; border:1px solid var(--line); border-radius:11px; color:var(--muted); background:#fff; font-size:12px; font-weight:700; }
       .role-tab.active { color:var(--brand-dark); border-color:var(--brand); background:#e9f7ef; }
       .role-catalog-shell { margin-top:8px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; }
-      .role-catalog { max-height:320px; overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; overscroll-behavior:contain; }
+      .role-catalog { max-height:clamp(240px,38dvh,440px); overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; overscroll-behavior:contain; }
       .role-option { min-height:60px; display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:8px; border:1px solid transparent; border-radius:11px; padding:6px; color:var(--ink); background:#fff; text-align:left; }
       .role-option:hover { border-color:var(--brand); background:#f0faf4; }
       .role-option.selected { color:var(--brand-dark); border-color:var(--brand); background:#e9f7ef; box-shadow:inset 0 0 0 1px var(--brand); }
@@ -272,7 +272,7 @@
       .subtype-tab:hover,.subtype-tab.active { color:var(--factor-color); border-color:var(--factor-color); background:var(--factor-soft); }
       .catalog-shell { margin:8px 0 14px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; }
       .catalog-head { min-height:40px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 10px; border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
-      .factor-catalog { max-height:286px; overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; padding:6px; overscroll-behavior:contain; }
+      .factor-catalog { max-height:clamp(220px,34dvh,400px); overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; padding:6px; overscroll-behavior:contain; }
       .factor-option { min-height:48px; display:flex; align-items:flex-start; justify-content:space-between; gap:7px; border:1px solid transparent; border-radius:10px; padding:7px 9px; color:var(--ink); background:#fff; text-align:left; }
       .factor-option:hover { border-color:var(--factor-color); background:var(--factor-soft); }
       .factor-option.selected { color:var(--factor-color); border-color:var(--factor-color); background:var(--factor-soft); }
@@ -350,7 +350,9 @@
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
-      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .role-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
+      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .role-catalog { max-height:240px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
     <button class="launcher" id="launcher" type="button" aria-label="打开种马优选器">${ICONS.spark}<span>种马优选器</span></button>
