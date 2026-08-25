@@ -253,6 +253,31 @@ test("factor filters preserve each selected 1-9 star threshold", () => {
   assert.equal(ranking.clampFactorStars(12), 9);
 });
 
+test("every API filter group contains at most three green factors", () => {
+  const greenFactors = Array.from({ length: 6 }, (_, index) => ({
+    type: 3,
+    num: 100_000 + index,
+    name: `固有${index + 1}`,
+    tier: 1,
+    minStars: 9 - index,
+    minSelfStars: 0,
+    colorId: "green"
+  }));
+  const direct = ranking.buildFactorFilters(greenFactors, "discovery");
+  assert.equal(ranking.MAX_GREEN_FACTORS_PER_QUERY, 3);
+  assert.deepEqual(direct[0].values.map((value) => value.num), [100_000, 100_001, 100_002]);
+
+  const plans = ranking.planQueries({
+    colorOrder: ["green", "blue", "red", "white"],
+    desiredFactors: greenFactors
+  }, 12);
+  for (const plan of plans) {
+    const greenFilter = plan.filters.find((filter) => filter.type === 3);
+    assert.ok(!greenFilter || greenFilter.values.length <= 3, `${plan.id} exceeded the green-factor limit`);
+  }
+  assert.equal(plans.filter((plan) => plan.id.startsWith("factor-")).length, 6);
+});
+
 test("self and discovery filters use the observed self_rarity encoding", () => {
   const factors = [
     { type: 1, num: 1, minStars: 9, minSelfStars: 1 },

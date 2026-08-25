@@ -23,6 +23,7 @@
   const MIN_SELF_STARS = 0;
   const MAX_SELF_STARS = 3;
   const DEFAULT_SELF_STARS = 0;
+  const MAX_GREEN_FACTORS_PER_QUERY = 3;
   const TYPE_TO_COLOR = new Map(
     COLOR_DEFINITIONS.flatMap((definition) =>
       definition.types.map((type) => [type, definition.id])
@@ -350,6 +351,7 @@
     for (const factor of factors) {
       const type = Number(factor.type);
       if (!byType.has(type)) byType.set(type, []);
+      if (type === 3 && byType.get(type).length >= MAX_GREEN_FACTORS_PER_QUERY) continue;
       byType.get(type).push(factorFilterValue(factor, mode));
     }
     return [...byType.entries()].map(([type, values]) => ({ type, values }));
@@ -435,6 +437,7 @@
     MIN_SELF_STARS,
     MAX_SELF_STARS,
     DEFAULT_SELF_STARS,
+    MAX_GREEN_FACTORS_PER_QUERY,
     TYPE_NAMES,
     factorKey,
     clampFactorStars,
