@@ -13,7 +13,7 @@
     "URA": "URA剧本"
   });
 
-  const MATCH_PRIORITY = Object.freeze({ exact: 4, alias: 3, prefix: 2, fuzzy: 1 });
+  const MATCH_PRIORITY = Object.freeze({ exact: 4, alias: 3, traditional: 3, prefix: 2, fuzzy: 1 });
   const MIN_PREFIX_LENGTH = 4;
   const MAX_PREFIX_MISSING = 2;
   const MIN_PREFIX_RATIO = 0.75;
@@ -109,7 +109,7 @@
       return customAliases.flatMap((item) => {
         if (Array.isArray(item) && item.length >= 2) return [[item[0], item[1]]];
         if (item && typeof item === "object" && item.alias !== undefined) {
-          return [[item.alias, item.target ?? item.name ?? item.key]];
+          return [[item.alias, item.target ?? item.name ?? item.key, item.matchKind]];
         }
         return [];
       });
@@ -198,15 +198,18 @@
       insertSurface(trie, normalizedName, entry, "exact");
     });
 
-    const mergedAliases = new Map(Object.entries(DEFAULT_ALIASES));
-    for (const [alias, target] of iterableAliases(options.aliases)) {
-      mergedAliases.set(String(alias), target);
+    const mergedAliases = new Map(Object.entries(DEFAULT_ALIASES)
+      .map(([alias, target]) => [alias, { target, matchKind: "alias" }]));
+    for (const [alias, target, requestedKind] of iterableAliases(options.aliases)) {
+      const matchKind = requestedKind === "traditional" ? "traditional" : "alias";
+      mergedAliases.set(String(alias), { target, matchKind });
     }
 
     const installedAliases = [];
-    for (const [aliasName, targetReference] of mergedAliases) {
+    for (const [aliasName, definition] of mergedAliases) {
       const alias = normalizeText(aliasName);
       if (!alias) continue;
+      const targetReference = definition.target;
       let targets = [];
       if (targetReference !== undefined && targetReference !== null) {
         const direct = entryByKey.get(String(targetReference));
@@ -224,8 +227,13 @@
         continue;
       }
       const entry = [...uniqueTargets.values()][0];
-      insertSurface(trie, alias, entry, "alias");
-      installedAliases.push({ alias: String(aliasName), normalizedAlias: alias, target: entry });
+      insertSurface(trie, alias, entry, definition.matchKind);
+      installedAliases.push({
+        alias: String(aliasName),
+        normalizedAlias: alias,
+        target: entry,
+        matchKind: definition.matchKind
+      });
     }
 
     // Precompute all permitted canonical prefixes. Keeping collisions in the
@@ -406,7 +414,7 @@
     const matchedLength = nameEnd - start;
     const confidence = terminal.matchKind === "exact"
       ? 1
-      : terminal.matchKind === "alias"
+      : terminal.matchKind === "alias" || terminal.matchKind === "traditional"
         ? 0.97
         : terminal.matchKind === "fuzzy"
           ? 0.65

@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const recognizer = require("../factor-recognizer.js");
+const traditionalNameMap = require("../traditional-name-map.js");
 
 function factor(type, num, name) {
   return { type, num, name };
@@ -22,14 +23,16 @@ const catalog = [
   factor(6, 601, "URA剧本"),
   factor(4, 777, "777"),
   factor(4, 900, "神速闪耀王"),
-  factor(4, 901, "夏日天空下的光晕"),
   factor(4, 902, "逃脱术"),
   factor(4, 903, "抢先"),
   factor(4, 904, "沙浴○"),
-  factor(4, 905, "领跑弯道○")
+  factor(4, 905, "领跑弯道○"),
+  factor(4, 906, "太阳的睿智")
 ];
 
-const index = recognizer.buildCatalogIndex(catalog);
+const index = recognizer.buildCatalogIndex(catalog, {
+  aliases: traditionalNameMap.buildAliases(catalog)
+});
 
 function byName(result, name) {
   return result.resolved.find((item) => item.factor.name === name);
@@ -246,19 +249,21 @@ test("avoids short-name prose false positives but accepts compact short lists", 
 
 test("multiline OCR lists correct one wrong or extra character and ignore noise lines", () => {
   const result = recognizer.recognizeFactorText(
-    "愿者上钩\n领跑选学\n夏日天空下的光量\n位置感\n医逃脱术\n圆抢先\n园沙浴。\n领跑弯道。\n大\nb:",
+    "愿者上钩\n领跑选学\n夏日天空下的光暈\n太陽的睿智\n位置感\n医逃脱术\n圆抢先\n园沙浴。\n领跑弯道。\n大\nb:",
     index
   );
 
   assert.deepEqual(result.resolved.map((item) => item.factor.name), [
-    "夏日天空下的光晕",
+    "夏日光晕",
+    "太阳的睿智",
     "位置感",
     "逃脱术",
     "抢先",
     "沙浴○",
     "领跑弯道○"
   ]);
-  assert.equal(byName(result, "夏日天空下的光晕").matchKind, "fuzzy");
+  assert.equal(byName(result, "夏日光晕").matchKind, "traditional");
+  assert.equal(byName(result, "太阳的睿智").matchKind, "traditional");
   assert.equal(byName(result, "逃脱术").matchKind, "fuzzy");
   assert.equal(byName(result, "抢先").matchKind, "fuzzy");
   assert.equal(byName(result, "沙浴○").matchKind, "fuzzy");
@@ -267,6 +272,12 @@ test("multiline OCR lists correct one wrong or extra character and ignore noise 
   assert.ok(result.warnings.some((item) => item.text === "领跑选学"));
   assert.ok(result.warnings.some((item) => item.text === "大"));
   assert.equal(result.canApply, true);
+});
+
+test("does not treat the mistaken mixed-script summer name as an official alias", () => {
+  const result = recognizer.recognizeFactorText("夏日天空下的光量", index);
+  assert.equal(result.resolved.length, 0);
+  assert.equal(result.canApply, false);
 });
 
 test("single-line unknown residue remains strict", () => {

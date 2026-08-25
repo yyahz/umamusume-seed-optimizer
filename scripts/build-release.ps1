@@ -20,6 +20,7 @@ $releaseFiles = @(
     'page-bridge.js',
     'ranking.js',
     'gold-skill-map.js',
+    'traditional-name-map.js',
     'factor-recognizer.js',
     'content.js',
     'README.md',

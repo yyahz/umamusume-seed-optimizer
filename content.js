@@ -7,6 +7,7 @@
   const ranking = globalThis.UmaSeedRanking;
   const recognizer = globalThis.UmaFactorRecognizer;
   const goldSkillMap = globalThis.UmaGoldSkillMap;
+  const traditionalNameMap = globalThis.UmaTraditionalNameMap;
   const extensionIconUrl = chrome.runtime.getURL("icons/icon-48.png");
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
@@ -564,6 +565,7 @@
 
   function recognitionMatchLabel(kind) {
     if (kind === "alias") return "安全简称匹配";
+    if (kind === "traditional") return "繁中名称映射";
     if (kind === "prefix") return "唯一简称补全";
     if (kind === "fuzzy") return "一字容错纠正";
     return "目录名称匹配";
@@ -628,7 +630,7 @@
     const ready = Boolean(state.factorIndex && recognizer);
     const disabled = !ready || !state.quickFactorText.trim();
     return `<div class="quick-recognizer">
-      <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
+      <div class="recognizer-head"><div><label class="recognizer-label" for="bulk-factor-input">一键识别因子文本</label><p class="recognizer-helper" id="bulk-factor-help">支持随机标点、连续因子名、繁中名称和唯一简称；先预览，再合并到当前选择。</p></div><span class="recognizer-kicker">${ready ? "本地解析" : "尚未就绪"}</span></div>
       <textarea class="recognizer-textarea" id="bulk-factor-input" aria-describedby="bulk-factor-help" placeholder="例如：毅力9本体3，英里9本体3，心头一击，位置感打基础点燃青春智，URA剧本" ${ready ? "" : "disabled"}>${escapeHtml(state.quickFactorText)}</textarea>
       <div class="recognizer-actions"><span class="recognizer-hint">未写星级的新因子默认家系 1★、本体 0★，并进入 P1。</span><button class="recognizer-button" id="recognize-factor-text" type="button" ${disabled ? "disabled" : ""}>${ICONS.scan}识别并预览</button></div>
       ${renderRecognitionNotice()}
@@ -1266,7 +1268,8 @@
       if (!state.factors.length) throw new Error("因子目录为空，请刷新页面重试。");
       if (!state.roles.length) throw new Error("角色目录为空，请刷新页面重试。");
       if (!recognizer?.buildCatalogIndex) throw new Error("因子识别模块未加载，请重新加载扩展后刷新页面。");
-      state.factorIndex = recognizer.buildCatalogIndex(state.factors);
+      const traditionalAliases = traditionalNameMap?.buildAliases?.(state.factors) || [];
+      state.factorIndex = recognizer.buildCatalogIndex(state.factors, { aliases: traditionalAliases });
       const liveRoleIds = new Set(state.roles.map((role) => String(role.card_id)));
       state.selectedRoleIds = new Set(
         [...state.selectedRoleIds].filter((cardId) => liveRoleIds.has(cardId))
