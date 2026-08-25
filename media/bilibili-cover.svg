@@ -64,7 +64,7 @@
     <rect x="0" y="0" width="16" height="118" rx="8" fill="#ff9a17"/>
     <circle cx="72" cy="59" r="22" fill="#ff9a17"/>
     <path d="M61 59l8 8 16-18" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M123 39h362M123 59h304M123 79h338" fill="none" stroke="#cfd1d8" stroke-width="12" stroke-linecap="round"/>
+    <text x="122" y="73" fill="#4b4e56" font-family="Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, sans-serif" font-size="34" font-weight="800" letter-spacing="2">金技能自动识别下位白</text>
   </g>
 
   <g fill="none" stroke-linecap="round">
