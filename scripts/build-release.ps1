@@ -17,6 +17,7 @@ if ($version -notmatch '^\d+(\.\d+){1,3}$') {
 
 $releaseFiles = @(
     'manifest.json',
+    '_locales/zh_CN/messages.json',
     'page-bridge.js',
     'ranking.js',
     'gold-skill-map.js',

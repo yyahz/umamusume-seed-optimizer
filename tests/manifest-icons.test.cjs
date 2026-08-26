@@ -24,6 +24,17 @@ test("manifest declares every standard extension icon size", () => {
   });
 });
 
+test("manifest declares Simplified Chinese store metadata", () => {
+  assert.equal(manifest.default_locale, "zh_CN");
+  assert.equal(manifest.name, "__MSG_extensionName__");
+  assert.equal(manifest.description, "__MSG_extensionDescription__");
+
+  const messagesPath = path.join(root, "_locales", "zh_CN", "messages.json");
+  const messages = JSON.parse(fs.readFileSync(messagesPath, "utf8"));
+  assert.equal(messages.extensionName.message, "闪耀优俊少女 · 种马搜索器");
+  assert.match(messages.extensionDescription.message, /吗哩吗哩工具箱/);
+});
+
 test("panel icon is exposed to the matched toolbox page", () => {
   assert.deepEqual(manifest.web_accessible_resources, [{
     resources: ["icons/icon-48.png"],
