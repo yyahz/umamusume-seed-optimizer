@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-labelledby="title desc">
+  <title id="title">种马搜索器 Chrome Web Store 小型宣传图改版</title>
+  <desc id="desc">暖白色品牌宣传图，左侧展示扩展图标，右侧突出种马搜索器名称、核心用途和三项主要功能。</desc>
+
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f47712"/>
+      <stop offset="1" stop-color="#ffad18"/>
+    </linearGradient>
+    <linearGradient id="iconFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8617"/>
+      <stop offset="0.56" stop-color="#ffc51b"/>
+      <stop offset="1" stop-color="#ff7fa5"/>
+    </linearGradient>
+    <linearGradient id="softGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0d7"/>
+      <stop offset="1" stop-color="#ffe9f0"/>
+    </linearGradient>
+    <filter id="iconShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#9a5510" flood-opacity="0.17"/>
+    </filter>
+    <filter id="rowShadow" x="-10%" y="-30%" width="120%" height="170%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#a96620" flood-opacity="0.08"/>
+    </filter>
+    <clipPath id="iconClip">
+      <rect x="28" y="70" width="132" height="132" rx="29"/>
+    </clipPath>
+  </defs>
+
+  <!-- Full-bleed warm background keeps the small 440 x 280 canvas spacious. -->
+  <rect width="440" height="280" rx="20" fill="#fffaf3"/>
+  <circle cx="62" cy="145" r="99" fill="url(#softGlow)" opacity="0.9"/>
+  <circle cx="420" cy="29" r="56" fill="#fff0d8" opacity="0.78"/>
+  <circle cx="422" cy="264" r="58" fill="#ffeaf1" opacity="0.72"/>
+  <rect width="440" height="7" rx="3.5" fill="url(#brand)"/>
+
+  <!-- Product icon: slightly smaller than the original so the copy can breathe. -->
+  <g filter="url(#iconShadow)">
+    <rect x="20" y="62" width="148" height="148" rx="36" fill="url(#iconFrame)"/>
+    <rect x="24" y="66" width="140" height="140" rx="33" fill="#ffffff"/>
+    <image href="store-icon-128.png" x="28" y="70" width="132" height="132" preserveAspectRatio="xMidYMid meet" clip-path="url(#iconClip)"/>
+  </g>
+
+  <g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, sans-serif">
+    <!-- Compact brand marker with stronger white-text contrast. -->
+    <rect x="187" y="31" width="180" height="32" rx="16" fill="url(#brand)"/>
+    <circle cx="203" cy="47" r="4" fill="#ffffff" opacity="0.95"/>
+    <text x="217" y="52" fill="#ffffff" font-size="13" font-weight="800" letter-spacing="0.5">吗哩吗哩工具箱扩展</text>
+
+    <!-- Clear product hierarchy. -->
+    <text x="187" y="112" fill="#242832" font-size="34" font-weight="900" letter-spacing="0.5">种马搜索器</text>
+    <text x="187" y="139" fill="#59616d" font-size="13" font-weight="700">因子识别 · 好友候选 · 优先排序</text>
+
+    <!-- One consistent information column, wider and easier to scan. -->
+    <g transform="translate(187 157)" fill="#353b46" font-size="11.5" font-weight="750">
+      <g filter="url(#rowShadow)">
+        <rect width="226" height="27" rx="10" fill="#ffffff"/>
+        <rect width="4" height="27" rx="2" fill="#ff9418"/>
+        <circle cx="18" cy="13.5" r="7" fill="#fff0dc"/>
+        <path d="M14.5 13.5l2.1 2.1 4.4-5" fill="none" stroke="#ef7b10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="32" y="18">金技能自动识别下位白</text>
+      </g>
+      <g transform="translate(0 32)" filter="url(#rowShadow)">
+        <rect width="226" height="27" rx="10" fill="#ffffff"/>
+        <rect width="4" height="27" rx="2" fill="#ffad18"/>
+        <circle cx="18" cy="13.5" r="7" fill="#fff3d9"/>
+        <path d="M14.5 13.5l2.1 2.1 4.4-5" fill="none" stroke="#e79409" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="32" y="18">攻略技能清单智能识别</text>
+      </g>
+      <g transform="translate(0 64)" filter="url(#rowShadow)">
+        <rect width="226" height="27" rx="10" fill="#ffffff"/>
+        <rect width="4" height="27" rx="2" fill="#ff7fa5"/>
+        <circle cx="18" cy="13.5" r="7" fill="#ffe8ef"/>
+        <path d="M14.5 13.5l2.1 2.1 4.4-5" fill="none" stroke="#ef668f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="32" y="18">繁中技能自动转换简中</text>
+      </g>
+    </g>
+    <text x="412" y="265" fill="#7f7277" fill-opacity="0.66" font-size="8" font-weight="700" text-anchor="end">by Songe</text>
+  </g>
+</svg>
