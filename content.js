@@ -55,6 +55,7 @@
     colorOrder: [...ranking.DEFAULT_COLOR_ORDER],
     selected: new Map(),
     factors: [],
+    factorCatalogNames: new Map(),
     factorIndex: null,
     quickFactorText: "",
     recognition: null,
@@ -377,8 +378,14 @@
       .breakdown-item { min-width:0; border-radius:9px; padding:6px 5px; background:var(--factor-soft); color:var(--factor-color); text-align:center; }
       .breakdown-item b { display:block; font-size:13px; font-variant-numeric:tabular-nums; }
       .breakdown-item span { font-size:10px; }
-      .match-list { display:flex; flex-wrap:wrap; gap:5px; padding:4px 12px 10px; }
+      .match-list { display:grid; gap:8px; padding:4px 12px 10px; }
+      .result-factor-group { display:grid; gap:5px; }
+      .result-factor-label { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:10px; }
+      .result-factor-label b { color:var(--ink); font-size:11px; }
+      .factor-chip-list { display:flex; flex-wrap:wrap; gap:5px; }
       .match-chip { border-radius:999px; padding:4px 8px; color:var(--factor-color); background:var(--factor-soft); font-size:11px; font-weight:650; }
+      .match-chip.selected-factor { box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--factor-color) 42%,transparent); font-weight:750; }
+      .match-chip.other-factor { color:color-mix(in srgb,var(--factor-color) 78%,#526158); background:color-mix(in srgb,var(--factor-soft) 72%,#f3f5f3); }
       .match-chip.shortfall { border:1px dashed var(--factor-color); background:#fff; }
       .result-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px 10px; border-top:1px solid #edf0ed; }
       .copy-button { min-height:44px; flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); border-radius:11px; padding:0 12px; color:var(--brand-dark); background:#fff; font-weight:700; white-space:nowrap; }
@@ -784,22 +791,31 @@
     const requestedKeys = new Set(
       item.matches.map((match) => ranking.factorKey(match.type, match.num))
     );
-    const additionalBlueRed = ranking.summarizeCandidateFactors(item.candidate, [1, 2])
-      .filter((factor) => !requestedKeys.has(ranking.factorKey(factor.type, factor.num)));
     const requestedBlueRed = [];
     const requestedOther = [];
     for (const match of item.matches) {
       const matchMeta = factorVisualMeta(match);
       const matchName = match.virtualGold ? `${match.name} → ${match.lowerSkillName}` : match.name;
-      const chip = `<span class="match-chip ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
+      const chip = `<span class="match-chip selected-factor ${match.meetsThreshold ? "" : "shortfall"}" style="--factor-color:${matchMeta.color};--factor-soft:${matchMeta.soft}">${match.tier === ranking.REQUIRED_TIER ? "必需 · " : ""}${escapeHtml(matchName)} · 家系 ${match.stars}★ · 本体 ${match.selfStars}★${match.meetsThreshold ? "" : " · 未达标"}</span>`;
       if (match.colorId === "blue" || match.colorId === "red") requestedBlueRed.push(chip);
       else requestedOther.push(chip);
     }
-    const additional = additionalBlueRed.map((factor) => {
-      const factorMeta = factorVisualMeta(factor);
-      return `<span class="match-chip lineage-factor" title="额外${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factor.name)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
-    });
-    return [...requestedBlueRed, ...additional, ...requestedOther].join("");
+
+    const typeOrder = new Map([1, 2, 3, 4, 5, 6].map((type, index) => [type, index]));
+    const additional = ranking.summarizeCandidateFactors(item.candidate)
+      .filter((factor) => !requestedKeys.has(ranking.factorKey(factor.type, factor.num)))
+      .sort((left, right) =>
+        (typeOrder.get(left.type) ?? 99) - (typeOrder.get(right.type) ?? 99)
+        || left.name.localeCompare(right.name, "zh-CN")
+      )
+      .map((factor) => {
+        const factorMeta = factorVisualMeta(factor);
+        const factorName = state.factorCatalogNames.get(ranking.factorKey(factor.type, factor.num)) || factor.name;
+        return `<span class="match-chip other-factor" title="该种马的其他${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factorName)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
+      });
+    const requested = [...requestedBlueRed, ...requestedOther];
+    return `${requested.length ? `<div class="result-factor-group selected-factors"><div class="result-factor-label"><b>筛选因子</b><span>${requested.length} 项，优先展示</span></div><div class="factor-chip-list">${requested.join("")}</div></div>` : ""}
+      ${additional.length ? `<div class="result-factor-group other-factors"><div class="result-factor-label"><b>该种马其他因子</b><span>${additional.length} 项，全部展示</span></div><div class="factor-chip-list">${additional.join("")}</div></div>` : ""}`;
   }
 
   function renderResults() {
@@ -1477,6 +1493,10 @@
       const liveFactors = ranking.flattenFactorResponse(factorResponse.data);
       if (!goldSkillMap?.extendFactorCatalog) throw new Error("金技能映射模块未加载，请重新加载扩展后刷新页面。");
       state.factors = goldSkillMap.extendFactorCatalog(liveFactors);
+      state.factorCatalogNames = new Map(liveFactors.map((factor) => [
+        ranking.factorKey(factor.type, factor.num),
+        factor.name
+      ]));
       state.roles = ranking.flattenHeroCardResponse(roleResponse.data);
       if (!state.factors.length) throw new Error("因子目录为空，请刷新页面重试。");
       if (!state.roles.length) throw new Error("角色目录为空，请刷新页面重试。");

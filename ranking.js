@@ -145,7 +145,7 @@
     return indexed;
   }
 
-  function summarizeCandidateFactors(candidate, includedTypes = [1, 2]) {
+  function summarizeCandidateFactors(candidate, includedTypes = [...TYPE_TO_COLOR.keys()]) {
     const allowedTypes = new Set(
       (Array.isArray(includedTypes) ? includedTypes : [includedTypes])
         .map(Number)

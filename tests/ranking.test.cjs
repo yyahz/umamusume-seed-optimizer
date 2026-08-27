@@ -351,18 +351,28 @@ test("family and self star selections are minimum thresholds, not exact matches"
   assert.equal(result.satisfiedCount, 1);
 });
 
-test("candidate summaries expose all blue and red factors without white factors", () => {
+test("candidate summaries expose every factor color by default", () => {
   const source = candidate("factor-summary", [
     { type: 1, num: 1, name: "速度", total_rarity: 7, rarity: 2 },
     { type: 1, num: 2, name: "耐力", total_rarity: 5, rarity: 1 },
     { type: 2, num: 31, name: "英里", total_rarity: 9, rarity: 3 },
-    { type: 4, num: 20001, name: "顺时针○", total_rarity: 6, rarity: 2 }
+    { type: 3, num: 30001, name: "胜利的鼓动", total_rarity: 3, rarity: 1 },
+    { type: 4, num: 20001, name: "顺时针○", total_rarity: 6, rarity: 2 },
+    { type: 5, num: 50001, name: "中山大奖赛", total_rarity: 4, rarity: 1 },
+    { type: 6, num: 60001, name: "URA剧本", total_rarity: 7, rarity: 3 }
   ]);
 
   assert.deepEqual(ranking.summarizeCandidateFactors(source), [
     { type: 1, num: 1, name: "速度", stars: 7, selfStars: 2, colorId: "blue", subtype: "属性" },
     { type: 1, num: 2, name: "耐力", stars: 5, selfStars: 1, colorId: "blue", subtype: "属性" },
-    { type: 2, num: 31, name: "英里", stars: 9, selfStars: 3, colorId: "red", subtype: "适性" }
+    { type: 2, num: 31, name: "英里", stars: 9, selfStars: 3, colorId: "red", subtype: "适性" },
+    { type: 3, num: 30001, name: "胜利的鼓动", stars: 3, selfStars: 1, colorId: "green", subtype: "固有技能" },
+    { type: 4, num: 20001, name: "顺时针○", stars: 6, selfStars: 2, colorId: "white", subtype: "技能" },
+    { type: 5, num: 50001, name: "中山大奖赛", stars: 4, selfStars: 1, colorId: "white", subtype: "比赛" },
+    { type: 6, num: 60001, name: "URA剧本", stars: 7, selfStars: 3, colorId: "white", subtype: "剧本" }
+  ]);
+  assert.deepEqual(ranking.summarizeCandidateFactors(source, [1, 2]).map((factor) => factor.name), [
+    "速度", "耐力", "英里"
   ]);
 });
 

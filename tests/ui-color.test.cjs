@@ -32,16 +32,26 @@ test("result cards keep names, star values, and the copy action compact", () => 
   assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
 });
 
-test("result cards append unrequested blue and red lineage factors without duplicates", () => {
-  assert.match(contentSource, /summarizeCandidateFactors\(item\.candidate, \[1, 2\]\)/);
+test("result cards append all unrequested factors without duplicates", () => {
+  assert.match(contentSource, /summarizeCandidateFactors\(item\.candidate\)/);
   assert.match(contentSource, /requestedKeys\.has\(ranking\.factorKey\(factor\.type, factor\.num\)\)/);
-  assert.match(contentSource, /title="额外\$\{factorMeta\.name\}"/);
+  assert.match(contentSource, /title="该种马的其他\$\{factorMeta\.name\}"/);
   assert.equal(contentSource.includes("item.matches.slice(0, 10)"), false);
 });
 
-test("result cards place all blue and red factors before green and white matches", () => {
+test("result cards place selected blue and red factors before selected green and white factors", () => {
   assert.match(contentSource, /match\.colorId === "blue" \|\| match\.colorId === "red"/);
-  assert.match(contentSource, /return \[\.\.\.requestedBlueRed, \.\.\.additional, \.\.\.requestedOther\]\.join\(""\)/);
+  assert.match(contentSource, /const requested = \[\.\.\.requestedBlueRed, \.\.\.requestedOther\]/);
+  assert.match(contentSource, /const typeOrder = new Map\(\[1, 2, 3, 4, 5, 6\]/);
+});
+
+test("result cards show selected factors first and every remaining factor without collapsing", () => {
+  assert.match(contentSource, /<b>筛选因子<\/b><span>\$\{requested\.length\} 项，优先展示<\/span>/);
+  assert.match(contentSource, /<b>该种马其他因子<\/b><span>\$\{additional\.length\} 项，全部展示<\/span>/);
+  assert.match(contentSource, /ranking\.summarizeCandidateFactors\(item\.candidate\)/);
+  assert.match(contentSource, /class="match-chip selected-factor/);
+  assert.match(contentSource, /class="match-chip other-factor"/);
+  assert.equal(contentSource.includes("展开其他因子"), false);
 });
 
 test("selected factors can be reset in one click and restored", () => {
