@@ -185,12 +185,11 @@ test("long recognition previews stay compact and aggregate repeated notices", ()
 });
 
 test("panel and catalogs respond to browser width and height", () => {
-  assert.match(contentSource, /width:min\(680px,100dvw\)/);
+  assert.match(contentSource, /width:min\(100dvw,clamp\(360px,46dvw,760px\)\)/);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
   assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
   assert.match(contentSource, /@container optimizer-panel \(max-width:459px\)/);
-  assert.match(contentSource, /--fs-title:20px/);
-  assert.equal(contentSource.includes("--fs-title:clamp("), false);
+  assert.match(contentSource, /--fs-title:clamp\(18px,calc\(16px \+ \.25vw\),22px\)/);
   assert.match(contentSource, /\.factor-catalog\s*\{[^}]*max-height:clamp\(220px,34dvh,400px\)/);
   assert.match(contentSource, /\.role-catalog\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(contentSource, /\.catalog-pagination\s*\{[^}]*grid-template-columns:minmax\(88px,1fr\) auto minmax\(88px,1fr\)/);
