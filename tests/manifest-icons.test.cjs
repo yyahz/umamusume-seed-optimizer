@@ -45,7 +45,7 @@ test("panel icon is exposed to the matched toolbox page", () => {
 test("manifest stays within the Chrome APIs supported by current 360 Chromium browsers", () => {
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ["storage"]);
-  assert.equal(manifest.background, undefined);
+  assert.deepEqual(manifest.background, { service_worker: "background.js" });
   assert.equal(manifest.action, undefined);
   assert.equal(manifest.side_panel, undefined);
 

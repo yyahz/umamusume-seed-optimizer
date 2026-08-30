@@ -13,6 +13,8 @@
   const REQUEST_CHANNEL = "UMA_SEED_OPTIMIZER_REQUEST_V1";
   const RESPONSE_CHANNEL = "UMA_SEED_OPTIMIZER_RESPONSE_V1";
   const STORAGE_KEY = "umaSeedOptimizerPreferencesV1";
+  const SESSION_GET = "UMA_SEED_SESSION_GET_V1";
+  const SESSION_SET = "UMA_SEED_SESSION_SET_V1";
   const MANY_FACTOR_COOLDOWN_THRESHOLD = 15;
   const searchGuard = requestGuard?.createSearchRequestGuard();
   let cooldownRenderTimer = null;
@@ -162,22 +164,46 @@
     };
   }
 
+  function persistentPreferenceDocument() {
+    return {
+      colorOrder: [...state.colorOrder],
+      depth: state.depth,
+      filterFull: state.filterFull
+    };
+  }
+
+  function sessionPreferenceDocument() {
+    return {
+      cardIds: [...state.selectedRoleIds],
+      desiredFactors: [...state.selected.values()].map((item) => ({ ...item }))
+    };
+  }
+
   function savePreferences() {
-    chrome.storage.local.set({ [STORAGE_KEY]: preferenceDocument() });
+    void chrome.storage.local
+      .set({ [STORAGE_KEY]: persistentPreferenceDocument() })
+      .catch(() => {});
+    void chrome.runtime
+      .sendMessage({ type: SESSION_SET, value: sessionPreferenceDocument() })
+      .catch(() => {});
   }
 
   async function loadPreferences() {
-    const document = await chrome.storage.local.get(STORAGE_KEY);
+    const [document, sessionResponse] = await Promise.all([
+      chrome.storage.local.get(STORAGE_KEY),
+      chrome.runtime.sendMessage({ type: SESSION_GET }).catch(() => ({ ok: false }))
+    ]);
     const stored = document[STORAGE_KEY] || {};
+    const session = sessionResponse?.ok ? sessionResponse.value || {} : {};
     state.colorOrder = ranking.normalizeColorOrder(stored.colorOrder);
     state.selectedRoleIds = new Set(
-      (Array.isArray(stored.cardIds) ? stored.cardIds : [])
+      (Array.isArray(session.cardIds) ? session.cardIds : [])
         .filter((cardId) => cardId !== null && cardId !== undefined)
         .map(String)
     );
     state.depth = clampDepth(stored.depth);
     state.filterFull = stored.filterFull !== false;
-    for (const factor of Array.isArray(stored.desiredFactors) ? stored.desiredFactors : []) {
+    for (const factor of Array.isArray(session.desiredFactors) ? session.desiredFactors : []) {
       if (factor && factor.type !== undefined && factor.num !== undefined) {
         state.selected.set(ranking.factorKey(factor.type, factor.num), {
           type: Number(factor.type),
