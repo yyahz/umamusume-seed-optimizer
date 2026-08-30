@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">种马搜索器</string>
+    <string name="startup_title">种马搜索器</string>
+    <string name="startup_message">正在确认登录状态并读取因子目录…</string>
     <string name="load_failed">页面加载失败，请检查网络后重试。</string>
     <string name="retry">重新加载</string>
 </resources>

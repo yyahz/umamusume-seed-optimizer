@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
@@ -24,6 +26,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -49,7 +52,11 @@ public final class MainActivity extends Activity {
 
     private WebView webView;
     private ProgressBar progressBar;
+    private View startupPanel;
     private View errorPanel;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private int readinessAttempts;
+    private boolean searchInterfaceReady;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +77,7 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(Color.rgb(247, 248, 244));
 
         webView = new WebView(this);
+        webView.setVisibility(View.INVISIBLE);
         root.addView(webView, new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
@@ -83,6 +91,52 @@ public final class MainActivity extends Activity {
         );
         progressParams.gravity = Gravity.TOP;
         root.addView(progressBar, progressParams);
+
+        LinearLayout startup = new LinearLayout(this);
+        startup.setOrientation(LinearLayout.VERTICAL);
+        startup.setGravity(Gravity.CENTER);
+        startup.setPadding(dp(28), dp(28), dp(28), dp(28));
+        startup.setBackgroundColor(Color.rgb(247, 248, 244));
+
+        ImageView startupIcon = new ImageView(this);
+        startupIcon.setImageResource(R.drawable.app_icon);
+        startupIcon.setContentDescription(null);
+        startup.addView(startupIcon, new LinearLayout.LayoutParams(dp(92), dp(92)));
+
+        TextView startupTitle = new TextView(this);
+        startupTitle.setText(R.string.startup_title);
+        startupTitle.setTextColor(Color.rgb(7, 88, 52));
+        startupTitle.setTextSize(24);
+        startupTitle.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams startupTitleParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        startupTitleParams.topMargin = dp(18);
+        startup.addView(startupTitle, startupTitleParams);
+
+        TextView startupMessage = new TextView(this);
+        startupMessage.setText(R.string.startup_message);
+        startupMessage.setTextColor(Color.rgb(102, 114, 107));
+        startupMessage.setTextSize(14);
+        startupMessage.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams startupMessageParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        startupMessageParams.topMargin = dp(8);
+        startup.addView(startupMessage, startupMessageParams);
+
+        ProgressBar startupProgress = new ProgressBar(this);
+        LinearLayout.LayoutParams startupProgressParams = new LinearLayout.LayoutParams(dp(44), dp(44));
+        startupProgressParams.topMargin = dp(18);
+        startup.addView(startupProgress, startupProgressParams);
+
+        startupPanel = startup;
+        root.addView(startup, new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ));
 
         LinearLayout error = new LinearLayout(this);
         error.setOrientation(LinearLayout.VERTICAL);
@@ -105,6 +159,7 @@ public final class MainActivity extends Activity {
         retry.setAllCaps(false);
         retry.setOnClickListener(view -> {
             errorPanel.setVisibility(View.GONE);
+            showStartup();
             webView.reload();
         });
         LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(dp(180), dp(52));
@@ -166,6 +221,9 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 errorPanel.setVisibility(View.GONE);
+                searchInterfaceReady = false;
+                if (isToolPage(Uri.parse(url))) showStartup();
+                else showWebView();
             }
 
             @Override
@@ -193,8 +251,8 @@ public final class MainActivity extends Activity {
         String normalizedHost = host.toLowerCase(java.util.Locale.ROOT);
         return normalizedHost.equals("bilibili.com")
             || normalizedHost.endsWith(".bilibili.com")
-            || normalizedHost.equals("biligame.com")
-            || normalizedHost.endsWith(".biligame.com");
+            || normalizedHost.equals("passport.biligame.com")
+            || normalizedHost.endsWith(".passport.biligame.com");
     }
 
     private boolean isToolPage(Uri uri) {
@@ -251,8 +309,52 @@ public final class MainActivity extends Activity {
                 + "style.textContent='.panel{width:100vw!important;max-width:none!important}.result-actions{align-items:stretch;flex-direction:column}.copy-button{justify-content:center;width:100%}.scope-note{text-align:center}.launcher{width:auto!important;padding:0 14px!important;bottom:24px!important}.launcher span{display:inline!important}';"
                 + "root.appendChild(style);"
                 + "})();";
-            webView.evaluateJavascript(mobileGlue, null);
+            webView.evaluateJavascript(mobileGlue, glueResult -> waitForSearchInterface());
         });
+    }
+
+    private void waitForSearchInterface() {
+        readinessAttempts = 0;
+        pollSearchInterface();
+    }
+
+    private void pollSearchInterface() {
+        String probe = "(() => {"
+            + "const host=document.getElementById('uma-seed-optimizer-host');"
+            + "const root=host&&host.shadowRoot;if(!root)return 'loading';"
+            + "const status=(root.getElementById('status')?.textContent||'').trim();"
+            + "if(status.startsWith('已读取 ')){"
+            + "const close=root.getElementById('close');if(close)close.style.display='none';"
+            + "const panel=root.getElementById('panel');const launcher=root.getElementById('launcher');"
+            + "if(panel&&launcher&&!panel.classList.contains('open'))launcher.click();"
+            + "return 'ready';}"
+            + "if(status&&!status.startsWith('正在'))return 'login';"
+            + "return 'loading';"
+            + "})();";
+        webView.evaluateJavascript(probe, result -> {
+            String state = result == null ? "" : result.replace("\"", "");
+            if ("ready".equals(state)) {
+                searchInterfaceReady = true;
+                showWebView();
+                return;
+            }
+            if ("login".equals(state) || readinessAttempts >= 60) {
+                showWebView();
+                return;
+            }
+            readinessAttempts += 1;
+            handler.postDelayed(this::pollSearchInterface, 250);
+        });
+    }
+
+    private void showStartup() {
+        webView.setVisibility(View.INVISIBLE);
+        startupPanel.setVisibility(View.VISIBLE);
+    }
+
+    private void showWebView() {
+        webView.setVisibility(View.VISIBLE);
+        startupPanel.setVisibility(View.GONE);
     }
 
     private String readAssetText(String path) throws IOException {
@@ -291,12 +393,14 @@ public final class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) webView.goBack();
+        if (searchInterfaceReady) finish();
+        else if (webView.canGoBack()) webView.goBack();
         else super.onBackPressed();
     }
 
     @Override
     protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
         if (webView != null) {
             webView.stopLoading();
             webView.setWebChromeClient(null);

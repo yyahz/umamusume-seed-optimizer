@@ -7,7 +7,7 @@
 - App 内打开吗哩吗哩工具箱并由用户自行登录。
 - 关闭并重新打开 App 后保留 WebView 登录状态。
 - 复用现有因子目录、角色目录、识别、搜索、评分和访问保护逻辑。
-- 适配窄屏触控操作；首屏保留登录页，登录后通过带文字的悬浮按钮打开全屏搜索面板。
+- 适配窄屏触控操作；未登录时显示官方登录页，登录有效时先显示 App 加载页，再直接进入全屏搜索面板。
 
 ## 隐私边界
 
@@ -15,7 +15,7 @@
 - App 只申请网络权限；B 站登录发生在 B 站网页中。
 - App 不提供读取、显示、导出或上传 Cookie 的接口，也不要求用户粘贴 Cookie。
 - 因子偏好保存在吗哩吗哩页面来源对应的本机 WebView 存储中。
-- `bilibili.com`及 B 站游戏登录必需的`biligame.com`页面保留在 App 内；其他网站交给手机系统浏览器打开，SSL 证书异常时停止加载。
+- `bilibili.com`及 B 站游戏登录必需的`passport.biligame.com`页面保留在 App 内；其他网站交给手机系统浏览器打开，SSL 证书异常时停止加载。
 
 ## 构建
 
@@ -39,4 +39,4 @@ app/build/outputs/apk/debug/app-debug.apk
 .\scripts\build-debug.ps1 -SdkRoot "C:\Android\Sdk"
 ```
 
-脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.1-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
+脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.2-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
