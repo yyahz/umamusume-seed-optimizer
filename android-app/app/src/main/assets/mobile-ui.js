@@ -19,6 +19,8 @@
   let rolePage = 0;
   let applyScheduled = false;
   let awaitingResults = false;
+  let colorDrag = null;
+  let scrollRestoreToken = 0;
   const scrollPositions = new Map();
 
   function findUi() {
@@ -32,6 +34,108 @@
   function textCount(element) {
     const match = String(element?.textContent || "").match(/\d+/);
     return match ? Number(match[0]) : 0;
+  }
+
+  function restoreScrollPosition(ui, page, top, settle = false) {
+    if (!ui || page !== activePage) return;
+    const token = settle ? ++scrollRestoreToken : scrollRestoreToken;
+    const apply = () => {
+      if (token !== scrollRestoreToken || page !== activePage) return;
+      ui.body.scrollTop = top;
+    };
+    scrollPositions.set(page, top);
+    requestAnimationFrame(() => {
+      apply();
+      requestAnimationFrame(apply);
+    });
+    if (settle) {
+      setTimeout(apply, 80);
+      setTimeout(apply, 180);
+    }
+  }
+
+  function clearColorDragIndicators(ui) {
+    ui?.root.querySelectorAll("#priority-list .dragging,#priority-list .drop-before,#priority-list .drop-after").forEach((item) => {
+      item.classList.remove("dragging", "drop-before", "drop-after");
+    });
+  }
+
+  function colorInsertionIndex(list, sourceItem, clientY) {
+    const remaining = [...list.querySelectorAll(".priority-item")].filter((item) => item !== sourceItem);
+    let index = 0;
+    while (index < remaining.length) {
+      const rect = remaining[index].getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) break;
+      index += 1;
+    }
+    return index;
+  }
+
+  async function moveColorToIndex(color, targetIndex, savedTop) {
+    for (let attempts = 0; attempts < 4; attempts += 1) {
+      const ui = findUi();
+      const items = [...(ui?.root.querySelectorAll("#priority-list .priority-item") || [])];
+      const currentIndex = items.findIndex((item) => item.dataset.color === color);
+      if (!ui || currentIndex < 0 || currentIndex === targetIndex) break;
+      const selector = targetIndex < currentIndex ? ".order-up" : ".order-down";
+      const button = items[currentIndex].querySelector(selector);
+      if (!button || button.disabled) break;
+      ui.root.activeElement?.blur();
+      restoreScrollPosition(ui, activePage, savedTop, true);
+      button.click();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    const ui = findUi();
+    if (ui) restoreScrollPosition(ui, activePage, savedTop, true);
+  }
+
+  function beginColorDrag(event, ui) {
+    const handle = event.target.closest("#priority-list .grip");
+    const item = handle?.closest(".priority-item");
+    const list = item?.closest("#priority-list");
+    if (!handle || !item || !list) return false;
+    event.preventDefault();
+    handle.setPointerCapture?.(event.pointerId);
+    const items = [...list.querySelectorAll(".priority-item")];
+    colorDrag = {
+      pointerId: event.pointerId,
+      color: item.dataset.color,
+      item,
+      list,
+      startY: event.clientY,
+      startIndex: items.indexOf(item),
+      targetIndex: items.indexOf(item),
+      savedTop: ui.body.scrollTop,
+      moved: false
+    };
+    item.classList.add("dragging");
+    return true;
+  }
+
+  function updateColorDrag(event) {
+    if (!colorDrag || event.pointerId !== colorDrag.pointerId) return;
+    event.preventDefault();
+    if (Math.abs(event.clientY - colorDrag.startY) >= 6) colorDrag.moved = true;
+    if (!colorDrag.moved) return;
+    colorDrag.targetIndex = colorInsertionIndex(colorDrag.list, colorDrag.item, event.clientY);
+    colorDrag.list.querySelectorAll(".drop-before,.drop-after").forEach((item) => {
+      item.classList.remove("drop-before", "drop-after");
+    });
+    const remaining = [...colorDrag.list.querySelectorAll(".priority-item")].filter((item) => item !== colorDrag.item);
+    if (!remaining.length) return;
+    if (colorDrag.targetIndex >= remaining.length) remaining[remaining.length - 1].classList.add("drop-after");
+    else remaining[colorDrag.targetIndex].classList.add("drop-before");
+  }
+
+  function finishColorDrag(event, ui, cancelled = false) {
+    if (!colorDrag || event.pointerId !== colorDrag.pointerId) return;
+    event.preventDefault();
+    const completed = colorDrag;
+    colorDrag = null;
+    clearColorDragIndicators(ui);
+    if (!cancelled && completed.moved && completed.targetIndex !== completed.startIndex) {
+      void moveColorToIndex(completed.color, completed.targetIndex, completed.savedTop);
+    }
   }
 
   function updateRolePagination(ui, reset = false) {
@@ -322,6 +426,12 @@
         border-radius:16px;
         box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--factor-color) 20%,var(--line));
       }
+      :host([data-mobile-ui="true"]) #priority-list .grip {
+        min-height:48px;
+        touch-action:none;
+        cursor:grab;
+      }
+      :host([data-mobile-ui="true"]) #priority-list .priority-item.dragging .grip { cursor:grabbing; }
       :host([data-mobile-ui="true"]) .quick-recognizer {
         padding:12px;
         border:0;
@@ -510,13 +620,23 @@
       const button = event.target.closest(".mobile-nav-button");
       if (button) activate(button.dataset.mobileTarget);
     });
-    ui.root.addEventListener("pointerdown", () => {
+    ui.root.addEventListener("pointerdown", (event) => {
       scrollPositions.set(activePage, ui.body.scrollTop);
+      beginColorDrag(event, ui);
     }, true);
+    ui.root.addEventListener("pointermove", updateColorDrag, true);
+    ui.root.addEventListener("pointerup", (event) => finishColorDrag(event, ui), true);
+    ui.root.addEventListener("pointercancel", (event) => finishColorDrag(event, ui, true), true);
     ui.root.addEventListener("change", () => {
       scrollPositions.set(activePage, ui.body.scrollTop);
     }, true);
     ui.root.addEventListener("click", (event) => {
+      const orderButton = event.target.closest("#priority-list .order-up,#priority-list .order-down");
+      if (orderButton) {
+        const savedTop = scrollPositions.get(activePage) ?? ui.body.scrollTop;
+        ui.root.activeElement?.blur();
+        restoreScrollPosition(ui, activePage, savedTop, true);
+      }
       const rolePageButton = event.target.closest("[data-role-page]");
       if (rolePageButton && !rolePageButton.disabled) {
         rolePage += rolePageButton.dataset.rolePage === "next" ? 1 : -1;
@@ -550,9 +670,7 @@
         const hasResults = Boolean(currentUi.root.getElementById("results-section"));
         if (hasResults) awaitingResults = false;
         mapSections(currentUi);
-        requestAnimationFrame(() => {
-          currentUi.body.scrollTop = scrollPositions.get(activePage) || 0;
-        });
+        restoreScrollPosition(currentUi, activePage, scrollPositions.get(activePage) || 0);
       });
     });
     observer.observe(ui.body, { childList: true });

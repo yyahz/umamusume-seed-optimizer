@@ -41,4 +41,4 @@ app/build/outputs/apk/debug/app-debug.apk
 .\scripts\build-debug.ps1 -SdkRoot "C:\Android\Sdk"
 ```
 
-脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.6-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
+脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.7-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
