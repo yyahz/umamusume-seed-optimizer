@@ -326,10 +326,16 @@
       .recognition-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; border-radius:10px; padding:8px 9px; color:var(--brand-dark); background:#e9f7ef; font-size:11px; font-weight:750; }
       .recognition-tier-note { border-radius:10px; padding:8px 9px; color:#31523f; background:#edf7f1; font-size:11px; line-height:1.5; }
       .recognition-list { display:grid; gap:5px; }
-      .recognition-item { min-height:48px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:10px; padding:6px 8px; background:var(--factor-soft); }
+      .recognition-preview-list { max-height:min(288px,42dvh); overflow:auto; border:1px solid var(--line); border-radius:11px; padding:5px; background:#fff; overscroll-behavior:contain; }
+      .recognition-item { min-height:42px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:9px; padding:5px 7px; background:var(--factor-soft); }
       .recognition-name { overflow:hidden; font-size:12px; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
       .recognition-kind { margin-top:2px; color:var(--muted); font-size:10px; }
-      .recognition-stars { color:var(--ink); font-size:11px; font-weight:800; text-align:right; white-space:nowrap; }
+      .recognition-stars { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:3px; color:var(--ink); font-size:10px; font-weight:800; text-align:right; }
+      .recognition-stars span { border-radius:999px; padding:2px 5px; background:#ffffffa8; white-space:nowrap; }
+      .recognition-issue-summary { border-radius:10px; padding:8px 9px; color:#6f4f00; background:#fff6d8; font-size:11px; line-height:1.45; }
+      .recognition-issue-summary.error { color:var(--danger); background:#fff0ee; }
+      .recognition-issue-summary b { display:block; margin-bottom:3px; }
+      .recognition-issue-summary p { margin:2px 0 0; overflow-wrap:anywhere; }
       .recognition-issue { border-radius:10px; padding:8px 9px; color:#6f4f00; background:#fff6d8; font-size:11px; line-height:1.5; }
       .recognition-issue.error { color:var(--danger); background:#fff0ee; }
       .recognition-issue b { display:block; margin-bottom:2px; }
@@ -435,7 +441,7 @@
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
       @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
-      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .brand-credit { font-size:9px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .brand-credit { font-size:9px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { justify-content:flex-start; text-align:left; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
       @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
@@ -728,8 +734,65 @@
     const tierNote = current ? " 保留当前" : " 本轮预排";
     return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
       <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
-      <div class="recognition-stars">家系 ${totalStars}★${totalNote}<br>本体 ${selfStars}★${selfNote}<br>优先级 ${["高", "中", "低"][plannedTier - 1]}${tierNote}</div>
+      <div class="recognition-stars"><span>家 ${totalStars}★${totalNote}</span><span>本 ${selfStars}★${selfNote}</span><span>${["高", "中", "低"][plannedTier - 1]}${tierNote}</span></div>
     </div>`;
+  }
+
+  function compactRecognitionText(value, maxLength = 24) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
+  }
+
+  function recognitionExamples(items, getText, limit = 3) {
+    const examples = [];
+    for (const item of items) {
+      const text = compactRecognitionText(getText(item));
+      if (text && !examples.includes(text)) examples.push(text);
+      if (examples.length >= limit) break;
+    }
+    const remaining = Math.max(0, items.length - examples.length);
+    return `${examples.join("、")}${remaining ? `，另 ${remaining} 处` : ""}`;
+  }
+
+  function renderRecognitionProblems(ambiguous, unknown, errors) {
+    const total = ambiguous.length + unknown.length + errors.length;
+    if (!total) return "";
+    const lines = [];
+    if (ambiguous.length) {
+      const examples = recognitionExamples(ambiguous, (item) => {
+        const source = item.sourceText || item.text || "未命名片段";
+        const candidates = (item.candidates || [])
+          .map((candidate) => candidate?.factor?.name || candidate?.name)
+          .filter(Boolean)
+          .slice(0, 2);
+        return `“${source}”${candidates.length ? ` → ${candidates.join(" / ")}` : ""}`;
+      });
+      lines.push(`<p><b>歧义 ${ambiguous.length} 处：</b>${escapeHtml(examples)}。请补全正式名称。</p>`);
+    }
+    if (unknown.length) {
+      const examples = recognitionExamples(unknown, (item) => typeof item === "string" ? item : item?.sourceText || item?.text || item?.normalized);
+      lines.push(`<p><b>未识别 ${unknown.length} 处：</b>${escapeHtml(examples)}。请检查名称或分隔符。</p>`);
+    }
+    if (errors.length) {
+      const examples = recognitionExamples(errors, recognitionMessage);
+      lines.push(`<p><b>星级或格式错误 ${errors.length} 处：</b>${escapeHtml(examples)}。</p>`);
+    }
+    return `<div class="recognition-issue-summary error" id="recognition-problems" role="alert" tabindex="-1"><b>需要修改 ${total} 处，修正后才能加入</b>${lines.join("")}</div>`;
+  }
+
+  function renderRecognitionAutoSummary(warnings) {
+    if (!warnings.length) return "";
+    const ignored = warnings.filter((item) => String(item?.code || "").startsWith("ignored-"));
+    const duplicates = warnings.filter((item) => item?.code === "duplicate-factor");
+    const other = warnings.filter((item) => !String(item?.code || "").startsWith("ignored-") && item?.code !== "duplicate-factor");
+    const parts = [];
+    if (ignored.length) {
+      const examples = recognitionExamples(ignored, (item) => item?.text || recognitionMessage(item));
+      parts.push(`忽略 ${ignored.length} 处无效文字（如：${examples}）`);
+    }
+    if (duplicates.length) parts.push(`合并 ${duplicates.length} 个重复因子`);
+    if (other.length) parts.push(`${other.length} 条其他提示（${recognitionExamples(other, recognitionMessage)}）`);
+    return `<div class="recognition-issue-summary"><b>已自动处理 ${warnings.length} 处，不影响导入</b><p>${escapeHtml(parts.join("；"))}。</p></div>`;
   }
 
   function renderRecognitionNotice() {
@@ -754,22 +817,15 @@
     const tierByKey = plannedRecognitionTiers(cumulative);
     const skillCount = newRecognitionSkillCount(cumulative);
     const items = resolved.map((item) => renderRecognitionItem(item, tierByKey)).join("");
-    const ambiguityBlocks = ambiguous.map((item) => {
-      const candidates = (item.candidates || []).map((candidate) => candidate?.factor?.name || candidate?.name).filter(Boolean);
-      return `<div class="recognition-issue"><b>“${escapeHtml(item.sourceText || item.text || "未命名片段")}”存在歧义</b>${candidates.length ? `可能是：${escapeHtml(candidates.join("、"))}。` : "请补全正式因子名。"}</div>`;
-    }).join("");
-    const unknownBlocks = unknown.map((item) => {
-      const text = typeof item === "string" ? item : item?.sourceText || item?.text || item?.normalized;
-      return text ? `<div class="recognition-issue"><b>未识别片段</b>${escapeHtml(text)}；请检查名称或补充分隔符。</div>` : "";
-    }).join("");
-    const warningBlocks = warnings.map((item) => `<div class="recognition-issue"><b>识别提示</b>${escapeHtml(recognitionMessage(item))}</div>`).join("");
-    const errorBlocks = errors.map((item) => `<div class="recognition-issue error" role="alert"><b>无法应用</b>${escapeHtml(recognitionMessage(item))}</div>`).join("");
+    const problemSummary = renderRecognitionProblems(ambiguous, unknown, errors);
+    const autoSummary = renderRecognitionAutoSummary(warnings);
+    const problemCount = ambiguous.length + unknown.length + errors.length;
     const canApply = Boolean(result.canApply && resolved.length && !errors.length);
     return `<div class="recognition-feedback" id="recognition-feedback" aria-live="polite">
-      <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>歧义 ${ambiguous.length} · 未识别 ${unknown.length}</span></div>
+      <div class="recognition-summary"><span>识别 ${resolved.length} 项</span><span>需修改 ${problemCount} · 自动处理 ${warnings.length}</span></div>
       <div class="recognition-tier-note"><b>加入后的累计预排：</b>${skillCount >= 20 ? "前 10 项高，第 11–20 项中，第 21 项以后低" : `共 ${skillCount} 个新增技能，尚不足 20 个，本轮均为高`}；已有因子的手动优先级保持不变。</div>
-      ${items ? `<div class="recognition-list">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
-      ${ambiguityBlocks}${unknownBlocks}${warningBlocks}${errorBlocks}
+      ${items ? `<div class="recognition-list recognition-preview-list" aria-label="识别结果，共 ${resolved.length} 项">${items}</div>` : '<div class="recognition-issue error" role="alert"><b>没有识别到可用因子</b>请补充更完整的因子名称后重试。</div>'}
+      ${problemSummary}${autoSummary}
       <div class="recognition-preview-actions">
         <button class="recognition-cancel" id="cancel-factor-recognition" type="button">返回修改</button>
         <button class="recognition-apply" id="stage-factor-recognition" type="button" ${canApply ? "" : "disabled"}>加入待导入 · ${resolved.length} 项</button>
@@ -1072,7 +1128,9 @@
     render();
     setTimeout(() => {
       const apply = shadow.getElementById("stage-factor-recognition");
-      const target = apply && !apply.disabled ? apply : shadow.getElementById("bulk-factor-input");
+      const target = apply && !apply.disabled
+        ? apply
+        : shadow.getElementById("recognition-problems") || shadow.getElementById("bulk-factor-input");
       target?.focus();
       shadow.getElementById("recognition-feedback")?.scrollIntoView({ block: "nearest" });
     }, 0);

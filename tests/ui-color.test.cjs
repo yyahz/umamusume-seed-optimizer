@@ -130,7 +130,7 @@ test("bulk recognition accumulates batches and applies sequential skill priority
   assert.match(contentSource, /id="clear-pending-recognition"/);
   assert.match(contentSource, /planSequentialSkillTiers\?\.\(newItems\)/);
   assert.match(contentSource, /前 10 项高，第 11–20 项中，第 21 项以后低/);
-  assert.match(contentSource, /优先级 \$\{\["高", "中", "低"\]\[plannedTier - 1\]\}\$\{tierNote\}/);
+  assert.match(contentSource, /<span>\$\{\["高", "中", "低"\]\[plannedTier - 1\]\}\$\{tierNote\}<\/span>/);
   assert.match(contentSource, /tierByKey\.get\(key\) \?\? 1/);
   assert.match(contentSource, /state\.recognitionBatches = \[\]/);
 });
@@ -166,6 +166,16 @@ test("search cache can be force-refreshed and cache hits are explicitly re-ranke
 test("recognition labels distinguish proportional long-name OCR correction", () => {
   assert.match(contentSource, /traditional-fuzzy-multi[^\n]+繁中长名称多字容错/);
   assert.match(contentSource, /fuzzy-multi[^\n]+长名称多字容错/);
+});
+
+test("long recognition previews stay compact and aggregate repeated notices", () => {
+  assert.match(contentSource, /\.recognition-preview-list\s*\{[^}]*max-height:min\(288px,42dvh\)[^}]*overflow:auto/);
+  assert.match(contentSource, /function renderRecognitionProblems\(ambiguous, unknown, errors\)/);
+  assert.match(contentSource, /function renderRecognitionAutoSummary\(warnings\)/);
+  assert.match(contentSource, /已自动处理 \$\{warnings\.length\} 处，不影响导入/);
+  assert.match(contentSource, /需要修改 \$\{total\} 处，修正后才能加入/);
+  assert.match(contentSource, /id="recognition-problems" role="alert" tabindex="-1"/);
+  assert.equal(contentSource.includes("<b>识别提示</b>"), false);
 });
 
 test("panel and catalogs respond to browser width and height", () => {
