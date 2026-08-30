@@ -17,18 +17,30 @@
     const saved = {
       umaSeedOptimizerPreferencesV1: {
         colorOrder: ["blue", "red", "green", "white"],
+        depth: 1,
+        filterFull: true
+      },
+      umaSeedOptimizerSessionV1: {
         cardIds: [100101],
         desiredFactors: [
           { type:1, num:1, name:"速度", tier:1, minStars:7, minSelfStars:2, colorId:"blue", subtype:"属性" },
           { type:2, num:31, name:"短距离", tier:1, minStars:5, minSelfStars:1, colorId:"red", subtype:"适性" },
           { type:6, num:30001, name:"URA剧本", tier:2, minStars:3, minSelfStars:1, colorId:"white", subtype:"剧本" }
-        ],
-        depth: 1,
-        filterFull: true
+        ]
       }
     };
     window.chrome = {
-      runtime: { getURL(path) { return `../${path}`; } },
+      runtime: {
+        getURL(path) { return `../${path}`; },
+        async sendMessage(message) {
+          if (message?.type === "UMA_SEED_SESSION_GET_V1") return { ok:true, value:saved.umaSeedOptimizerSessionV1 || {} };
+          if (message?.type === "UMA_SEED_SESSION_SET_V1") {
+            saved.umaSeedOptimizerSessionV1 = message.value || {};
+            return { ok:true };
+          }
+          return { ok:false };
+        }
+      },
       storage: {
         local: {
           async get(key) { return { [key]: saved[key] }; },

@@ -175,16 +175,20 @@ test("long recognition previews stay compact and aggregate repeated notices", ()
   assert.match(contentSource, /\.recognition-stars\s*\{[^}]*font-size:11px/);
   assert.match(contentSource, /function renderRecognitionProblems\(ambiguous, unknown, errors\)/);
   assert.match(contentSource, /function renderRecognitionAutoSummary\(warnings\)/);
-  assert.match(contentSource, /已自动处理 \$\{warnings\.length\} 处，不影响导入/);
+  assert.match(contentSource, /忽略 \$\{ignored\.length\} 处无效文字/);
+  assert.match(contentSource, /ignoredText\.join\("、"\)/);
+  assert.equal(contentSource.includes("已自动处理 ${warnings.length} 处，不影响导入"), false);
   assert.match(contentSource, /需要修改 \$\{total\} 处，修正后才能加入/);
   assert.match(contentSource, /id="recognition-problems" role="alert" tabindex="-1"/);
   assert.equal(contentSource.includes("<b>识别提示</b>"), false);
 });
 
 test("panel and catalogs respond to browser width and height", () => {
-  assert.match(contentSource, /width:min\(100vw,clamp\(420px,40vw,620px\)\)/);
+  assert.match(contentSource, /width:min\(100dvw,clamp\(360px,46dvw,760px\)\)/);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
   assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
+  assert.match(contentSource, /@container optimizer-panel \(max-width:459px\)/);
+  assert.match(contentSource, /--fs-title:clamp\(18px,calc\(16px \+ \.25vw\),22px\)/);
   assert.match(contentSource, /\.factor-catalog\s*\{[^}]*max-height:clamp\(220px,34dvh,400px\)/);
   assert.match(contentSource, /\.role-catalog\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(contentSource, /\.catalog-pagination\s*\{[^}]*grid-template-columns:minmax\(88px,1fr\) auto minmax\(88px,1fr\)/);

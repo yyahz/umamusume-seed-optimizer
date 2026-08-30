@@ -231,7 +231,7 @@
   const shadow = host.attachShadow({ mode: "open" });
   shadow.innerHTML = `
     <style>
-      :host { --surface:#fff; --surface-2:#f7f8f4; --ink:#17231d; --muted:#66726b; --line:#dce4dc; --brand:#0d7848; --brand-dark:#075834; --focus:#1278b4; --danger:#b42318; color:var(--ink); font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif; }
+      :host { --surface:#fff; --surface-2:#f7f8f4; --ink:#17231d; --muted:#66726b; --line:#dce4dc; --brand:#0d7848; --brand-dark:#075834; --focus:#1278b4; --danger:#b42318; --fs-xs:clamp(10px,calc(9px + .12vw),11px); --fs-sm:clamp(11px,calc(10px + .15vw),13px); --fs-md:clamp(12px,calc(11px + .16vw),14px); --fs-lg:clamp(15px,calc(14px + .2vw),18px); --fs-title:clamp(18px,calc(16px + .25vw),22px); --fs-score:clamp(22px,calc(20px + .3vw),26px); color:var(--ink); font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif; }
       * { box-sizing:border-box; }
       [hidden] { display:none!important; }
       button,input,select { font:inherit; }
@@ -243,7 +243,7 @@
       .launcher-icon { width:30px; height:30px; flex:0 0 auto; border-radius:9px; object-fit:cover; box-shadow:0 1px 5px #053d2530; }
       .scrim { position:fixed; inset:0; z-index:2147483645; background:#0d1d1566; opacity:0; pointer-events:none; transition:opacity 180ms ease-out; }
       .scrim.open { opacity:1; pointer-events:auto; }
-      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100vw,clamp(420px,40vw,620px)); height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
+      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100dvw,clamp(360px,46dvw,760px)); max-width:100dvw; height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
       .panel.open { transform:translateX(0); }
       .panel-header { position:relative; z-index:2; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; color:#fff; background:linear-gradient(145deg,#0b7144,#0d7848); }
       .title-wrap { min-width:0; display:flex; align-items:center; gap:12px; }
@@ -440,8 +440,16 @@
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
+      h1 { font-size:var(--fs-title); } h2 { font-size:var(--fs-lg); }
+      .score-value { font-size:var(--fs-score); }
+      .brand-credit,.role-rarity,.recognizer-kicker,.recognizer-hint,.recognition-kind,.factor-option-state,.factor-option-mapping,.tier-help,.selected-subtype,.compact-factor-field,.tier-field,.score-label,.breakdown-item span,.result-factor-label { font-size:var(--fs-xs); }
+      .catalog-page-status,.selected-role-summary,.selection-method-note,.recognizer-helper,.recognition-details,.recognition-summary,.recognition-tier-note,.recognition-stars,.recognition-issue-summary,.recognition-issue,.recognition-notice,.catalog-head,.tier-empty,.star-select,.tier-select,.result-factor-label b,.match-chip,.scope-note { font-size:var(--fs-sm); }
+      .subtitle,.helper,.factor-description,.role-tab,.role-option-name,.catalog-page-button,.clear-roles,.reset-factors,.recognizer-button,.recognition-apply,.recognition-cancel,.undo-import,.subtype-tab,.factor-option-name,.tier-label,.selected-name,.field-label,.status,.result-count,.result-meta { font-size:var(--fs-md); }
+      .smart-recognition-option,.recognizer-label,.recognition-name,.selected-empty,.tier-label b,.breakdown-item b { font-size:clamp(13px,calc(12px + .16vw),15px); }
       @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
-      @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .brand-credit { font-size:9px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { justify-content:flex-start; text-align:left; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @container optimizer-panel (min-width:680px) { .panel-body { padding-inline:20px; } .section { padding:18px; } .selected-card { min-height:68px; } }
+      @container optimizer-panel (max-width:459px) { .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { justify-content:flex-start; text-align:left; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
+      @media (max-width:520px) { .launcher { right:12px; bottom:72px; width:54px; padding:0; justify-content:center; border-radius:18px; } .launcher span { display:none; } }
       @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
@@ -787,12 +795,14 @@
     const other = warnings.filter((item) => !String(item?.code || "").startsWith("ignored-") && item?.code !== "duplicate-factor");
     const parts = [];
     if (ignored.length) {
-      const examples = recognitionExamples(ignored, (item) => item?.text || recognitionMessage(item));
-      parts.push(`忽略 ${ignored.length} 处无效文字（如：${examples}）`);
+      const ignoredText = [...new Set(ignored
+        .map((item) => String(item?.text || "").replace(/\s+/g, " ").trim())
+        .filter(Boolean))];
+      parts.push(`<b>忽略 ${ignored.length} 处无效文字</b><p>${escapeHtml(ignoredText.join("、") || "未提供原文")}</p>`);
     }
-    if (duplicates.length) parts.push(`合并 ${duplicates.length} 个重复因子`);
-    if (other.length) parts.push(`${other.length} 条其他提示（${recognitionExamples(other, recognitionMessage)}）`);
-    return `<div class="recognition-issue-summary"><b>已自动处理 ${warnings.length} 处，不影响导入</b><p>${escapeHtml(parts.join("；"))}。</p></div>`;
+    if (duplicates.length) parts.push(`<p>合并 ${duplicates.length} 个重复因子。</p>`);
+    if (other.length) parts.push(`<p>${other.length} 条其他提示：${escapeHtml(recognitionExamples(other, recognitionMessage))}。</p>`);
+    return `<div class="recognition-issue-summary">${parts.join("")}</div>`;
   }
 
   function renderRecognitionNotice() {
