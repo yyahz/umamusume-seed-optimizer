@@ -68,6 +68,11 @@ foreach ($relativePath in $extensionFiles) {
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath $source -Destination $destination
 }
+$mobileUiSource = Join-Path $appRoot 'src\main\assets\mobile-ui.js'
+if (-not (Test-Path -LiteralPath $mobileUiSource -PathType Leaf)) {
+    throw '缺少 Android 移动端界面脚本：mobile-ui.js'
+}
+Copy-Item -LiteralPath $mobileUiSource -Destination (Join-Path $assetsRoot 'mobile-ui.js')
 
 $compiledZip = Join-Path $compiledRoot 'resources.zip'
 & $aapt2 compile --dir (Join-Path $appRoot 'src\main\res') -o $compiledZip
@@ -81,8 +86,8 @@ $unsignedApk = Join-Path $buildRoot 'app-unsigned.apk'
     --java $generatedRoot `
     --min-sdk-version 24 `
     --target-sdk-version 35 `
-    --version-code 4 `
-    --version-name '0.1.3' `
+    --version-code 5 `
+    --version-name '0.1.4' `
     -A (Join-Path $buildRoot 'assets') `
     $compiledZip
 if ($LASTEXITCODE -ne 0) { throw 'APK 资源链接失败。' }
@@ -128,7 +133,7 @@ if (-not (Test-Path -LiteralPath $debugKeystore -PathType Leaf)) {
     if ($LASTEXITCODE -ne 0) { throw '调试签名生成失败。' }
 }
 
-$finalApk = Join-Path $outputRoot 'uma-seed-searcher-android-v0.1.3-debug.apk'
+$finalApk = Join-Path $outputRoot 'uma-seed-searcher-android-v0.1.4-debug.apk'
 & $apksigner sign `
     --ks $debugKeystore `
     --ks-pass 'pass:android' `

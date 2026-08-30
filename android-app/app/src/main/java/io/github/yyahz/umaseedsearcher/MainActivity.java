@@ -47,7 +47,8 @@ public final class MainActivity extends Activity {
         "traditional-name-map.js",
         "factor-recognizer.js",
         "request-guard.js",
-        "content.js"
+        "content.js",
+        "mobile-ui.js"
     );
 
     private WebView webView;
@@ -61,7 +62,13 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.rgb(7, 88, 52));
+        getWindow().setStatusBarColor(Color.rgb(247, 249, 248));
+        getWindow().setNavigationBarColor(Color.WHITE);
+        int systemUiFlags = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            systemUiFlags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        getWindow().getDecorView().setSystemUiVisibility(systemUiFlags);
         buildInterface();
         configureWebView();
 
@@ -302,14 +309,7 @@ public final class MainActivity extends Activity {
                 }
                 return;
             }
-            String mobileGlue = "(() => {"
-                + "const host=document.getElementById('uma-seed-optimizer-host');"
-                + "const root=host&&host.shadowRoot;if(!root)return;"
-                + "const style=document.createElement('style');"
-                + "style.textContent='.panel{width:100vw!important;max-width:none!important;height:100vh!important;max-height:100vh!important}.panel-body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch}.role-catalog,.factor-catalog{max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}.result-actions{align-items:stretch;flex-direction:column}.copy-button{justify-content:center;width:100%}.scope-note{text-align:center}.launcher{width:auto!important;padding:0 14px!important;bottom:24px!important}.launcher span{display:inline!important}';"
-                + "root.appendChild(style);"
-                + "})();";
-            webView.evaluateJavascript(mobileGlue, glueResult -> waitForSearchInterface());
+            waitForSearchInterface();
         });
     }
 
@@ -393,8 +393,14 @@ public final class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (searchInterfaceReady) finish();
-        else if (webView.canGoBack()) webView.goBack();
+        if (searchInterfaceReady) {
+            String mobileBack = "(() => Boolean(globalThis.__UMA_SEED_SEARCHER_MOBILE_UI__?.back?.()))();";
+            webView.evaluateJavascript(mobileBack, handled -> {
+                if (!"true".equals(handled)) finish();
+            });
+            return;
+        }
+        if (webView.canGoBack()) webView.goBack();
         else super.onBackPressed();
     }
 
