@@ -184,8 +184,12 @@ test("long recognition previews stay compact and aggregate repeated notices", ()
   assert.equal(contentSource.includes("<b>识别提示</b>"), false);
 });
 
-test("panel and catalogs respond to browser width and height", () => {
-  assert.match(contentSource, /width:min\(100dvw,clamp\(360px,46dvw,760px\)\)/);
+test("panel distinguishes maximized and restored browser windows", () => {
+  assert.match(contentSource, /width:min\(100dvw,clamp\(340px,38dvw,560px\)\)/);
+  assert.match(contentSource, /:host\(\[data-window-maximized="true"\]\) \.panel \{ width:min\(100dvw,clamp\(760px,65dvw,960px\)\)/);
+  assert.match(contentSource, /function updateWindowLayoutMode\(\)/);
+  assert.match(contentSource, /window\.outerWidth >= window\.screen\.availWidth - tolerance/);
+  assert.match(contentSource, /window\.addEventListener\("resize", updateWindowLayoutMode, \{ passive: true \}\)/);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
   assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
   assert.match(contentSource, /@container optimizer-panel \(max-width:459px\)/);

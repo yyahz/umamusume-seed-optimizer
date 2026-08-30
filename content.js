@@ -243,7 +243,8 @@
       .launcher-icon { width:30px; height:30px; flex:0 0 auto; border-radius:9px; object-fit:cover; box-shadow:0 1px 5px #053d2530; }
       .scrim { position:fixed; inset:0; z-index:2147483645; background:#0d1d1566; opacity:0; pointer-events:none; transition:opacity 180ms ease-out; }
       .scrim.open { opacity:1; pointer-events:auto; }
-      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100dvw,clamp(360px,46dvw,760px)); max-width:100dvw; height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out; }
+      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100dvw,clamp(340px,38dvw,560px)); max-width:100dvw; height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out,width 160ms ease-out; }
+      :host([data-window-maximized="true"]) .panel { width:min(100dvw,clamp(760px,65dvw,960px)); }
       .panel.open { transform:translateX(0); }
       .panel-header { position:relative; z-index:2; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; color:#fff; background:linear-gradient(145deg,#0b7144,#0d7848); }
       .title-wrap { min-width:0; display:flex; align-items:center; gap:12px; }
@@ -1616,6 +1617,16 @@
   }
 
   elements.searchButton.addEventListener("click", searchCandidates);
+
+  function updateWindowLayoutMode() {
+    const tolerance = 32;
+    const maximized = window.outerWidth >= window.screen.availWidth - tolerance
+      && window.outerHeight >= window.screen.availHeight - tolerance;
+    host.dataset.windowMaximized = String(maximized);
+  }
+
+  updateWindowLayoutMode();
+  window.addEventListener("resize", updateWindowLayoutMode, { passive: true });
 
   async function initialize() {
     try {
