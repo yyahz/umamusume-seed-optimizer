@@ -185,7 +185,7 @@ test("long recognition previews stay compact and aggregate repeated notices", ()
 });
 
 test("panel distinguishes maximized and restored browser windows", () => {
-  assert.match(contentSource, /width:min\(100dvw,clamp\(340px,38dvw,560px\)\)/);
+  assert.match(contentSource, /width:min\(100dvw,clamp\(320px,34dvw,480px\)\)/);
   assert.match(contentSource, /:host\(\[data-window-maximized="true"\]\) \.panel \{ width:min\(100dvw,clamp\(760px,65dvw,960px\)\)/);
   assert.match(contentSource, /function updateWindowLayoutMode\(\)/);
   assert.match(contentSource, /window\.outerWidth >= window\.screen\.availWidth - tolerance/);
