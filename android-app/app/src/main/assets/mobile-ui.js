@@ -16,6 +16,7 @@
   };
 
   let activePage = "roles";
+  let rolePage = 0;
   let applyScheduled = false;
   let awaitingResults = false;
   const scrollPositions = new Map();
@@ -31,6 +32,31 @@
   function textCount(element) {
     const match = String(element?.textContent || "").match(/\d+/);
     return match ? Number(match[0]) : 0;
+  }
+
+  function updateRolePagination(ui, reset = false) {
+    if (!ui) return;
+    const catalog = ui.root.getElementById("role-catalog");
+    const shell = ui.root.getElementById("role-catalog-shell");
+    if (!catalog || !shell) return;
+    const options = [...catalog.querySelectorAll(".role-option")];
+    const pageSize = 4;
+    const pageCount = Math.max(1, Math.ceil(options.length / pageSize));
+    if (reset) rolePage = 0;
+    rolePage = Math.min(pageCount - 1, Math.max(0, rolePage));
+    const start = rolePage * pageSize;
+    options.forEach((option, index) => {
+      option.hidden = index < start || index >= start + pageSize;
+    });
+
+    let controls = shell.querySelector(".mobile-role-pagination");
+    if (!controls) {
+      controls = document.createElement("div");
+      controls.className = "mobile-role-pagination";
+      catalog.after(controls);
+    }
+    controls.hidden = options.length <= pageSize;
+    controls.innerHTML = `<button type="button" data-role-page="previous" ${rolePage === 0 ? "disabled" : ""}>上一组</button><span>第 ${rolePage + 1} / ${pageCount} 组</span><button type="button" data-role-page="next" ${rolePage >= pageCount - 1 ? "disabled" : ""}>下一组</button>`;
   }
 
   function setFactorHeading(section) {
@@ -122,6 +148,7 @@
     if (resultsSection) resultsSection.dataset.mobileSection = "results";
 
     ensureEmptyResults(ui, Boolean(resultsSection));
+    updateRolePagination(ui);
     updateNavigation(ui);
   }
 
@@ -166,8 +193,8 @@
     style.id = "uma-mobile-ui-style";
     style.textContent = `
       :host([data-mobile-ui="true"]) {
-        --mobile-nav-height:68px;
-        --mobile-action-height:92px;
+        --mobile-nav-height:64px;
+        --mobile-action-height:88px;
         --surface:#fff;
         --surface-2:#f4f7f5;
         --ink:#17241d;
@@ -245,8 +272,48 @@
         overflow:visible!important;
         overscroll-behavior:auto!important;
       }
-      :host([data-mobile-ui="true"]) .role-option { min-height:66px; border-radius:14px; }
-      :host([data-mobile-ui="true"]) .role-option-name,
+      :host([data-mobile-ui="true"]) .role-catalog { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+      :host([data-mobile-ui="true"]) #body > .section[data-mobile-section="roles"]:first-child .section-head { margin-bottom:8px; }
+      :host([data-mobile-ui="true"]) #body > .section[data-mobile-section="roles"]:first-child .helper { display:none; }
+      :host([data-mobile-ui="true"]) .role-tools { gap:6px; }
+      :host([data-mobile-ui="true"]) .role-tools .search-input { min-height:44px; }
+      :host([data-mobile-ui="true"]) .role-tab { min-height:40px; }
+      :host([data-mobile-ui="true"]) .selected-role-summary { min-height:32px; margin-top:6px; padding-block:4px; }
+      :host([data-mobile-ui="true"]) .role-catalog-shell { margin-top:6px; }
+      :host([data-mobile-ui="true"]) .role-option {
+        min-height:52px;
+        grid-template-columns:34px minmax(0,1fr);
+        gap:7px;
+        padding:5px;
+        border-radius:12px;
+      }
+      :host([data-mobile-ui="true"]) .role-image { width:34px; height:34px; border-radius:9px; }
+      :host([data-mobile-ui="true"]) .role-option-name { font-size:11px; line-height:1.3; }
+      :host([data-mobile-ui="true"]) .role-rarity { margin-top:1px; font-size:9px; }
+      :host([data-mobile-ui="true"]) .mobile-role-pagination {
+        min-height:48px;
+        display:grid;
+        grid-template-columns:1fr auto 1fr;
+        align-items:center;
+        gap:8px;
+        padding:6px;
+        border-top:1px solid var(--line);
+        color:var(--muted);
+        font-size:11px;
+        font-variant-numeric:tabular-nums;
+        text-align:center;
+      }
+      :host([data-mobile-ui="true"]) .mobile-role-pagination button {
+        min-height:44px;
+        border:0;
+        border-radius:11px;
+        color:var(--brand-dark);
+        background:#eaf7ef;
+        font-size:12px;
+        font-weight:750;
+      }
+      :host([data-mobile-ui="true"]) .mobile-role-pagination button:disabled { opacity:.38; }
+      :host([data-mobile-ui="true"]) .factor-option-name { font-size:13px; }
       :host([data-mobile-ui="true"]) .factor-option-name { font-size:14px; }
       :host([data-mobile-ui="true"]) .priority-item {
         min-height:60px;
@@ -256,7 +323,7 @@
         box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--factor-color) 20%,var(--line));
       }
       :host([data-mobile-ui="true"]) .quick-recognizer {
-        padding:14px;
+        padding:12px;
         border:0;
         border-radius:16px;
         background:#f1f8f4;
@@ -265,45 +332,47 @@
       :host([data-mobile-ui="true"]) .recognizer-helper,
       :host([data-mobile-ui="true"]) .recognizer-hint { font-size:12px; }
       :host([data-mobile-ui="true"]) .recognizer-textarea {
-        min-height:132px;
+        min-height:108px;
         border-color:#d6e4da;
         border-radius:14px;
         padding:12px;
         font-size:16px;
       }
       :host([data-mobile-ui="true"]) .recognizer-button,
-      :host([data-mobile-ui="true"]) .recognition-apply { min-height:48px; background:var(--brand); color:#fff; }
-      :host([data-mobile-ui="true"]) .factor-tab { min-height:48px; border-radius:14px; font-size:14px; }
-      :host([data-mobile-ui="true"]) .search-input { min-height:50px; border-radius:15px; font-size:16px; }
-      :host([data-mobile-ui="true"]) .factor-option { min-height:54px; border-radius:13px; padding:9px 10px; }
+      :host([data-mobile-ui="true"]) .recognition-apply { min-height:46px; background:var(--brand); color:#fff; }
+      :host([data-mobile-ui="true"]) .factor-tab { min-height:44px; border-radius:12px; font-size:13px; }
+      :host([data-mobile-ui="true"]) .search-input { min-height:46px; border-radius:13px; font-size:16px; }
+      :host([data-mobile-ui="true"]) .factor-option { min-height:48px; border-radius:11px; padding:7px 9px; }
       :host([data-mobile-ui="true"][data-mobile-has-factors="false"]) .tier-block,
       :host([data-mobile-ui="true"][data-mobile-has-factors="false"]) .mobile-selected-heading { display:none!important; }
-      :host([data-mobile-ui="true"]) .mobile-selected-heading { margin:20px 0 8px; }
+      :host([data-mobile-ui="true"]) .mobile-selected-heading { margin:16px 0 6px; }
       :host([data-mobile-ui="true"]) .mobile-selected-heading h3 { margin:0; font-size:17px; line-height:1.4; }
       :host([data-mobile-ui="true"]) .mobile-selected-heading p { margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
       :host([data-mobile-ui="true"]) .tier-block {
-        margin-top:12px;
-        border-radius:16px;
+        margin-top:8px;
+        border-radius:13px;
         background:#fbfcfb;
       }
-      :host([data-mobile-ui="true"]) .tier-label { min-height:46px; padding:8px 12px; }
-      :host([data-mobile-ui="true"]) .selected-list { gap:8px; padding:8px; }
+      :host([data-mobile-ui="true"]) .tier-label { min-height:40px; padding:6px 9px; }
+      :host([data-mobile-ui="true"]) .tier-help { display:none; }
+      :host([data-mobile-ui="true"]) .selected-list { min-height:52px; gap:5px; padding:5px; }
+      :host([data-mobile-ui="true"]) .tier-empty { min-height:42px; }
       :host([data-mobile-ui="true"]) .selected-card {
-        grid-template-columns:30px minmax(0,1fr) 104px;
-        grid-template-areas:"drag identity tier" "drag total self";
-        gap:9px;
-        min-height:114px;
-        padding:10px;
-        border-radius:14px;
+        grid-template-columns:22px minmax(64px,1fr) 48px 48px 48px;
+        grid-template-areas:"drag identity total self tier";
+        gap:4px;
+        min-height:68px;
+        padding:5px;
+        border-radius:11px;
         cursor:default;
       }
-      :host([data-mobile-ui="true"]) .factor-drag-handle { grid-row:1 / 3; height:100%; }
-      :host([data-mobile-ui="true"]) .selected-name { font-size:14px; white-space:normal; line-height:1.4; }
+      :host([data-mobile-ui="true"]) .factor-drag-handle { grid-row:auto; width:22px; height:44px; }
+      :host([data-mobile-ui="true"]) .selected-name { font-size:12px; white-space:normal; line-height:1.3; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
       :host([data-mobile-ui="true"]) .selected-subtype,
       :host([data-mobile-ui="true"]) .compact-factor-field,
-      :host([data-mobile-ui="true"]) .tier-field { font-size:11px; text-align:left; }
+      :host([data-mobile-ui="true"]) .tier-field { gap:1px; font-size:9px; text-align:center; }
       :host([data-mobile-ui="true"]) .star-select,
-      :host([data-mobile-ui="true"]) .tier-select { min-height:46px; border-radius:11px; padding-inline:8px; font-size:13px; }
+      :host([data-mobile-ui="true"]) .tier-select { min-height:44px; border-radius:8px; padding:0 2px; font-size:10px; }
       :host([data-mobile-ui="true"]) .settings { grid-template-columns:1fr; gap:12px; }
       :host([data-mobile-ui="true"]) .field-label { font-size:13px; }
       :host([data-mobile-ui="true"]) .select,
@@ -333,8 +402,8 @@
       :host([data-mobile-ui="true"][data-mobile-page="results"]) .action-bar { display:grid!important; }
       :host([data-mobile-ui="true"]) .status { min-height:18px; overflow:hidden; font-size:11px; white-space:nowrap; text-overflow:ellipsis; }
       :host([data-mobile-ui="true"]) .primary {
-        min-height:52px;
-        border-radius:16px;
+        min-height:48px;
+        border-radius:14px;
         background:var(--brand);
         box-shadow:0 7px 18px #16945e2b;
         font-size:15px;
@@ -358,7 +427,7 @@
       :host([data-mobile-ui="true"]) .mobile-nav-button {
         position:relative;
         min-width:0;
-        min-height:54px;
+        min-height:50px;
         display:grid;
         place-items:center;
         align-content:center;
@@ -412,8 +481,7 @@
       @media (max-width:370px) {
         :host([data-mobile-ui="true"]) .panel-body { padding-inline:9px; }
         :host([data-mobile-ui="true"]) .section { padding:14px; border-radius:18px; }
-        :host([data-mobile-ui="true"]) .role-catalog { grid-template-columns:1fr; }
-        :host([data-mobile-ui="true"]) .selected-card { grid-template-columns:28px minmax(0,1fr) 96px; }
+        :host([data-mobile-ui="true"]) .selected-card { grid-template-columns:20px minmax(58px,1fr) 46px 46px 46px; }
         :host([data-mobile-ui="true"]) .factor-description { display:none; }
       }
       @media (orientation:landscape) and (max-height:520px) {
@@ -449,10 +517,27 @@
       scrollPositions.set(activePage, ui.body.scrollTop);
     }, true);
     ui.root.addEventListener("click", (event) => {
+      const rolePageButton = event.target.closest("[data-role-page]");
+      if (rolePageButton && !rolePageButton.disabled) {
+        rolePage += rolePageButton.dataset.rolePage === "next" ? 1 : -1;
+        updateRolePagination(ui);
+        ui.root.getElementById("role-catalog")?.scrollIntoView({ block: "nearest" });
+        return;
+      }
+      if (event.target.closest("[data-role-rarity],#role-catalog-more")) {
+        rolePage = 0;
+        requestAnimationFrame(() => updateRolePagination(findUi(), true));
+      }
       const searchButton = event.target.closest("#search-button");
       if (!searchButton || searchButton.disabled) return;
       awaitingResults = true;
       activate("results", { resetScroll: true });
+    }, true);
+    ui.root.addEventListener("input", (event) => {
+      if (event.target.closest("#role-search")) {
+        rolePage = 0;
+        requestAnimationFrame(() => updateRolePagination(findUi(), true));
+      }
     }, true);
 
     const observer = new MutationObserver(() => {
