@@ -7,7 +7,7 @@
 - App 内打开吗哩吗哩工具箱并由用户自行登录。
 - 关闭并重新打开 App 后保留 WebView 登录状态。
 - 复用现有因子目录、角色目录、识别、搜索、评分和访问保护逻辑。
-- 使用“角色 / 因子 / 已选 / 结果”四页式手机界面；未登录时显示官方登录页，登录有效时先显示 App 加载页，再直接进入搜索器。
+- 使用“角色 / 因子 / 结果”三页式手机界面；因子选择、星级与优先级调整、搜索设置集中在因子页。未登录时显示官方登录页，登录有效时先显示 App 加载页，再直接进入搜索器。
 - Android 版取消角色目录和因子目录的嵌套滚动，并以底部导航、触控尺寸和固定搜索操作区适配手机单手使用。
 
 ## 隐私边界
@@ -40,4 +40,4 @@ app/build/outputs/apk/debug/app-debug.apk
 .\scripts\build-debug.ps1 -SdkRoot "C:\Android\Sdk"
 ```
 
-脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.4-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
+脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.5-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。

@@ -6,14 +6,12 @@
   const ICONS = {
     roles: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6"/></svg>',
     factors: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="2"/><rect x="14" y="4" width="6" height="6" rx="2"/><rect x="4" y="14" width="6" height="6" rx="2"/><rect x="14" y="14" width="6" height="6" rx="2"/></svg>',
-    selected: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
     results: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><path d="m3.5 6 .8.8L6 5M3.5 12l.8.8L6 11M3.5 18l.8.8L6 17"/></svg>'
   };
-  const PAGE_ORDER = ["roles", "factors", "selected", "results"];
+  const PAGE_ORDER = ["roles", "factors", "results"];
   const PAGE_LABELS = {
     roles: "角色",
     factors: "因子",
-    selected: "已选",
     results: "结果"
   };
 
@@ -39,13 +37,17 @@
     const heading = section?.querySelector(".section-head h2");
     const helper = section?.querySelector(".section-head .helper");
     if (!heading || !helper) return;
-    if (activePage === "selected") {
-      heading.textContent = "调整已选因子";
-      helper.textContent = "切换颜色后，可设置家系、本体最低星级和高 / 中 / 低 / 必需优先级。";
-    } else {
-      heading.textContent = "选择因子";
-      helper.textContent = "可粘贴攻略智能识别，也可按颜色搜索并逐项选择。再次点选可取消。";
-    }
+    heading.textContent = "选择与调整因子";
+    helper.textContent = "可粘贴攻略智能识别或逐项选择；已选因子的星级与优先级可在目录下方调整。";
+  }
+
+  function ensureFactorEditingHeading(section) {
+    const firstTier = section?.querySelector(".tier-block");
+    if (!firstTier || section.querySelector(".mobile-selected-heading")) return;
+    const heading = document.createElement("div");
+    heading.className = "mobile-selected-heading";
+    heading.innerHTML = '<h3>已选因子设置</h3><p>设置家系、本体最低星级和高 / 中 / 低 / 必需优先级。</p>';
+    firstTier.before(heading);
   }
 
   function updateNavigation(ui) {
@@ -55,7 +57,8 @@
     const roleCount = textCount(roleSection?.querySelector(".badge"));
     const factorCount = textCount(factorSection?.querySelector(".badge"));
     const resultCount = textCount(resultsSection?.querySelector(".result-count"));
-    const counts = { roles: roleCount, factors: factorCount, selected: factorCount, results: resultCount };
+    const counts = { roles: roleCount, factors: factorCount, results: resultCount };
+    ui.host.dataset.mobileHasFactors = String(factorCount > 0);
 
     ui.root.querySelectorAll(".mobile-nav-button").forEach((button) => {
       const page = button.dataset.mobileTarget;
@@ -84,7 +87,7 @@
       empty.dataset.mobileSection = "results";
       ui.body.appendChild(empty);
     }
-    empty.innerHTML = `${ICONS.results}<h2>${awaitingResults ? "正在寻找合适种马" : "还没有推荐结果"}</h2><p>${awaitingResults ? "候选正在汇总和评分，请稍候。" : "先在“因子”中选择条件，再到“已选”确认星级并开始搜索。"}</p>`;
+    empty.innerHTML = `${ICONS.results}<h2>${awaitingResults ? "正在寻找合适种马" : "还没有推荐结果"}</h2><p>${awaitingResults ? "候选正在汇总和评分，请稍候。" : "先在“因子”中选择条件、确认星级并开始搜索。"}</p>`;
   }
 
   function mapSections(ui) {
@@ -107,11 +110,12 @@
       if (heading) heading.textContent = "颜色排序";
     }
     if (factorSection) {
-      factorSection.dataset.mobileSection = "factors selected";
+      factorSection.dataset.mobileSection = "factors";
       setFactorHeading(factorSection);
+      ensureFactorEditingHeading(factorSection);
     }
     if (settingsSection && settingsSection !== resultsSection) {
-      settingsSection.dataset.mobileSection = "selected";
+      settingsSection.dataset.mobileSection = "factors";
       const heading = settingsSection.querySelector(".section-head h2");
       if (heading) heading.textContent = "搜索设置";
     }
@@ -211,14 +215,13 @@
         padding:14px 12px calc(var(--mobile-nav-height) + 18px + env(safe-area-inset-bottom));
         scroll-behavior:smooth;
       }
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) .panel-body,
+      :host([data-mobile-ui="true"][data-mobile-page="factors"]) .panel-body,
       :host([data-mobile-ui="true"][data-mobile-page="results"]) .panel-body {
         padding-bottom:calc(var(--mobile-nav-height) + var(--mobile-action-height) + 20px + env(safe-area-inset-bottom));
       }
       :host([data-mobile-ui="true"]) #body > .section { display:none; }
       :host([data-mobile-ui="true"][data-mobile-page="roles"]) #body > .section[data-mobile-section~="roles"],
       :host([data-mobile-ui="true"][data-mobile-page="factors"]) #body > .section[data-mobile-section~="factors"],
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) #body > .section[data-mobile-section~="selected"],
       :host([data-mobile-ui="true"][data-mobile-page="results"]) #body > .section[data-mobile-section~="results"] { display:block; }
       :host([data-mobile-ui="true"]) .section {
         margin-bottom:12px;
@@ -273,11 +276,11 @@
       :host([data-mobile-ui="true"]) .factor-tab { min-height:48px; border-radius:14px; font-size:14px; }
       :host([data-mobile-ui="true"]) .search-input { min-height:50px; border-radius:15px; font-size:16px; }
       :host([data-mobile-ui="true"]) .factor-option { min-height:54px; border-radius:13px; padding:9px 10px; }
-      :host([data-mobile-ui="true"][data-mobile-page="factors"]) .tier-block,
-      :host([data-mobile-ui="true"][data-mobile-page="factors"]) .selected-empty { display:none!important; }
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) .quick-recognizer,
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) .search-field,
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) .catalog-shell { display:none!important; }
+      :host([data-mobile-ui="true"][data-mobile-has-factors="false"]) .tier-block,
+      :host([data-mobile-ui="true"][data-mobile-has-factors="false"]) .mobile-selected-heading { display:none!important; }
+      :host([data-mobile-ui="true"]) .mobile-selected-heading { margin:20px 0 8px; }
+      :host([data-mobile-ui="true"]) .mobile-selected-heading h3 { margin:0; font-size:17px; line-height:1.4; }
+      :host([data-mobile-ui="true"]) .mobile-selected-heading p { margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
       :host([data-mobile-ui="true"]) .tier-block {
         margin-top:12px;
         border-radius:16px;
@@ -326,7 +329,7 @@
         box-shadow:0 -5px 18px #1835220d;
         backdrop-filter:none;
       }
-      :host([data-mobile-ui="true"][data-mobile-page="selected"]) .action-bar,
+      :host([data-mobile-ui="true"][data-mobile-page="factors"]) .action-bar,
       :host([data-mobile-ui="true"][data-mobile-page="results"]) .action-bar { display:grid!important; }
       :host([data-mobile-ui="true"]) .status { min-height:18px; overflow:hidden; font-size:11px; white-space:nowrap; text-overflow:ellipsis; }
       :host([data-mobile-ui="true"]) .primary {
@@ -344,7 +347,7 @@
         bottom:0;
         min-height:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
         display:grid;
-        grid-template-columns:repeat(4,1fr);
+        grid-template-columns:repeat(3,1fr);
         align-items:start;
         gap:4px;
         padding:7px 8px calc(6px + env(safe-area-inset-bottom));
