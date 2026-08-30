@@ -135,6 +135,28 @@ test("bulk recognition accumulates batches and applies sequential skill priority
   assert.match(contentSource, /state\.recognitionBatches = \[\]/);
 });
 
+test("smart recognition is an optional mode inside factor selection", () => {
+  assert.match(contentSource, /smartRecognitionEnabled: false/);
+  assert.match(contentSource, /id="smart-recognition-toggle"/);
+  assert.match(contentSource, /不勾选时从下方目录逐项选择/);
+  assert.match(contentSource, /state\.smartRecognitionEnabled \? `<div class="smart-recognition-panel"/);
+});
+
+test("role catalog uses three-row pagination instead of progressive loading", () => {
+  assert.match(contentSource, /const ROLE_PAGE_SIZE = 6/);
+  assert.match(contentSource, /data-role-page="previous"/);
+  assert.match(contentSource, /data-role-page="next"/);
+  assert.match(contentSource, /class="catalog-page-status" aria-live="polite"/);
+  assert.equal(contentSource.includes("role-catalog-more"), false);
+  assert.equal(contentSource.includes("roleCatalogLimit"), false);
+});
+
+test("selected white factors remain visible across subtype tabs", () => {
+  assert.match(contentSource, /function renderSelectedForColor\(colorId\)[\s\S]*?\.filter\(\(item\) => item\.colorId === colorId\);/);
+  assert.equal(/function renderSelectedForColor\(colorId\)[\s\S]*?item\.subtype === state\.activeSubtype[\s\S]*?function filteredCatalogFactors/.test(contentSource), false);
+  assert.match(contentSource, /function filteredCatalogFactors[\s\S]*?factor\.subtype === state\.activeSubtype/);
+});
+
 test("search cache can be force-refreshed and cache hits are explicitly re-ranked", () => {
   assert.match(contentSource, /id="force-refresh"/);
   assert.match(contentSource, /searchGuard\.clearCache\(\)/);
@@ -151,7 +173,8 @@ test("panel and catalogs respond to browser width and height", () => {
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
   assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
   assert.match(contentSource, /\.factor-catalog\s*\{[^}]*max-height:clamp\(220px,34dvh,400px\)/);
-  assert.match(contentSource, /\.role-catalog\s*\{[^}]*max-height:clamp\(240px,38dvh,440px\)/);
+  assert.match(contentSource, /\.role-catalog\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(contentSource, /\.catalog-pagination\s*\{[^}]*grid-template-columns:minmax\(88px,1fr\) auto minmax\(88px,1fr\)/);
   assert.match(contentSource, /@media \(max-height:700px\)/);
 });
 

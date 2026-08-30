@@ -38,6 +38,8 @@
     scan: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 9h8M8 13h8M8 17h5"/></svg>'
   };
 
+  const ROLE_PAGE_SIZE = 6;
+
   const state = {
     open: false,
     loadingFactors: true,
@@ -45,7 +47,7 @@
     busy: false,
     roleQuery: "",
     roleRarity: "all",
-    roleCatalogLimit: 60,
+    rolePage: 1,
     selectedRoleIds: new Set(),
     roles: [],
     activeColor: "blue",
@@ -57,6 +59,7 @@
     factors: [],
     factorCatalogNames: new Map(),
     factorIndex: null,
+    smartRecognitionEnabled: false,
     quickFactorText: "",
     recognition: null,
     recognitionBatches: [],
@@ -250,7 +253,7 @@
       .role-tab { min-height:44px; border:1px solid var(--line); border-radius:11px; color:var(--muted); background:#fff; font-size:12px; font-weight:700; }
       .role-tab.active { color:var(--brand-dark); border-color:var(--brand); background:#e9f7ef; }
       .role-catalog-shell { margin-top:8px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; }
-      .role-catalog { max-height:clamp(240px,38dvh,440px); overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; overscroll-behavior:contain; }
+      .role-catalog { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
       .role-option { min-height:60px; display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:8px; border:1px solid transparent; border-radius:11px; padding:6px; color:var(--ink); background:#fff; text-align:left; }
       .role-option:hover { border-color:var(--brand); background:#f0faf4; }
       .role-option.selected { color:var(--brand-dark); border-color:var(--brand); background:#e9f7ef; box-shadow:inset 0 0 0 1px var(--brand); }
@@ -258,11 +261,23 @@
       .role-image-fallback { display:grid; place-items:center; color:var(--muted); font-weight:800; }
       .role-option-name { overflow:hidden; font-size:12px; font-weight:750; line-height:1.35; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
       .role-rarity { margin-top:3px; color:#9a6700; font-size:10px; font-weight:800; letter-spacing:.04em; }
+      .catalog-pagination { min-height:52px; display:grid; grid-template-columns:minmax(88px,1fr) auto minmax(88px,1fr); align-items:center; gap:8px; padding:6px; border-top:1px solid var(--line); background:#fafcfb; }
+      .catalog-page-button { min-height:44px; border:1px solid var(--line); border-radius:10px; color:var(--brand-dark); background:#fff; font-size:12px; font-weight:750; }
+      .catalog-page-button:hover:not(:disabled) { border-color:var(--brand); background:#e9f7ef; }
+      .catalog-page-button:disabled { cursor:not-allowed; color:#98a29c; background:#f1f4f2; }
+      .catalog-page-status { min-width:64px; color:var(--muted); font-size:11px; font-weight:750; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
       .selected-role-summary { min-height:36px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; border-radius:11px; padding:6px 9px; color:var(--muted); background:var(--surface-2); font-size:11px; }
       .clear-roles { min-height:44px; flex:0 0 auto; border:0; border-radius:10px; padding:0 12px; color:var(--brand-dark); background:#e9f7ef; font-size:12px; font-weight:750; }
       .section-head-actions { display:flex; flex:0 0 auto; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:7px; }
       .reset-factors { min-height:44px; border:1px solid #e7b9b4; border-radius:10px; padding:0 11px; color:var(--danger); background:#fff7f6; font-size:12px; font-weight:800; }
       .reset-factors:hover { border-color:var(--danger); background:#fff0ee; }
+      .selection-method { margin-bottom:12px; border:1px solid var(--line); border-radius:14px; padding:8px 10px; background:#fafcfb; }
+      .smart-recognition-option { min-height:44px; display:flex; align-items:center; gap:9px; color:var(--ink); font-size:13px; font-weight:800; cursor:pointer; }
+      .smart-recognition-option input { width:20px; height:20px; flex:0 0 auto; accent-color:var(--brand); }
+      .selection-method:focus-within { border-color:var(--brand); box-shadow:0 0 0 3px #12834d1a; }
+      .selection-method-note { margin:0 0 3px 29px; color:var(--muted); font-size:11px; line-height:1.45; }
+      .smart-recognition-panel { margin-bottom:12px; }
+      .smart-recognition-panel .quick-recognizer { margin-bottom:0; }
       .quick-recognizer { margin-bottom:12px; border:1px solid #cfe3d6; border-radius:14px; padding:12px; background:#f6fbf8; }
       .recognizer-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
       .recognizer-label { display:block; color:var(--ink); font-size:13px; font-weight:800; }
@@ -393,9 +408,9 @@
       .loading-line { height:3px; overflow:hidden; border-radius:99px; background:#dfe8e1; }
       .loading-line::after { content:""; display:block; width:38%; height:100%; background:var(--brand); animation:loading 1s ease-in-out infinite alternate; }
       @keyframes loading { from { transform:translateX(-20%); } to { transform:translateX(190%); } }
-      @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .role-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
+      @container optimizer-panel (min-width:560px) { .factor-catalog { grid-template-columns:repeat(3,minmax(0,1fr)); } .panel-body { padding-inline:18px; } }
       @media (max-width:520px) { .launcher { right:12px; bottom:72px; } .launcher span { display:none; } .launcher { width:54px; padding:0; justify-content:center; border-radius:18px; } .panel-header { padding-inline:12px; } .brand-mark { width:38px; height:38px; } .title-wrap { gap:9px; } h1 { font-size:18px; } .brand-credit { font-size:9px; } .subtitle { font-size:11px; } .section { border-radius:16px; } .panel-body { padding-inline:10px; } .settings { grid-template-columns:1fr; } .factor-catalog { grid-template-columns:1fr; } .role-option { grid-template-columns:40px minmax(0,1fr); } .role-image { width:40px; height:40px; } .recognizer-head { display:block; } .recognizer-kicker { display:inline-block; margin-top:6px; } .recognizer-textarea { font-size:16px; } .recognizer-actions { align-items:stretch; flex-direction:column; } .recognizer-button { justify-content:center; } .recognition-item { align-items:start; grid-template-columns:1fr; } .recognition-stars { text-align:left; white-space:normal; } .recognition-preview-actions { display:grid; grid-template-columns:1fr 1fr; } }
-      @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .role-catalog { max-height:240px; } .factor-catalog { max-height:220px; } }
+      @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
     </style>
     <button class="launcher" id="launcher" type="button" aria-label="打开种马搜索器"><img class="launcher-icon" src="${extensionIconUrl}" alt="" aria-hidden="true"><span>种马搜索器</span></button>
@@ -467,7 +482,10 @@
 
   function renderRoleCatalog(query = state.roleQuery) {
     const matches = filteredRoles(query);
-    const visible = matches.slice(0, state.roleCatalogLimit);
+    const pageCount = Math.max(1, Math.ceil(matches.length / ROLE_PAGE_SIZE));
+    state.rolePage = Math.min(Math.max(1, state.rolePage), pageCount);
+    const start = (state.rolePage - 1) * ROLE_PAGE_SIZE;
+    const visible = matches.slice(start, start + ROLE_PAGE_SIZE);
     const items = visible.length
       ? visible.map((role) => {
         const cardId = String(role.card_id);
@@ -479,9 +497,13 @@
         </button>`;
       }).join("")
       : '<div class="selected-empty" style="grid-column:1/-1">没有找到符合条件的角色。</div>';
-    return `<div class="catalog-head"><span>可选角色</span><span>显示 ${visible.length} / ${matches.length}</span></div>
+    return `<div class="catalog-head"><span>可选角色</span><span>共 ${matches.length} 个</span></div>
       <div class="role-catalog" id="role-catalog">${items}</div>
-      ${visible.length < matches.length ? `<button class="catalog-more" id="role-catalog-more" type="button">再显示 ${Math.min(60, matches.length - visible.length)} 项</button>` : ""}`;
+      <div class="catalog-pagination" aria-label="角色目录分页">
+        <button class="catalog-page-button" type="button" data-role-page="previous" ${state.rolePage <= 1 ? "disabled" : ""}>上一页</button>
+        <span class="catalog-page-status" aria-live="polite">${state.rolePage} / ${pageCount}</span>
+        <button class="catalog-page-button" type="button" data-role-page="next" ${state.rolePage >= pageCount ? "disabled" : ""}>下一页</button>
+      </div>`;
   }
 
   function renderRoleSelector() {
@@ -521,8 +543,7 @@
 
   function renderSelectedForColor(colorId) {
     const selected = [...state.selected.values()]
-      .filter((item) => item.colorId === colorId)
-      .filter((item) => colorId !== "white" || item.subtype === state.activeSubtype);
+      .filter((item) => item.colorId === colorId);
     const tiers = colorId === "white" ? [1, 2, 3, ranking.REQUIRED_TIER] : [1, 2, 3];
     return tiers.map((tier) => {
       const entries = selected.filter((item) => Number(item.tier) === tier);
@@ -759,13 +780,21 @@
     </div>`;
   }
 
+  function renderSelectionMethod() {
+    return `<div class="selection-method">
+      <label class="smart-recognition-option"><input id="smart-recognition-toggle" type="checkbox" aria-controls="smart-recognition-panel" ${state.smartRecognitionEnabled ? "checked" : ""}><span>智能识别攻略文本</span></label>
+      <p class="selection-method-note">勾选后可粘贴攻略或 OCR 文本；不勾选时从下方目录逐项选择。</p>
+    </div>
+    ${state.smartRecognitionEnabled ? `<div class="smart-recognition-panel" id="smart-recognition-panel">${renderQuickRecognizer()}</div>` : ""}`;
+  }
+
   function renderConfigurator() {
     const meta = activeFactorVisualMeta();
     const activeWhiteSubtype = state.activeColor === "white" ? WHITE_SUBTYPE_META[state.activeSubtype] : null;
     const searchLabel = activeWhiteSubtype ? `白因子·${activeWhiteSubtype.name}` : meta.name;
     const searchExamples = activeWhiteSubtype?.examples || meta.examples;
     return `
-      ${renderQuickRecognizer()}
+      ${renderSelectionMethod()}
       <div class="factor-tabs" role="tablist" aria-label="因子颜色">${state.colorOrder.map((colorId) => {
         const tabMeta = COLOR_META[colorId];
         return `<button type="button" role="tab" aria-selected="${state.activeColor === colorId}" class="factor-tab ${state.activeColor === colorId ? "active" : ""}" data-tab="${colorId}" style="--factor-color:${tabMeta.color};--factor-soft:${tabMeta.soft}">${tabMeta.name.replace("因子", "")}</button>`;
@@ -1205,6 +1234,11 @@
   }
 
   function bindRenderedEvents() {
+    shadow.getElementById("smart-recognition-toggle")?.addEventListener("change", (event) => {
+      state.smartRecognitionEnabled = event.target.checked;
+      render();
+      setTimeout(() => shadow.getElementById(state.smartRecognitionEnabled ? "bulk-factor-input" : "smart-recognition-toggle")?.focus(), 0);
+    });
     const bulkInput = shadow.getElementById("bulk-factor-input");
     const recognizeButton = shadow.getElementById("recognize-factor-text");
     bulkInput?.addEventListener("input", () => {
@@ -1245,20 +1279,28 @@
     bindFactorTierDrag();
     shadow.querySelectorAll("[data-role-rarity]").forEach((button) => button.addEventListener("click", () => {
       state.roleRarity = button.dataset.roleRarity;
-      state.roleCatalogLimit = 60;
+      state.rolePage = 1;
       render();
       shadow.getElementById("role-search")?.focus();
     }));
     const roleSearch = shadow.getElementById("role-search");
     roleSearch?.addEventListener("input", () => {
-      state.roleCatalogLimit = 60;
+      state.rolePage = 1;
       updateRoleCatalog(roleSearch.value);
     });
     const roleCatalogShell = shadow.getElementById("role-catalog-shell");
     roleCatalogShell?.addEventListener("click", (event) => {
-      if (event.target.closest("#role-catalog-more")) {
-        state.roleCatalogLimit += 60;
+      const pageButton = event.target.closest("[data-role-page]");
+      if (pageButton) {
+        const requestedDirection = pageButton.dataset.rolePage;
+        state.rolePage += requestedDirection === "next" ? 1 : -1;
         updateRoleCatalog(state.roleQuery);
+        const preferred = shadow.querySelector(`[data-role-page="${requestedDirection}"]`);
+        const fallbackDirection = requestedDirection === "next" ? "previous" : "next";
+        const focusTarget = preferred && !preferred.disabled
+          ? preferred
+          : shadow.querySelector(`[data-role-page="${fallbackDirection}"]`);
+        focusTarget?.focus();
         return;
       }
       const roleOption = event.target.closest("[data-role-id]");
