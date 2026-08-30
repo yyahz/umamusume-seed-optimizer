@@ -306,7 +306,7 @@ public final class MainActivity extends Activity {
                 + "const host=document.getElementById('uma-seed-optimizer-host');"
                 + "const root=host&&host.shadowRoot;if(!root)return;"
                 + "const style=document.createElement('style');"
-                + "style.textContent='.panel{width:100vw!important;max-width:none!important}.result-actions{align-items:stretch;flex-direction:column}.copy-button{justify-content:center;width:100%}.scope-note{text-align:center}.launcher{width:auto!important;padding:0 14px!important;bottom:24px!important}.launcher span{display:inline!important}';"
+                + "style.textContent='.panel{width:100vw!important;max-width:none!important;height:100vh!important;max-height:100vh!important}.panel-body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch}.role-catalog,.factor-catalog{max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}.result-actions{align-items:stretch;flex-direction:column}.copy-button{justify-content:center;width:100%}.scope-note{text-align:center}.launcher{width:auto!important;padding:0 14px!important;bottom:24px!important}.launcher span{display:inline!important}';"
                 + "root.appendChild(style);"
                 + "})();";
             webView.evaluateJavascript(mobileGlue, glueResult -> waitForSearchInterface());

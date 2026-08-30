@@ -8,6 +8,7 @@
 - 关闭并重新打开 App 后保留 WebView 登录状态。
 - 复用现有因子目录、角色目录、识别、搜索、评分和访问保护逻辑。
 - 适配窄屏触控操作；未登录时显示官方登录页，登录有效时先显示 App 加载页，再直接进入全屏搜索面板。
+- Android 版取消角色目录和因子目录的嵌套滚动，手指在目录卡片上滑动时也统一滚动整个搜索页面。
 
 ## 隐私边界
 
@@ -39,4 +40,4 @@ app/build/outputs/apk/debug/app-debug.apk
 .\scripts\build-debug.ps1 -SdkRoot "C:\Android\Sdk"
 ```
 
-脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.2-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
+脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.3-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
