@@ -170,6 +170,9 @@ test("recognition labels distinguish proportional long-name OCR correction", () 
 
 test("long recognition previews stay compact and aggregate repeated notices", () => {
   assert.match(contentSource, /\.recognition-preview-list\s*\{[^}]*max-height:min\(288px,42dvh\)[^}]*overflow:auto/);
+  assert.match(contentSource, /\.recognition-item\s*\{[^}]*min-height:52px/);
+  assert.match(contentSource, /\.recognition-name\s*\{[^}]*font-size:13px/);
+  assert.match(contentSource, /\.recognition-stars\s*\{[^}]*font-size:11px/);
   assert.match(contentSource, /function renderRecognitionProblems\(ambiguous, unknown, errors\)/);
   assert.match(contentSource, /function renderRecognitionAutoSummary\(warnings\)/);
   assert.match(contentSource, /已自动处理 \$\{warnings\.length\} 处，不影响导入/);

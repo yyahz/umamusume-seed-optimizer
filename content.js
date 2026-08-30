@@ -327,11 +327,11 @@
       .recognition-tier-note { border-radius:10px; padding:8px 9px; color:#31523f; background:#edf7f1; font-size:11px; line-height:1.5; }
       .recognition-list { display:grid; gap:5px; }
       .recognition-preview-list { max-height:min(288px,42dvh); overflow:auto; border:1px solid var(--line); border-radius:11px; padding:5px; background:#fff; overscroll-behavior:contain; }
-      .recognition-item { min-height:42px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:9px; padding:5px 7px; background:var(--factor-soft); }
-      .recognition-name { overflow:hidden; font-size:12px; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
-      .recognition-kind { margin-top:2px; color:var(--muted); font-size:10px; }
-      .recognition-stars { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:3px; color:var(--ink); font-size:10px; font-weight:800; text-align:right; }
-      .recognition-stars span { border-radius:999px; padding:2px 5px; background:#ffffffa8; white-space:nowrap; }
+      .recognition-item { min-height:52px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:10px; padding:7px 9px; background:var(--factor-soft); }
+      .recognition-name { overflow:hidden; font-size:13px; font-weight:800; line-height:1.35; white-space:nowrap; text-overflow:ellipsis; }
+      .recognition-kind { margin-top:3px; color:var(--muted); font-size:11px; line-height:1.35; }
+      .recognition-stars { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; color:var(--ink); font-size:11px; font-weight:800; text-align:right; }
+      .recognition-stars span { border-radius:999px; padding:3px 6px; background:#ffffffb8; white-space:nowrap; }
       .recognition-issue-summary { border-radius:10px; padding:8px 9px; color:#6f4f00; background:#fff6d8; font-size:11px; line-height:1.45; }
       .recognition-issue-summary.error { color:var(--danger); background:#fff0ee; }
       .recognition-issue-summary b { display:block; margin-bottom:3px; }
