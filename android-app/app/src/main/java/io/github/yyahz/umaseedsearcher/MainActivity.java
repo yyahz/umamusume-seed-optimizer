@@ -158,7 +158,7 @@ public final class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                if (isBilibiliPage(uri)) return false;
+                if (isTrustedBilibiliPage(uri)) return false;
                 openExternal(uri);
                 return true;
             }
@@ -186,14 +186,19 @@ public final class MainActivity extends Activity {
         });
     }
 
-    private boolean isBilibiliPage(Uri uri) {
+    private boolean isTrustedBilibiliPage(Uri uri) {
         if (!"https".equalsIgnoreCase(uri.getScheme())) return false;
         String host = uri.getHost();
-        return host != null && (host.equals("bilibili.com") || host.endsWith(".bilibili.com"));
+        if (host == null) return false;
+        String normalizedHost = host.toLowerCase(java.util.Locale.ROOT);
+        return normalizedHost.equals("bilibili.com")
+            || normalizedHost.endsWith(".bilibili.com")
+            || normalizedHost.equals("biligame.com")
+            || normalizedHost.endsWith(".biligame.com");
     }
 
     private boolean isToolPage(Uri uri) {
-        return isBilibiliPage(uri)
+        return isTrustedBilibiliPage(uri)
             && "game.bilibili.com".equalsIgnoreCase(uri.getHost())
             && uri.getPath() != null
             && uri.getPath().startsWith("/tool/pd");

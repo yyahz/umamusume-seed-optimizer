@@ -15,7 +15,7 @@
 - App 只申请网络权限；B 站登录发生在 B 站网页中。
 - App 不提供读取、显示、导出或上传 Cookie 的接口，也不要求用户粘贴 Cookie。
 - 因子偏好保存在吗哩吗哩页面来源对应的本机 WebView 存储中。
-- 非 B 站链接交给手机系统浏览器打开；SSL 证书异常时停止加载。
+- `bilibili.com`及 B 站游戏登录必需的`biligame.com`页面保留在 App 内；其他网站交给手机系统浏览器打开，SSL 证书异常时停止加载。
 
 ## 构建
 
@@ -39,4 +39,4 @@ app/build/outputs/apk/debug/app-debug.apk
 .\scripts\build-debug.ps1 -SdkRoot "C:\Android\Sdk"
 ```
 
-脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.0-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
+脚本输出为`app/build/outputs/apk/debug/uma-seed-searcher-android-v0.1.1-debug.apk`。调试包只用于本机安装测试，正式分发前需要改用单独保管的发布签名。
