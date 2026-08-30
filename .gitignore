@@ -19,6 +19,10 @@ tmp/
 .vscode/
 *.swp
 *.swo
+android-app/local.properties
+android-app/.gradle/
+android-app/.local/
+android-app/app/build/
 
 # Operating systems
 .DS_Store

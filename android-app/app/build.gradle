@@ -1,0 +1,58 @@
+plugins {
+    id "com.android.application"
+}
+
+def extensionRoot = rootProject.projectDir.parentFile
+def generatedExtensionAssets = layout.buildDirectory.dir("generated/extensionAssets")
+def extensionScripts = [
+    "page-bridge.js",
+    "ranking.js",
+    "gold-skill-map.js",
+    "traditional-name-map.js",
+    "factor-recognizer.js",
+    "request-guard.js",
+    "content.js"
+]
+
+tasks.register("syncExtensionAssets", Sync) {
+    into(generatedExtensionAssets)
+    from(extensionRoot) {
+        include extensionScripts
+    }
+    from(new File(extensionRoot, "icons")) {
+        include "icon-128.png"
+    }
+}
+
+android {
+    namespace "io.github.yyahz.umaseedsearcher"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "io.github.yyahz.umaseedsearcher"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    sourceSets {
+        main.assets.srcDir(generatedExtensionAssets)
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn("syncExtensionAssets")
+}
