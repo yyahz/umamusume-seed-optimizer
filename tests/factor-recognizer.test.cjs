@@ -31,7 +31,38 @@ const catalog = [
   factor(4, 907, "无法阻挡的热情冲刺"),
   factor(4, 908, "马力全开"),
   factor(4, 909, "马力全开！"),
-  factor(3, 910, "向着，更远的地方……")
+  factor(3, 910, "向着，更远的地方……"),
+  factor(2, 911, "领跑"),
+  factor(3, 912, "愿者上钩"),
+  factor(3, 913, "行动·Cacao"),
+  factor(3, 914, "群星闪耀之演剧"),
+  factor(4, 915, "磐石之势"),
+  factor(4, 916, "吞噬速度"),
+  factor(4, 917, "斗志高昂"),
+  factor(4, 918, "领跑者"),
+  factor(4, 919, "英里统治者"),
+  factor(4, 920, "神速"),
+  factor(4, 921, "建立优势"),
+  factor(4, 922, "弧线大师"),
+  factor(4, 923, "游戏到此为止！"),
+  factor(4, 924, "翘尾巴"),
+  factor(4, 925, "英里弯道○"),
+  factor(4, 926, "英里直线○"),
+  factor(4, 927, "领跑直线○"),
+  factor(4, 928, "直线能手"),
+  factor(4, 929, "拼尽全力"),
+  factor(4, 930, "要强"),
+  factor(4, 931, "尾流"),
+  factor(4, 932, "光明的征兆"),
+  factor(4, 933, "人气股"),
+  factor(4, 934, "瞄准前排"),
+  factor(4, 935, "干劲十足"),
+  factor(4, 936, "变速"),
+  factor(4, 937, "专心一意"),
+  factor(4, 938, "比赛的真谛·耐"),
+  factor(4, 939, "坚韧不拔"),
+  factor(4, 940, "全神贯注"),
+  factor(4, 941, "猛冲")
 ];
 
 const index = recognizer.buildCatalogIndex(catalog, {
@@ -258,6 +289,7 @@ test("multiline OCR lists correct one wrong or extra character and ignore noise 
   );
 
   assert.deepEqual(result.resolved.map((item) => item.factor.name), [
+    "愿者上钩",
     "夏日光晕",
     "太阳的睿智",
     "位置感",
@@ -341,6 +373,31 @@ test("single-line unknown residue remains strict", () => {
   const result = recognizer.recognizeFactorText("毅力9火箭URA剧本", index);
   assert.deepEqual(result.unknown.map((item) => item.normalized), ["火箭"]);
   assert.equal(result.canApply, false);
+});
+
+test("long single-line OCR攻略 recovers embedded errors and ignores headers and residue", () => {
+  const result = recognizer.recognizeFactorText(
+    "领跑推荐愿者上钩领跑选学夏日天空下的光量行动·Cacao 群星闪耀之演剧磐石之势圆抢先危险回盗位置感点燃青春智吞噬速度 斗志高昂领跑者英里统治者中神速医逃脱术建立优势弧线大师夫 游戏到此为止！电翘尾巴大英里弯道。大领跑弯道。英里直线。大领跑直线。春太陽的睿智直线能手拼尽全力卖要强夫尾流园光明的征兆圆沙浴。人气股瞄准前排干劲十足园变速b:专心一意果比赛的真语·耐坚韧不拔上全神贯注园猛冲n",
+    index
+  );
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), [
+    "愿者上钩", "夏日光晕", "行动·Cacao", "群星闪耀之演剧", "磐石之势",
+    "抢先", "危险回避", "位置感", "点燃青春·智", "吞噬速度", "斗志高昂",
+    "领跑者", "英里统治者", "神速", "逃脱术", "建立优势", "弧线大师",
+    "游戏到此为止！", "翘尾巴", "英里弯道○", "领跑弯道○", "英里直线○",
+    "领跑直线○", "太阳的睿智", "直线能手", "拼尽全力", "要强", "尾流",
+    "光明的征兆", "沙浴○", "人气股", "瞄准前排", "干劲十足", "变速",
+    "专心一意", "比赛的真谛·耐", "坚韧不拔", "全神贯注", "猛冲"
+  ]);
+  assert.equal(result.longOcr, true);
+  assert.equal(result.canApply, true);
+  assert.equal(result.unknown.length, 0);
+  assert.equal(byName(result, "夏日光晕").matchKind, "traditional-fuzzy");
+  assert.equal(byName(result, "危险回避").matchKind, "fuzzy");
+  assert.ok(result.warnings.some((warning) => warning.text === "领跑推荐"));
+  assert.ok(result.warnings.some((warning) => warning.text === "领跑选学"));
+  assert.equal(result.resolved.some((item) => item.factor.name === "领跑"), false);
 });
 
 test("auto priority tiers only activate for at least twenty recognized skills", () => {

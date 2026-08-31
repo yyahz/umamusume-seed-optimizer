@@ -29,6 +29,12 @@
   const SHORT_FACTOR_LENGTH = 3;
   const AUTO_TIER_SKILL_THRESHOLD = 20;
   const AUTO_TIER_BAND_SIZE = 10;
+  const LONG_OCR_MIN_LENGTH = 80;
+  const LONG_OCR_MIN_ANCHORS = 8;
+  const LONG_OCR_NOISE_PHRASES = Object.freeze([
+    "领跑推荐", "领跑选学", "跟前推荐", "跟前选学", "前列推荐", "前列选学",
+    "居中推荐", "居中选学", "后追推荐", "后追选学", "逃推荐", "逃选学"
+  ]);
 
   function isMeaningfulCharacter(character) {
     return character === "○" || character === "◎" || character === "+" || /[\p{L}\p{N}]/u.test(character);
@@ -472,7 +478,108 @@
     }
   }
 
-  function enumerateCandidates(normalizedInput, index) {
+  function addLongOcrFuzzyCandidates(byStart, normalizedInput, index) {
+    const text = normalizedInput.text;
+    const surfaces = [
+      ...index.entries.map((entry) => ({
+        entry,
+        surface: entry.normalizedName,
+        matchKind: "fuzzy"
+      })),
+      ...index.aliases
+        .filter((alias) => alias.matchKind === "traditional")
+        .map((alias) => ({
+          entry: alias.target,
+          surface: alias.normalizedAlias,
+          matchKind: "traditional-fuzzy"
+        }))
+    ];
+
+    for (let start = 0; start < text.length; start += 1) {
+      const bySpan = new Map();
+      for (const item of surfaces) {
+        const circleBase = item.surface.endsWith("○") ? item.surface.slice(0, -1) : null;
+        const inputLength = circleBase ? circleBase.length : item.surface.length;
+        if (inputLength < 2 || start + inputLength > text.length) continue;
+        const input = text.slice(start, start + inputLength);
+        let cost = null;
+        if (circleBase) {
+          if (input === circleBase) cost = 1;
+        } else if (item.surface.length >= 4 && !/[0-9○◎+]/.test(input)) {
+          cost = fuzzyCorrectionCost(input, item.surface);
+        }
+        if (cost === null) continue;
+        const end = start + inputLength;
+        const spanKey = String(end);
+        if (!bySpan.has(spanKey)) bySpan.set(spanKey, []);
+        bySpan.get(spanKey).push({ ...item, cost, end });
+      }
+
+      for (const candidates of bySpan.values()) {
+        const minimumCost = Math.min(...candidates.map((item) => item.cost));
+        const best = candidates.filter((item) => item.cost === minimumCost);
+        const uniqueTargets = new Map();
+        for (const item of best) {
+          const current = uniqueTargets.get(item.entry.key);
+          if (!current || MATCH_PRIORITY[item.matchKind] > MATCH_PRIORITY[current.matchKind]) {
+            uniqueTargets.set(item.entry.key, item);
+          }
+        }
+        if (uniqueTargets.size !== 1) continue;
+        const candidate = [...uniqueTargets.values()][0];
+        let matchKind = candidate.matchKind;
+        if (candidate.cost > 1 && candidate.surface.length >= 8) {
+          matchKind = matchKind === "traditional-fuzzy"
+            ? "traditional-fuzzy-multi"
+            : "fuzzy-multi";
+        }
+        addActionVariants(byStart[start], normalizedInput, start, candidate.end, {
+          ambiguous: false,
+          terminal: { entry: candidate.entry, matchKind }
+        });
+      }
+    }
+  }
+
+  function protectLongOcrNoisePhrases(byStart, normalizedInput) {
+    const text = normalizedInput.text;
+    const phrases = LONG_OCR_NOISE_PHRASES.map((phrase) => normalizeText(phrase));
+    const ranges = [];
+    for (let start = 0; start < text.length;) {
+      const phrase = phrases
+        .filter((item) => text.startsWith(item, start))
+        .sort((left, right) => right.length - left.length)[0];
+      if (!phrase) {
+        start += 1;
+        continue;
+      }
+      ranges.push({ start, end: start + phrase.length });
+      start += phrase.length;
+    }
+
+    for (const range of ranges) {
+      for (let start = 0; start < byStart.length; start += 1) {
+        byStart[start] = byStart[start].filter((action) =>
+          action.end <= range.start || action.start >= range.end
+        );
+      }
+      const span = originalSpan(normalizedInput, range.start, range.end);
+      byStart[range.start].push({
+        type: "ignored",
+        start: range.start,
+        nameEnd: range.end,
+        end: range.end,
+        matchKind: "noise",
+        confidence: 1,
+        validationErrors: [],
+        sourceText: normalizedInput.source.slice(span.start, span.end),
+        span,
+        shortUnsafe: false
+      });
+    }
+  }
+
+  function enumerateCandidates(normalizedInput, index, options = {}) {
     const text = normalizedInput.text;
     const byStart = Array.from({ length: text.length }, () => []);
 
@@ -587,6 +694,11 @@
       }
     }
 
+    if (options.longOcr) {
+      addLongOcrFuzzyCandidates(byStart, normalizedInput, index);
+      protectLongOcrNoisePhrases(byStart, normalizedInput);
+    }
+
     return byStart;
   }
 
@@ -611,7 +723,7 @@
       errors: base.errors + action.validationErrors.length,
       ambiguous: base.ambiguous + (action.type === "ambiguous" ? 1 : 0),
       quality: base.quality + Math.round(action.confidence * 1000 * length),
-      matches: base.matches + 1,
+      matches: base.matches + (action.type === "ignored" ? 0 : 1),
       prefixes: base.prefixes + (action.matchKind === "prefix" ? 1 : 0)
     };
   }
@@ -765,7 +877,7 @@
    * The returned thresholds remain null when omitted. Invalid values are kept
    * verbatim and surfaced through errors; callers must respect canApply.
    */
-  function recognizeSingleFactorText(text, index) {
+  function recognizeSingleFactorText(text, index, options = {}) {
     if (!index || !index.trie || !index.prefixMap) {
       throw new TypeError("recognizeFactorText requires an index from buildCatalogIndex().");
     }
@@ -824,7 +936,7 @@
       };
     }
 
-    const candidatesByStart = enumerateCandidates(normalizedInput, index);
+    const candidatesByStart = enumerateCandidates(normalizedInput, index, options);
     let segmentation = segment(normalizedInput.text, candidatesByStart, true);
     const preliminaryCoverage = segmentation.metrics.knownChars / normalizedInput.text.length;
     if (preliminaryCoverage < 0.75) {
@@ -833,6 +945,7 @@
 
     const resolvedActions = [];
     const ambiguous = [];
+    const ignoredActions = [];
     const errors = [];
     for (const step of segmentation.steps) {
       if (step.type !== "match") continue;
@@ -849,7 +962,7 @@
       }
       if (action.type === "resolved") {
         resolvedActions.push(action);
-      } else {
+      } else if (action.type === "ambiguous") {
         ambiguous.push({
           sourceText: action.sourceText,
           span: action.span,
@@ -865,14 +978,29 @@
             name: entry.name
           }))
         });
+      } else if (action.type === "ignored") {
+        ignoredActions.push(action);
       }
     }
 
     const consolidated = consolidateResolved(resolvedActions);
-    const unknown = collectUnknown(segmentation.steps, normalizedInput);
+    const unknownResidue = collectUnknown(segmentation.steps, normalizedInput);
+    const unknown = options.ignoreUnknownResidue ? [] : unknownResidue;
     // Catalog/alias setup diagnostics remain available as index.issues. They
     // are not input warnings and therefore must not appear on every parse.
-    const warnings = consolidated.warnings;
+    const warnings = [
+      ...consolidated.warnings,
+      ...ignoredActions.map((action) => ({
+        code: "ignored-line",
+        text: action.sourceText,
+        message: `已忽略未识别内容“${action.sourceText}”。`
+      })),
+      ...(options.ignoreUnknownResidue ? unknownResidue.map((item) => ({
+        code: "ignored-residue",
+        text: item.text,
+        message: `已忽略“${item.text}”中的未识别字符。`
+      })) : [])
+    ];
     const coverage = Math.round(
       segmentation.metrics.knownChars / normalizedInput.text.length * 10000
     ) / 10000;
@@ -914,7 +1042,19 @@
     }
     const source = String(text ?? "");
     const lines = source.split(/\r?\n/).filter((line) => normalizeText(line));
-    if (lines.length <= 1) return recognizeSingleFactorText(source, index);
+    if (lines.length <= 1) {
+      const strictResult = recognizeSingleFactorText(source, index);
+      const normalizedLength = normalizeText(source).length;
+      if (normalizedLength < LONG_OCR_MIN_LENGTH
+        || strictResult.resolved.length < LONG_OCR_MIN_ANCHORS) return strictResult;
+      const longOcrResult = recognizeSingleFactorText(source, index, {
+        longOcr: true,
+        ignoreUnknownResidue: true
+      });
+      return longOcrResult.resolved.length >= strictResult.resolved.length
+        ? { ...longOcrResult, longOcr: true }
+        : strictResult;
+    }
 
     const lineResults = [];
     const ignoredWarnings = [];
