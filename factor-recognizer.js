@@ -402,14 +402,6 @@
 
   function literalCollisionMatch(normalizedInput, start, nameEnd, entries) {
     if (!normalizedInput.map[start] || !normalizedInput.map[nameEnd - 1]) return null;
-    const literalNames = entries.map((item) => normalizeLiteralName(item.entry.name));
-    const baseName = literalNames
-      .slice()
-      .sort((left, right) => left.length - right.length)[0];
-    const terminalPunctuationVariants = literalNames.every((name) =>
-      name.startsWith(baseName) && normalizeText(name.slice(baseName.length)) === ""
-    );
-    if (!terminalPunctuationVariants) return null;
     const sourceStart = normalizedInput.map[start].start;
     const sourceEnd = normalizedInput.map[nameEnd]?.start ?? normalizedInput.source.length;
     const literalSource = normalizeLiteralName(

@@ -263,12 +263,25 @@ test("supports factor names made of digits before parsing a numeric suffix", () 
   assert.equal(threshold.resolved[0].minSelfStars, 3);
 });
 
-test("does not auto-select exact normalized catalog collisions", () => {
+test("uses exact literal spelling to resolve normalized catalog collisions", () => {
   const collisionIndex = recognizer.buildCatalogIndex([
     factor(4, 1, "同名·因子"),
     factor(5, 2, "同名因子")
   ]);
-  const result = recognizer.recognizeFactorText("同名因子9", collisionIndex);
+  const plain = recognizer.recognizeFactorText("同名因子9", collisionIndex);
+  const punctuated = recognizer.recognizeFactorText("同名·因子9", collisionIndex);
+  assert.deepEqual(plain.resolved.map((item) => item.factor.name), ["同名因子"]);
+  assert.equal(plain.resolved[0].minStars, 9);
+  assert.deepEqual(punctuated.resolved.map((item) => item.factor.name), ["同名·因子"]);
+  assert.equal(punctuated.resolved[0].minStars, 9);
+});
+
+test("keeps truly identical literal names ambiguous", () => {
+  const collisionIndex = recognizer.buildCatalogIndex([
+    factor(4, 1, "完全同名"),
+    factor(5, 2, "完全同名")
+  ]);
+  const result = recognizer.recognizeFactorText("完全同名9", collisionIndex);
   assert.equal(result.resolved.length, 0);
   assert.equal(result.ambiguous.length, 1);
   assert.equal(result.ambiguous[0].candidates.length, 2);
