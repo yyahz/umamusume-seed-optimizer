@@ -60,6 +60,7 @@
     selected: new Map(),
     factors: [],
     factorCatalogNames: new Map(),
+    factorSearchAliases: new Map(),
     factorIndex: null,
     smartRecognitionEnabled: false,
     quickFactorText: "",
@@ -622,12 +623,19 @@
     }).join("");
   }
 
+  function normalizeCatalogSearch(value) {
+    return String(value || "").normalize("NFKC").trim().toLocaleLowerCase("zh-CN");
+  }
+
   function filteredCatalogFactors(query = state.factorQuery) {
-    const normalized = String(query || "").trim().toLocaleLowerCase("zh-CN");
+    const normalized = normalizeCatalogSearch(query);
     return state.factors
       .filter((factor) => factor.colorId === state.activeColor)
       .filter((factor) => state.activeColor !== "white" || factor.subtype === state.activeSubtype)
-      .filter((factor) => !normalized || factor.name.toLocaleLowerCase("zh-CN").includes(normalized));
+      .filter((factor) => {
+        if (!normalized || normalizeCatalogSearch(factor.name).includes(normalized)) return true;
+        return (state.factorSearchAliases.get(factor.name) || []).some((alias) => alias.includes(normalized));
+      });
   }
 
   function renderSubtypeTabs() {
@@ -1649,6 +1657,12 @@
       if (!state.roles.length) throw new Error("角色目录为空，请刷新页面重试。");
       if (!recognizer?.buildCatalogIndex) throw new Error("因子识别模块未加载，请重新加载扩展后刷新页面。");
       const traditionalAliases = traditionalNameMap?.buildAliases?.(state.factors) || [];
+      state.factorSearchAliases = new Map();
+      for (const item of traditionalAliases) {
+        const aliases = state.factorSearchAliases.get(item.target) || [];
+        aliases.push(normalizeCatalogSearch(item.alias));
+        state.factorSearchAliases.set(item.target, aliases);
+      }
       state.factorIndex = recognizer.buildCatalogIndex(state.factors, { aliases: traditionalAliases });
       const liveRoleIds = new Set(state.roles.map((role) => String(role.card_id)));
       state.selectedRoleIds = new Set(

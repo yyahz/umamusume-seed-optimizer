@@ -25,6 +25,15 @@ test("white factor subtypes keep scenario gold separate from skill and race blue
   assert.match(contentSource, /比赛:\s*\{[^}]*color:\s*"#4D5D7C"[^}]*soft:\s*"#EBEFF4"/);
 });
 
+test("manual factor search matches bundled Traditional aliases and keeps Simplified results", () => {
+  assert.match(contentSource, /factorSearchAliases:\s*new Map\(\)/);
+  assert.match(contentSource, /function normalizeCatalogSearch\(value\)/);
+  assert.match(contentSource, /state\.factorSearchAliases\.get\(factor\.name\)/);
+  assert.match(contentSource, /aliases\.push\(normalizeCatalogSearch\(item\.alias\)\)/);
+  assert.match(contentSource, /state\.factorSearchAliases\.set\(item\.target, aliases\)/);
+  assert.match(contentSource, /factor\.name\.toLocaleLowerCase|normalizeCatalogSearch\(factor\.name\)/);
+});
+
 test("result cards keep names, star values, and the copy action compact", () => {
   assert.equal(contentSource.includes("好友种马 #"), false);
   assert.equal(contentSource.includes("${match.stars}/${match.minStars}★"), false);
