@@ -62,7 +62,16 @@ const catalog = [
   factor(4, 938, "比赛的真谛·耐"),
   factor(4, 939, "坚韧不拔"),
   factor(4, 940, "全神贯注"),
-  factor(4, 941, "猛冲")
+  factor(4, 941, "猛冲"),
+  factor(3, 942, "胜利的鼓动"),
+  factor(4, 943, "短兵相接"),
+  factor(4, 944, "优俊少女爱好者"),
+  factor(4, 945, "势不可挡"),
+  factor(4, 946, "回避失速优俊少女"),
+  factor(4, 947, "跟前弯道○"),
+  factor(4, 948, "跟前直线○"),
+  factor(4, 949, "紧追不放"),
+  factor(4, 950, "轻巧舞步")
 ];
 
 const index = recognizer.buildCatalogIndex(catalog, {
@@ -414,6 +423,30 @@ test("long OCR攻略 still uses paragraph recovery when stray newlines remain", 
   assert.equal(result.canApply, true);
   assert.equal(byName(result, "夏日光晕").matchKind, "traditional-fuzzy");
   assert.equal(byName(result, "比赛的真谛·耐").matchKind, "fuzzy");
+});
+
+const noisyFrontOcrSample = "跟前推荐跟前选学向着，真更远的地方.夏日天空下的光量 胜利的鼓动群星闪耀之演剧短兵相接大优俊少女爱好者志高昂吞陈速度 英里统治者势不可挡建立优势弧线大师上回盗失速优俊少女天游戏到此为止！2翘尾巴卖英里弯道。卖跟前弯道。英里直线。跟前直线。直线能手为太陽的睿智要强紧追不放轻巧舞步医尾流女光明的征兆3沙浴。人气股瞄准前排干劲十足变速福比赛的真谛·耐全神贯注福医猛冲";
+const noisyFrontOcrExpected = [
+  "向着，更远的地方……", "夏日光晕", "胜利的鼓动", "群星闪耀之演剧",
+  "短兵相接", "优俊少女爱好者", "斗志高昂", "吞噬速度", "英里统治者",
+  "势不可挡", "建立优势", "弧线大师", "回避失速优俊少女",
+  "游戏到此为止！", "翘尾巴", "英里弯道○", "跟前弯道○", "英里直线○",
+  "跟前直线○", "直线能手", "太阳的睿智", "要强", "紧追不放", "轻巧舞步",
+  "尾流", "光明的征兆", "沙浴○", "人气股", "瞄准前排", "干劲十足",
+  "变速", "比赛的真谛·耐", "全神贯注", "猛冲"
+];
+
+test("long OCR攻略 separates adjacent skills when names lose or gain OCR characters", () => {
+  const result = recognizer.recognizeFactorText(noisyFrontOcrSample, index);
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), noisyFrontOcrExpected);
+  assert.equal(result.longOcr, true);
+  assert.equal(result.canApply, true);
+  assert.equal(result.unknown.length, 0);
+  assert.equal(byName(result, "神速"), undefined);
+  assert.deepEqual(result.warnings.map((warning) => warning.text), [
+    "跟前推荐", "跟前选学", "卖", "卖", "医"
+  ]);
 });
 
 test("auto priority tiers only activate for at least twenty recognized skills", () => {

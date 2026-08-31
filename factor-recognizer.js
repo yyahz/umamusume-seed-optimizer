@@ -499,20 +499,30 @@
       const bySpan = new Map();
       for (const item of surfaces) {
         const circleBase = item.surface.endsWith("○") ? item.surface.slice(0, -1) : null;
-        const inputLength = circleBase ? circleBase.length : item.surface.length;
-        if (inputLength < 2 || start + inputLength > text.length) continue;
-        const input = text.slice(start, start + inputLength);
-        let cost = null;
-        if (circleBase) {
-          if (input === circleBase) cost = 1;
-        } else if (item.surface.length >= 4 && !/[0-9○◎+]/.test(input)) {
-          cost = fuzzyCorrectionCost(input, item.surface);
+        const maximumDistance = circleBase
+          ? 0
+          : Math.min(4, Math.max(1, Math.floor(item.surface.length * 0.25)));
+        const minimumLength = circleBase
+          ? circleBase.length
+          : Math.max(2, item.surface.length - maximumDistance);
+        const maximumLength = circleBase
+          ? circleBase.length
+          : item.surface.length + maximumDistance;
+        for (let inputLength = minimumLength; inputLength <= maximumLength; inputLength += 1) {
+          if (start + inputLength > text.length) continue;
+          const input = text.slice(start, start + inputLength);
+          let cost = null;
+          if (circleBase) {
+            if (input === circleBase) cost = 1;
+          } else if (item.surface.length >= 4 && !/[0-9○◎+]/.test(input)) {
+            cost = fuzzyCorrectionCost(input, item.surface);
+          }
+          if (cost === null) continue;
+          const end = start + inputLength;
+          const spanKey = String(end);
+          if (!bySpan.has(spanKey)) bySpan.set(spanKey, []);
+          bySpan.get(spanKey).push({ ...item, cost, end });
         }
-        if (cost === null) continue;
-        const end = start + inputLength;
-        const spanKey = String(end);
-        if (!bySpan.has(spanKey)) bySpan.set(spanKey, []);
-        bySpan.get(spanKey).push({ ...item, cost, end });
       }
 
       for (const candidates of bySpan.values()) {
