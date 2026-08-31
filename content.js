@@ -948,9 +948,8 @@
     const additional = unrequested
       .filter((factor) => factor.colorId !== "blue" && factor.colorId !== "red")
       .map(renderUnrequestedChip);
-    const blueRed = [...requestedBlueRed, ...unrequestedBlueRed];
-    return `${blueRed.length ? `<div class="result-factor-group blue-red-factors"><div class="result-factor-label"><b>蓝红因子</b><span>${blueRed.length} 项，置顶展示</span></div><div class="factor-chip-list">${blueRed.join("")}</div></div>` : ""}
-      ${requestedOther.length ? `<div class="result-factor-group selected-factors"><div class="result-factor-label"><b>筛选的绿白因子</b><span>${requestedOther.length} 项</span></div><div class="factor-chip-list">${requestedOther.join("")}</div></div>` : ""}
+    const primary = [...requestedBlueRed, ...unrequestedBlueRed, ...requestedOther];
+    return `${primary.length ? `<div class="result-factor-group primary-factors"><div class="result-factor-label"><b>蓝红及筛选因子</b><span>${primary.length} 项，置顶展示</span></div><div class="factor-chip-list">${primary.join("")}</div></div>` : ""}
       ${additional.length ? `<div class="result-factor-group other-factors"><div class="result-factor-label"><b>该种马其他因子</b><span>${additional.length} 项，全部展示</span></div><div class="factor-chip-list">${additional.join("")}</div></div>` : ""}`;
   }
 

@@ -51,13 +51,13 @@ test("result cards append all unrequested factors without duplicates", () => {
 test("result cards place every blue and red factor before selected green and white factors", () => {
   assert.match(contentSource, /match\.colorId === "blue" \|\| match\.colorId === "red"/);
   assert.match(contentSource, /factor\.colorId === "blue" \|\| factor\.colorId === "red"/);
-  assert.match(contentSource, /const blueRed = \[\.\.\.requestedBlueRed, \.\.\.unrequestedBlueRed\]/);
-  assert.match(contentSource, /<b>蓝红因子<\/b><span>\$\{blueRed\.length\} 项，置顶展示<\/span>/);
+  assert.match(contentSource, /const primary = \[\.\.\.requestedBlueRed, \.\.\.unrequestedBlueRed, \.\.\.requestedOther\]/);
+  assert.match(contentSource, /<b>蓝红及筛选因子<\/b><span>\$\{primary\.length\} 项，置顶展示<\/span>/);
   assert.match(contentSource, /const typeOrder = new Map\(\[1, 2, 3, 4, 5, 6\]/);
 });
 
-test("result cards show selected factors first and every remaining factor without collapsing", () => {
-  assert.match(contentSource, /<b>筛选的绿白因子<\/b><span>\$\{requestedOther\.length\} 项<\/span>/);
+test("result cards combine blue-red and selected factors before every remaining factor", () => {
+  assert.match(contentSource, /class="result-factor-group primary-factors"/);
   assert.match(contentSource, /<b>该种马其他因子<\/b><span>\$\{additional\.length\} 项，全部展示<\/span>/);
   assert.match(contentSource, /ranking\.summarizeCandidateFactors\(item\.candidate\)/);
   assert.match(contentSource, /class="match-chip selected-factor/);
