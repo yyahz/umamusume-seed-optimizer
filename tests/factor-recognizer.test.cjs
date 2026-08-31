@@ -375,13 +375,8 @@ test("single-line unknown residue remains strict", () => {
   assert.equal(result.canApply, false);
 });
 
-test("long single-line OCR攻略 recovers embedded errors and ignores headers and residue", () => {
-  const result = recognizer.recognizeFactorText(
-    "领跑推荐愿者上钩领跑选学夏日天空下的光量行动·Cacao 群星闪耀之演剧磐石之势圆抢先危险回盗位置感点燃青春智吞噬速度 斗志高昂领跑者英里统治者中神速医逃脱术建立优势弧线大师夫 游戏到此为止！电翘尾巴大英里弯道。大领跑弯道。英里直线。大领跑直线。春太陽的睿智直线能手拼尽全力卖要强夫尾流园光明的征兆圆沙浴。人气股瞄准前排干劲十足园变速b:专心一意果比赛的真语·耐坚韧不拔上全神贯注园猛冲n",
-    index
-  );
-
-  assert.deepEqual(result.resolved.map((item) => item.factor.name), [
+const longOcrSample = "领跑推荐愿者上钩领跑选学夏日天空下的光量行动·Cacao 群星闪耀之演剧磐石之势圆抢先危险回盗位置感点燃青春智吞噬速度 斗志高昂领跑者英里统治者中神速医逃脱术建立优势弧线大师夫 游戏到此为止！电翘尾巴大英里弯道。大领跑弯道。英里直线。大领跑直线。春太陽的睿智直线能手拼尽全力卖要强夫尾流园光明的征兆圆沙浴。人气股瞄准前排干劲十足园变速b:专心一意果比赛的真语·耐坚韧不拔上全神贯注园猛冲n";
+const longOcrExpected = [
     "愿者上钩", "夏日光晕", "行动·Cacao", "群星闪耀之演剧", "磐石之势",
     "抢先", "危险回避", "位置感", "点燃青春·智", "吞噬速度", "斗志高昂",
     "领跑者", "英里统治者", "神速", "逃脱术", "建立优势", "弧线大师",
@@ -389,7 +384,12 @@ test("long single-line OCR攻略 recovers embedded errors and ignores headers an
     "领跑直线○", "太阳的睿智", "直线能手", "拼尽全力", "要强", "尾流",
     "光明的征兆", "沙浴○", "人气股", "瞄准前排", "干劲十足", "变速",
     "专心一意", "比赛的真谛·耐", "坚韧不拔", "全神贯注", "猛冲"
-  ]);
+];
+
+test("long single-line OCR攻略 recovers embedded errors and ignores headers and residue", () => {
+  const result = recognizer.recognizeFactorText(longOcrSample, index);
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), longOcrExpected);
   assert.equal(result.longOcr, true);
   assert.equal(result.canApply, true);
   assert.equal(result.unknown.length, 0);
@@ -398,6 +398,22 @@ test("long single-line OCR攻略 recovers embedded errors and ignores headers an
   assert.ok(result.warnings.some((warning) => warning.text === "领跑推荐"));
   assert.ok(result.warnings.some((warning) => warning.text === "领跑选学"));
   assert.equal(result.resolved.some((item) => item.factor.name === "领跑"), false);
+});
+
+test("long OCR攻略 still uses paragraph recovery when stray newlines remain", () => {
+  const wrapped = longOcrSample
+    .replace("领跑推荐", "领跑推荐\n")
+    .replace("领跑选学", "领跑选学\n")
+    .replace("建立优势", "\n建立优势")
+    .replace("太陽的睿智", "\n太陽的睿智")
+    .replace("专心一意", "\n专心一意");
+  const result = recognizer.recognizeFactorText(wrapped, index);
+
+  assert.deepEqual(result.resolved.map((item) => item.factor.name), longOcrExpected);
+  assert.equal(result.longOcr, true);
+  assert.equal(result.canApply, true);
+  assert.equal(byName(result, "夏日光晕").matchKind, "traditional-fuzzy");
+  assert.equal(byName(result, "比赛的真谛·耐").matchKind, "fuzzy");
 });
 
 test("auto priority tiers only activate for at least twenty recognized skills", () => {

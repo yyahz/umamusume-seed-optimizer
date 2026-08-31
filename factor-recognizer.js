@@ -1042,19 +1042,19 @@
     }
     const source = String(text ?? "");
     const lines = source.split(/\r?\n/).filter((line) => normalizeText(line));
-    if (lines.length <= 1) {
-      const strictResult = recognizeSingleFactorText(source, index);
-      const normalizedLength = normalizeText(source).length;
-      if (normalizedLength < LONG_OCR_MIN_LENGTH
-        || strictResult.resolved.length < LONG_OCR_MIN_ANCHORS) return strictResult;
+    const strictResult = recognizeSingleFactorText(source, index);
+    const normalizedSourceLength = normalizeText(source).length;
+    if (normalizedSourceLength >= LONG_OCR_MIN_LENGTH
+      && strictResult.resolved.length >= LONG_OCR_MIN_ANCHORS) {
       const longOcrResult = recognizeSingleFactorText(source, index, {
         longOcr: true,
         ignoreUnknownResidue: true
       });
-      return longOcrResult.resolved.length >= strictResult.resolved.length
-        ? { ...longOcrResult, longOcr: true }
-        : strictResult;
+      if (longOcrResult.resolved.length >= strictResult.resolved.length) {
+        return { ...longOcrResult, longOcr: true };
+      }
     }
+    if (lines.length <= 1) return strictResult;
 
     const lineResults = [];
     const ignoredWarnings = [];
