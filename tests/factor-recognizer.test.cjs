@@ -356,11 +356,17 @@ test("restores a missing circle for an exact two-character skill base only", () 
 test("uses literal punctuation to distinguish otherwise normalized canonical collisions", () => {
   const white = recognizer.recognizeFactorText("马力全开", index);
   const gold = recognizer.recognizeFactorText("马力全开！", index);
+  const list = recognizer.recognizeFactorText("马力全开！猛冲", index);
+  const whiteInList = recognizer.recognizeFactorText("马力全开。猛冲", index);
 
   assert.deepEqual(white.resolved.map((item) => item.factor.name), ["马力全开"]);
   assert.deepEqual(gold.resolved.map((item) => item.factor.name), ["马力全开！"]);
+  assert.deepEqual(list.resolved.map((item) => item.factor.name), ["马力全开！", "猛冲"]);
+  assert.deepEqual(whiteInList.resolved.map((item) => item.factor.name), ["马力全开", "猛冲"]);
   assert.equal(white.ambiguous.length, 0);
   assert.equal(gold.ambiguous.length, 0);
+  assert.equal(list.ambiguous.length, 0);
+  assert.equal(whiteInList.ambiguous.length, 0);
 });
 
 test("joins two adjacent independently unknown OCR lines into one long factor", () => {

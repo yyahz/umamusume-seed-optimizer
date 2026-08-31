@@ -400,6 +400,37 @@
     return !next || !isMeaningfulCharacter(next.normalize("NFKC"));
   }
 
+  function literalCollisionMatch(normalizedInput, start, nameEnd, entries) {
+    if (!normalizedInput.map[start] || !normalizedInput.map[nameEnd - 1]) return null;
+    const literalNames = entries.map((item) => normalizeLiteralName(item.entry.name));
+    const baseName = literalNames
+      .slice()
+      .sort((left, right) => left.length - right.length)[0];
+    const terminalPunctuationVariants = literalNames.every((name) =>
+      name.startsWith(baseName) && normalizeText(name.slice(baseName.length)) === ""
+    );
+    if (!terminalPunctuationVariants) return null;
+    const sourceStart = normalizedInput.map[start].start;
+    const sourceEnd = normalizedInput.map[nameEnd]?.start ?? normalizedInput.source.length;
+    const literalSource = normalizeLiteralName(
+      normalizedInput.source.slice(sourceStart, sourceEnd)
+    ).replace(/[\u00ad\u034f\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/gu, "");
+    const matches = entries
+      .map((item) => item.entry)
+      .filter((entry) => {
+        const literalName = normalizeLiteralName(entry.name);
+        if (!literalSource.startsWith(literalName)) return false;
+        return normalizeText(literalSource.slice(literalName.length)) === "";
+      })
+      .sort((left, right) => normalizeLiteralName(right.name).length - normalizeLiteralName(left.name).length);
+    if (!matches.length) return null;
+    const bestLength = normalizeLiteralName(matches[0].name).length;
+    const best = new Map(matches
+      .filter((entry) => normalizeLiteralName(entry.name).length === bestLength)
+      .map((entry) => [entry.key, entry]));
+    return best.size === 1 ? [...best.values()][0] : null;
+  }
+
   function makeAction(normalizedInput, start, nameEnd, terminalInfo, thresholds) {
     const end = thresholds ? thresholds.end : nameEnd;
     const parsed = thresholds || {
@@ -414,6 +445,18 @@
     const explicitThreshold = parsed.explicitTotal || parsed.explicitSelf;
     const boundarySafe = isOriginalBoundary(normalizedInput.source, span.start, -1)
       && isOriginalBoundary(normalizedInput.source, span.end, 1);
+
+    if (terminalInfo.ambiguous && terminalInfo.matchKind === "exact") {
+      const literalEntry = literalCollisionMatch(
+        normalizedInput, start, nameEnd, terminalInfo.entries
+      );
+      if (literalEntry) {
+        terminalInfo = {
+          ambiguous: false,
+          terminal: { entry: literalEntry, matchKind: "exact" }
+        };
+      }
+    }
 
     if (terminalInfo.ambiguous) {
       const canonicalLength = Math.max(
