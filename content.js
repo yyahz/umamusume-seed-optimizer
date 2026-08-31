@@ -232,20 +232,19 @@
   const shadow = host.attachShadow({ mode: "open" });
   shadow.innerHTML = `
     <style>
-      :host { --surface:#fff; --surface-2:#f7f8f4; --ink:#17231d; --muted:#66726b; --line:#dce4dc; --brand:#0d7848; --brand-dark:#075834; --focus:#1278b4; --danger:#b42318; --fs-xs:clamp(10px,calc(9px + .12vw),11px); --fs-sm:clamp(11px,calc(10px + .15vw),13px); --fs-md:clamp(12px,calc(11px + .16vw),14px); --fs-lg:clamp(15px,calc(14px + .2vw),18px); --fs-title:clamp(18px,calc(16px + .25vw),22px); --fs-score:clamp(22px,calc(20px + .3vw),26px); color:var(--ink); font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif; }
+      :host { --surface:#fff; --surface-2:#f7f8f4; --ink:#17231d; --muted:#66726b; --line:#dce4dc; --brand:#0d7848; --brand-dark:#075834; --focus:#1278b4; --danger:#b42318; --panel-layout-width:480px; --panel-layout-height:100dvh; --panel-scale:1; --fs-xs:clamp(10px,calc(9px + .12vw),11px); --fs-sm:clamp(11px,calc(10px + .15vw),13px); --fs-md:clamp(12px,calc(11px + .16vw),14px); --fs-lg:clamp(15px,calc(14px + .2vw),18px); --fs-title:clamp(18px,calc(16px + .25vw),22px); --fs-score:clamp(22px,calc(20px + .3vw),26px); color:var(--ink); font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif; }
       * { box-sizing:border-box; }
       [hidden] { display:none!important; }
       button,input,select { font:inherit; }
       button { cursor:pointer; }
       button:focus-visible,input:focus-visible,select:focus-visible,[draggable="true"]:focus-visible { outline:3px solid color-mix(in srgb,var(--focus) 75%,white); outline-offset:2px; }
       svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
-      .launcher { position:fixed; right:18px; bottom:90px; z-index:2147483646; min-height:52px; border:0; border-radius:18px; padding:0 18px; display:flex; align-items:center; gap:9px; color:#fff; background:linear-gradient(135deg,#0d7848,#075834); box-shadow:0 12px 28px #075e3638; font-weight:700; }
+      .launcher { position:fixed; right:18px; bottom:90px; z-index:2147483646; min-height:52px; border:0; border-radius:18px; padding:0 18px; display:flex; align-items:center; gap:9px; color:#fff; background:linear-gradient(135deg,#0d7848,#075834); box-shadow:0 12px 28px #075e3638; font-weight:700; scale:var(--panel-scale); transform-origin:bottom right; }
       .launcher:hover { filter:brightness(1.04); }
       .launcher-icon { width:30px; height:30px; flex:0 0 auto; border-radius:9px; object-fit:cover; box-shadow:0 1px 5px #053d2530; }
       .scrim { position:fixed; inset:0; z-index:2147483645; background:#0d1d1566; opacity:0; pointer-events:none; transition:opacity 180ms ease-out; }
       .scrim.open { opacity:1; pointer-events:auto; }
-      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100dvw,clamp(320px,34dvw,480px)); max-width:100dvw; height:100dvh; container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transition:transform 220ms ease-out,width 160ms ease-out; }
-      :host([data-window-maximized="true"]) .panel { width:min(100dvw,clamp(760px,65dvw,960px)); }
+      .panel { position:fixed; z-index:2147483647; top:0; right:0; width:min(100dvw,var(--panel-layout-width)); max-width:100dvw; height:var(--panel-layout-height); container:optimizer-panel / inline-size; display:flex; flex-direction:column; background:var(--surface-2); box-shadow:-16px 0 50px #0b291a2b; transform:translateX(102%); transform-origin:top right; scale:var(--panel-scale); transition:transform 220ms ease-out; }
       .panel.open { transform:translateX(0); }
       .panel-header { position:relative; z-index:2; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 18px 14px; color:#fff; background:linear-gradient(145deg,#0b7144,#0d7848); }
       .title-wrap { min-width:0; display:flex; align-items:center; gap:12px; }
@@ -1626,15 +1625,37 @@
 
   elements.searchButton.addEventListener("click", searchCandidates);
 
-  function updateWindowLayoutMode() {
-    const tolerance = 32;
-    const maximized = window.outerWidth >= window.screen.availWidth - tolerance
-      && window.outerHeight >= window.screen.availHeight - tolerance;
-    host.dataset.windowMaximized = String(maximized);
+  function clampNumber(value, minimum, maximum) {
+    return Math.min(maximum, Math.max(minimum, value));
   }
 
-  updateWindowLayoutMode();
-  window.addEventListener("resize", updateWindowLayoutMode, { passive: true });
+  function updateResponsivePanelLayout() {
+    const availableWidth = Math.max(1, Number(window.screen?.availWidth) || window.outerWidth || window.innerWidth);
+    const outerWidth = Math.max(1, Number(window.outerWidth) || window.innerWidth);
+    const viewportWidth = Math.max(1, Number(window.visualViewport?.width) || window.innerWidth);
+    const viewportHeight = Math.max(1, Number(window.visualViewport?.height) || window.innerHeight);
+    const screenRatio = clampNumber(outerWidth / availableWidth, 0.5, 1);
+    const progress = (screenRatio - 0.5) / 0.5;
+    const visualWidth = Math.min(viewportWidth * 0.68, 960, 320 + 640 * progress ** 3);
+    const scale = 0.82 + 0.26 * progress ** 2;
+    host.style.setProperty("--panel-scale", scale.toFixed(4));
+    host.style.setProperty("--panel-layout-width", `${(visualWidth / scale).toFixed(2)}px`);
+    host.style.setProperty("--panel-layout-height", `${(viewportHeight / scale).toFixed(2)}px`);
+    host.dataset.windowScale = scale.toFixed(4);
+  }
+
+  let responsiveLayoutFrame = null;
+  function scheduleResponsivePanelLayout() {
+    if (responsiveLayoutFrame !== null) cancelAnimationFrame(responsiveLayoutFrame);
+    responsiveLayoutFrame = requestAnimationFrame(() => {
+      responsiveLayoutFrame = null;
+      updateResponsivePanelLayout();
+    });
+  }
+
+  updateResponsivePanelLayout();
+  window.addEventListener("resize", scheduleResponsivePanelLayout, { passive: true });
+  window.visualViewport?.addEventListener("resize", scheduleResponsivePanelLayout, { passive: true });
 
   async function initialize() {
     try {

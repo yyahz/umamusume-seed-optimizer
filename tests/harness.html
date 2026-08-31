@@ -14,6 +14,11 @@
 <body>
   <main><h1>吗哩吗哩工具箱 · 因子检索</h1><p>离线演示使用虚构候选数据，不访问 B 站接口，也不包含任何真实账号、好友 ID 或登录信息。</p></main>
   <script>
+    const harnessParams = new URLSearchParams(location.search);
+    const mockedScreenWidth = Number(harnessParams.get("screenWidth"));
+    if (Number.isFinite(mockedScreenWidth) && mockedScreenWidth > 0) {
+      Object.defineProperty(window.screen, "availWidth", { configurable:true, value:mockedScreenWidth });
+    }
     const saved = {
       umaSeedOptimizerPreferencesV1: {
         colorOrder: ["blue", "red", "green", "white"],
@@ -120,5 +125,10 @@
   <script src="../gold-skill-map.js"></script>
   <script src="../factor-recognizer.js"></script>
   <script src="../content.js"></script>
+  <script>
+    if (harnessParams.get("open") === "1") {
+      document.getElementById("uma-seed-optimizer-host")?.shadowRoot?.querySelector(".launcher")?.click();
+    }
+  </script>
 </body>
 </html>

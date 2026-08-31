@@ -193,12 +193,17 @@ test("long recognition previews stay compact and aggregate repeated notices", ()
   assert.equal(contentSource.includes("<b>识别提示</b>"), false);
 });
 
-test("panel distinguishes maximized and restored browser windows", () => {
-  assert.match(contentSource, /width:min\(100dvw,clamp\(320px,34dvw,480px\)\)/);
-  assert.match(contentSource, /:host\(\[data-window-maximized="true"\]\) \.panel \{ width:min\(100dvw,clamp\(760px,65dvw,960px\)\)/);
-  assert.match(contentSource, /function updateWindowLayoutMode\(\)/);
-  assert.match(contentSource, /window\.outerWidth >= window\.screen\.availWidth - tolerance/);
-  assert.match(contentSource, /window\.addEventListener\("resize", updateWindowLayoutMode, \{ passive: true \}\)/);
+test("panel continuously follows browser window resizing", () => {
+  assert.match(contentSource, /--panel-layout-width:480px/);
+  assert.match(contentSource, /width:min\(100dvw,var\(--panel-layout-width\)\)/);
+  assert.match(contentSource, /scale:var\(--panel-scale\)/);
+  assert.match(contentSource, /function updateResponsivePanelLayout\(\)/);
+  assert.match(contentSource, /320 \+ 640 \* progress \*\* 3/);
+  assert.match(contentSource, /0\.82 \+ 0\.26 \* progress \*\* 2/);
+  assert.match(contentSource, /requestAnimationFrame\(\(\) =>/);
+  assert.match(contentSource, /window\.addEventListener\("resize", scheduleResponsivePanelLayout, \{ passive: true \}\)/);
+  assert.match(contentSource, /window\.visualViewport\?\.addEventListener\("resize", scheduleResponsivePanelLayout/);
+  assert.equal(contentSource.includes("data-window-maximized"), false);
   assert.match(contentSource, /container:optimizer-panel \/ inline-size/);
   assert.match(contentSource, /@container optimizer-panel \(min-width:560px\)/);
   assert.match(contentSource, /@container optimizer-panel \(max-width:459px\)/);
