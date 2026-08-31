@@ -198,8 +198,8 @@ test("panel continuously follows browser window resizing", () => {
   assert.match(contentSource, /width:min\(100dvw,var\(--panel-layout-width\)\)/);
   assert.match(contentSource, /scale:var\(--panel-scale\)/);
   assert.match(contentSource, /function updateResponsivePanelLayout\(\)/);
-  assert.match(contentSource, /320 \+ 640 \* progress \*\* 3/);
-  assert.match(contentSource, /0\.82 \+ 0\.26 \* progress \*\* 2/);
+  assert.match(contentSource, /380 \+ 580 \* progress \*\* 1\.35/);
+  assert.match(contentSource, /0\.92 \+ 0\.16 \* progress \*\* 1\.5/);
   assert.match(contentSource, /requestAnimationFrame\(\(\) =>/);
   assert.match(contentSource, /window\.addEventListener\("resize", scheduleResponsivePanelLayout, \{ passive: true \}\)/);
   assert.match(contentSource, /window\.visualViewport\?\.addEventListener\("resize", scheduleResponsivePanelLayout/);

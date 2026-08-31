@@ -1636,8 +1636,8 @@
     const viewportHeight = Math.max(1, Number(window.visualViewport?.height) || window.innerHeight);
     const screenRatio = clampNumber(outerWidth / availableWidth, 0.5, 1);
     const progress = (screenRatio - 0.5) / 0.5;
-    const visualWidth = Math.min(viewportWidth * 0.68, 960, 320 + 640 * progress ** 3);
-    const scale = 0.82 + 0.26 * progress ** 2;
+    const visualWidth = Math.min(viewportWidth * 0.68, 960, 380 + 580 * progress ** 1.35);
+    const scale = 0.92 + 0.16 * progress ** 1.5;
     host.style.setProperty("--panel-scale", scale.toFixed(4));
     host.style.setProperty("--panel-layout-width", `${(visualWidth / scale).toFixed(2)}px`);
     host.style.setProperty("--panel-layout-height", `${(viewportHeight / scale).toFixed(2)}px`);
