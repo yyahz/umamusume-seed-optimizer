@@ -931,19 +931,26 @@
     }
 
     const typeOrder = new Map([1, 2, 3, 4, 5, 6].map((type, index) => [type, index]));
-    const additional = ranking.summarizeCandidateFactors(item.candidate)
+    const unrequested = ranking.summarizeCandidateFactors(item.candidate)
       .filter((factor) => !requestedKeys.has(ranking.factorKey(factor.type, factor.num)))
       .sort((left, right) =>
         (typeOrder.get(left.type) ?? 99) - (typeOrder.get(right.type) ?? 99)
         || left.name.localeCompare(right.name, "zh-CN")
-      )
-      .map((factor) => {
-        const factorMeta = factorVisualMeta(factor);
-        const factorName = state.factorCatalogNames.get(ranking.factorKey(factor.type, factor.num)) || factor.name;
-        return `<span class="match-chip other-factor" title="该种马的其他${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factorName)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
-      });
-    const requested = [...requestedBlueRed, ...requestedOther];
-    return `${requested.length ? `<div class="result-factor-group selected-factors"><div class="result-factor-label"><b>筛选因子</b><span>${requested.length} 项，优先展示</span></div><div class="factor-chip-list">${requested.join("")}</div></div>` : ""}
+      );
+    const renderUnrequestedChip = (factor) => {
+      const factorMeta = factorVisualMeta(factor);
+      const factorName = state.factorCatalogNames.get(ranking.factorKey(factor.type, factor.num)) || factor.name;
+      return `<span class="match-chip other-factor" title="该种马的${factorMeta.name}" style="--factor-color:${factorMeta.color};--factor-soft:${factorMeta.soft}">${escapeHtml(factorName)} · 家系 ${factor.stars}★ · 本体 ${factor.selfStars}★</span>`;
+    };
+    const unrequestedBlueRed = unrequested
+      .filter((factor) => factor.colorId === "blue" || factor.colorId === "red")
+      .map(renderUnrequestedChip);
+    const additional = unrequested
+      .filter((factor) => factor.colorId !== "blue" && factor.colorId !== "red")
+      .map(renderUnrequestedChip);
+    const blueRed = [...requestedBlueRed, ...unrequestedBlueRed];
+    return `${blueRed.length ? `<div class="result-factor-group blue-red-factors"><div class="result-factor-label"><b>蓝红因子</b><span>${blueRed.length} 项，置顶展示</span></div><div class="factor-chip-list">${blueRed.join("")}</div></div>` : ""}
+      ${requestedOther.length ? `<div class="result-factor-group selected-factors"><div class="result-factor-label"><b>筛选的绿白因子</b><span>${requestedOther.length} 项</span></div><div class="factor-chip-list">${requestedOther.join("")}</div></div>` : ""}
       ${additional.length ? `<div class="result-factor-group other-factors"><div class="result-factor-label"><b>该种马其他因子</b><span>${additional.length} 项，全部展示</span></div><div class="factor-chip-list">${additional.join("")}</div></div>` : ""}`;
   }
 

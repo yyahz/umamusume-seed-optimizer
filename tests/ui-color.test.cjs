@@ -44,18 +44,20 @@ test("result cards keep names, star values, and the copy action compact", () => 
 test("result cards append all unrequested factors without duplicates", () => {
   assert.match(contentSource, /summarizeCandidateFactors\(item\.candidate\)/);
   assert.match(contentSource, /requestedKeys\.has\(ranking\.factorKey\(factor\.type, factor\.num\)\)/);
-  assert.match(contentSource, /title="该种马的其他\$\{factorMeta\.name\}"/);
+  assert.match(contentSource, /title="该种马的\$\{factorMeta\.name\}"/);
   assert.equal(contentSource.includes("item.matches.slice(0, 10)"), false);
 });
 
-test("result cards place selected blue and red factors before selected green and white factors", () => {
+test("result cards place every blue and red factor before selected green and white factors", () => {
   assert.match(contentSource, /match\.colorId === "blue" \|\| match\.colorId === "red"/);
-  assert.match(contentSource, /const requested = \[\.\.\.requestedBlueRed, \.\.\.requestedOther\]/);
+  assert.match(contentSource, /factor\.colorId === "blue" \|\| factor\.colorId === "red"/);
+  assert.match(contentSource, /const blueRed = \[\.\.\.requestedBlueRed, \.\.\.unrequestedBlueRed\]/);
+  assert.match(contentSource, /<b>蓝红因子<\/b><span>\$\{blueRed\.length\} 项，置顶展示<\/span>/);
   assert.match(contentSource, /const typeOrder = new Map\(\[1, 2, 3, 4, 5, 6\]/);
 });
 
 test("result cards show selected factors first and every remaining factor without collapsing", () => {
-  assert.match(contentSource, /<b>筛选因子<\/b><span>\$\{requested\.length\} 项，优先展示<\/span>/);
+  assert.match(contentSource, /<b>筛选的绿白因子<\/b><span>\$\{requestedOther\.length\} 项<\/span>/);
   assert.match(contentSource, /<b>该种马其他因子<\/b><span>\$\{additional\.length\} 项，全部展示<\/span>/);
   assert.match(contentSource, /ranking\.summarizeCandidateFactors\(item\.candidate\)/);
   assert.match(contentSource, /class="match-chip selected-factor/);
