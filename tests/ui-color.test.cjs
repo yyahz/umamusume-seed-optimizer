@@ -41,6 +41,15 @@ test("result cards keep names, star values, and the copy action compact", () => 
   assert.match(contentSource, /\.copy-button\s*\{[^}]*white-space:nowrap/);
 });
 
+test("result cards show the body and both parent portraits from the search response", () => {
+  assert.match(contentSource, /const parentImages = \[hero\.icon_url_f \|\| "", hero\.icon_url_m \|\| ""\]/);
+  assert.match(contentSource, /class="hero-family"/);
+  assert.match(contentSource, /class="parent-images"/);
+  assert.match(contentSource, /class="parent-image"/);
+  assert.match(contentSource, /\.hero-family\s*\{[^}]*grid-template-columns:58px 27px/);
+  assert.match(contentSource, /\.parent-images\s*\{[^}]*grid-template-rows:repeat\(2,27px\)/);
+});
+
 test("result cards append all unrequested factors without duplicates", () => {
   assert.match(contentSource, /summarizeCandidateFactors\(item\.candidate\)/);
   assert.match(contentSource, /requestedKeys\.has\(ranking\.factorKey\(factor\.type, factor\.num\)\)/);
