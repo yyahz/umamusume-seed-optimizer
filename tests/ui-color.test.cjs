@@ -46,8 +46,8 @@ test("result cards show the body and both parent portraits from the search respo
   assert.match(contentSource, /class="hero-family"/);
   assert.match(contentSource, /class="parent-images"/);
   assert.match(contentSource, /class="parent-image"/);
-  assert.match(contentSource, /\.hero-family\s*\{[^}]*grid-template-columns:80px 38px/);
-  assert.match(contentSource, /\.parent-images\s*\{[^}]*grid-template-rows:repeat\(2,38px\)/);
+  assert.match(contentSource, /\.hero-family\s*\{[^}]*grid-template-columns:80px 42px/);
+  assert.match(contentSource, /\.parent-images\s*\{[^}]*grid-template-rows:repeat\(2,42px\)/);
 });
 
 test("result cards append all unrequested factors without duplicates", () => {

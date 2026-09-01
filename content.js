@@ -413,11 +413,11 @@
       .result-count { color:var(--muted); font-size:12px; }
       .result-list { display:grid; gap:10px; }
       .result-card { overflow:hidden; border:1px solid var(--line); border-radius:16px; background:#fff; }
-      .result-top { display:grid; grid-template-columns:123px minmax(0,1fr) auto; align-items:center; gap:10px; padding:12px; }
-      .hero-family { width:123px; height:80px; display:grid; grid-template-columns:80px 38px; align-items:center; gap:5px; }
+      .result-top { display:grid; grid-template-columns:127px minmax(0,1fr) auto; align-items:center; gap:10px; padding:12px; }
+      .hero-family { width:127px; height:88px; display:grid; grid-template-columns:80px 42px; align-items:center; gap:5px; }
       .hero-image { width:80px; height:80px; object-fit:cover; border:1px solid var(--line); border-radius:18px; background:#eef2ed; }
-      .parent-images { height:80px; display:grid; grid-template-rows:repeat(2,38px); gap:4px; }
-      .parent-image { width:38px; height:38px; object-fit:cover; border:1px solid var(--line); border-radius:10px; background:#eef2ed; }
+      .parent-images { height:88px; display:grid; grid-template-rows:repeat(2,42px); gap:4px; }
+      .parent-image { width:42px; height:42px; object-fit:cover; border:1px solid var(--line); border-radius:11px; background:#eef2ed; }
       .result-name { overflow:hidden; font-weight:800; white-space:nowrap; text-overflow:ellipsis; }
       .result-meta { margin-top:4px; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
       .score { min-width:66px; text-align:right; }
