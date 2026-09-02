@@ -210,7 +210,7 @@
           type: Number(factor.type),
           num: factor.num,
           name: String(factor.name || factor.num),
-          tier: ranking.clampTier(factor.tier, 2, [4, 5, 6].includes(Number(factor.type))),
+          tier: ranking.clampTier(factor.tier, 2, true),
           minStars: ranking.clampFactorStars(factor.minStars),
           minSelfStars: ranking.clampSelfStars(factor.minSelfStars),
           colorId: factor.colorId,
@@ -384,10 +384,14 @@
       .tier-dot { width:8px; height:8px; border-radius:50%; background:var(--factor-color); opacity:var(--tier-opacity); }
       .selected-list { min-height:68px; display:grid; align-content:start; gap:6px; padding:6px; }
       .tier-empty { min-height:54px; display:grid; place-items:center; color:var(--muted); font-size:11px; text-align:center; }
-      .selected-card { display:grid; grid-template-columns:28px minmax(60px,1fr) 56px 56px 52px; grid-template-areas:"drag identity total self tier"; align-items:center; gap:8px; min-height:66px; padding:6px 7px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:11px; background:#fff; cursor:grab; }
+      .selected-card { display:grid; grid-template-columns:32px minmax(60px,1fr) 56px 56px 52px; grid-template-areas:"actions identity total self tier"; align-items:center; gap:7px; min-height:72px; padding:6px 7px; border:1px solid var(--line); border-left:4px solid var(--factor-color); border-radius:11px; background:#fff; cursor:grab; }
       .selected-card:active { cursor:grabbing; }
       .selected-card.dragging { opacity:.5; }
-      .factor-drag-handle { grid-area:drag; width:28px; height:44px; display:grid; place-items:center; color:var(--muted); }
+      .factor-card-actions { grid-area:actions; display:grid; justify-items:center; gap:2px; }
+      .factor-drag-handle { width:28px; height:30px; display:grid; place-items:center; color:var(--muted); }
+      .selected-remove { width:30px; height:30px; display:grid; place-items:center; border:1px solid #f2c9c9; border-radius:8px; color:var(--danger); background:#fff7f7; cursor:pointer; }
+      .selected-remove:hover { border-color:var(--danger); background:#ffeded; }
+      .selected-remove svg { width:15px; height:15px; }
       .selected-identity { grid-area:identity; min-width:0; }
       .selected-name { overflow:hidden; font-size:12px; font-weight:700; white-space:nowrap; text-overflow:ellipsis; }
       .selected-subtype { margin-top:2px; color:var(--muted); font-size:10px; }
@@ -588,13 +592,13 @@
   function renderSelectedForColor(colorId) {
     const selected = [...state.selected.values()]
       .filter((item) => item.colorId === colorId);
-    const tiers = colorId === "white" ? [1, 2, 3, ranking.REQUIRED_TIER] : [1, 2, 3];
+    const tiers = [1, 2, 3, ranking.REQUIRED_TIER];
     return tiers.map((tier) => {
       const entries = selected.filter((item) => Number(item.tier) === tier);
       const required = tier === ranking.REQUIRED_TIER;
       const tierName = required ? "必须双门槛达标" : "优先级";
       const tierLabel = required ? "必需" : ["高", "中", "低"][tier - 1];
-      const tierOptions = [1, 2, 3, ...(colorId === "white" ? [ranking.REQUIRED_TIER] : [])];
+      const tierOptions = [1, 2, 3, ranking.REQUIRED_TIER];
       return `
         <div class="tier-block ${required ? "required-tier" : ""}" data-factor-tier="${tier}">
           <div class="tier-label"><span class="tier-dot" style="--tier-opacity:${required ? 1 : 1 - (tier - 1) * .28}"></span><b>${tierLabel}</b>${tierName}<span class="tier-help">拖动因子到此处</span></div>
@@ -602,7 +606,10 @@
             const key = ranking.factorKey(item.type, item.num);
             const itemMeta = factorVisualMeta(item);
             return `<div class="selected-card" role="group" draggable="true" tabindex="0" data-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}，当前${required ? "必需" : `${tierLabel}优先级`}，可拖动到其他优先级" style="--factor-color:${itemMeta.color};--factor-soft:${itemMeta.soft}">
-              <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
+              <div class="factor-card-actions">
+                <span class="factor-drag-handle" aria-hidden="true">${ICONS.grip}</span>
+                <button class="selected-remove" type="button" data-remove-factor="${escapeHtml(key)}" aria-label="删除${escapeHtml(item.name)}" title="删除该因子">${ICONS.close}</button>
+              </div>
               <div class="selected-identity"><div class="selected-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div><div class="selected-subtype">${escapeHtml(selectedFactorSubtitle(item))}</div></div>
               <label class="compact-factor-field total-star-field">家系至少
                 <select class="star-select" data-total-star-key="${escapeHtml(key)}" aria-label="${escapeHtml(item.name)}最低家系合计星数">
@@ -748,12 +755,12 @@
     const totalNote = item.explicitTotal ? "" : current ? " 保留当前" : " 默认";
     const selfNote = item.explicitSelf ? "" : current ? " 保留当前" : " 默认";
     const plannedTier = current
-      ? ranking.clampTier(current.tier, 1, factor.colorId === "white")
+      ? ranking.clampTier(current.tier, 1, true)
       : tierByKey.get(key) ?? 1;
     const tierNote = current ? " 保留当前" : " 本轮预排";
     return `<div class="recognition-item" style="--factor-color:${meta.color};--factor-soft:${meta.soft}" title="${escapeHtml(item.sourceText || factor.name)}">
       <div><div class="recognition-name">${escapeHtml(factor.name)}</div><div class="recognition-kind">${escapeHtml(selectedFactorSubtitle(factor))} · ${recognitionMatchLabel(item.matchKind)}</div></div>
-      <div class="recognition-stars"><span>家 ${totalStars}★${totalNote}</span><span>本 ${selfStars}★${selfNote}</span><span>${["高", "中", "低"][plannedTier - 1]}${tierNote}</span></div>
+      <div class="recognition-stars"><span>家 ${totalStars}★${totalNote}</span><span>本 ${selfStars}★${selfNote}</span><span>${plannedTier === ranking.REQUIRED_TIER ? "必需" : ["高", "中", "低"][plannedTier - 1]}${tierNote}</span></div>
     </div>`;
   }
 
@@ -1014,7 +1021,7 @@
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛；本体 0★ 表示本体可以没有该因子。蓝、红因子未同时达到家系与本体门槛时得 0 分；白因子可设为“必需”（100权重）。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount || hasRecognitionWork ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
+        <div class="section-head"><div><h2>3. 选择具体因子、双星级与优先级</h2><p class="helper">星级均为最低门槛；本体 0★ 表示本体可以没有该因子。蓝、红因子未同时达到家系与本体门槛时得 0 分；四类因子均可设为“必需”，未达双门槛时不算合格。</p></div><div class="section-head-actions"><span class="badge" style="--factor-color:${activeMeta.color};--factor-soft:${activeMeta.soft}">${selectedCount} 项</span>${selectedCount || hasRecognitionWork ? '<button class="reset-factors" id="reset-factors" type="button">重置因子</button>' : ""}</div></div>
         ${state.loadingFactors ? '<div class="loading-line" aria-label="正在加载因子目录"></div>' : renderConfigurator()}
       </section>
       <section class="section">
@@ -1214,7 +1221,7 @@
       const next = {
         ...factor,
         tier: current
-          ? ranking.clampTier(current.tier, 1, factor.colorId === "white")
+          ? ranking.clampTier(current.tier, 1, true)
           : tierByKey.get(key) ?? 1,
         minStars: item.explicitTotal
           ? ranking.clampFactorStars(item.minStars)
@@ -1340,7 +1347,7 @@
         const item = state.selected.get(key);
         clearActiveBlocks();
         if (!item) return;
-        const nextTier = ranking.clampTier(block.dataset.factorTier, item.tier, item.colorId === "white");
+        const nextTier = ranking.clampTier(block.dataset.factorTier, item.tier, true);
         if (item.tier === nextTier) return;
         invalidateFactorImportUndo();
         item.tier = nextTier;
@@ -1490,6 +1497,14 @@
       nextSearch?.focus();
       nextSearch?.setSelectionRange(nextSearch.value.length, nextSearch.value.length);
     });
+    shadow.querySelectorAll("[data-remove-factor]").forEach((button) => button.addEventListener("click", () => {
+      const key = button.dataset.removeFactor;
+      if (!state.selected.has(key)) return;
+      invalidateFactorImportUndo();
+      state.selected.delete(key);
+      savePreferences();
+      render();
+    }));
     shadow.querySelectorAll("[data-total-star-key]").forEach((select) => select.addEventListener("change", () => {
       const item = state.selected.get(select.dataset.totalStarKey);
       if (!item) return;
@@ -1510,7 +1525,7 @@
       const item = state.selected.get(select.dataset.tierKey);
       if (!item) return;
       invalidateFactorImportUndo();
-      item.tier = ranking.clampTier(select.value, item.tier, item.colorId === "white");
+      item.tier = ranking.clampTier(select.value, item.tier, true);
       state.selected.set(select.dataset.tierKey, item);
       savePreferences();
       render();

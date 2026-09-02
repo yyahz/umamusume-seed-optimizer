@@ -83,11 +83,20 @@ test("selected factors can be reset in one click and restored", () => {
   assert.match(contentSource, /state\.results = Array\.isArray\(undo\.results\)/);
 });
 
-test("white factors expose required after high, medium, and low", () => {
-  assert.match(contentSource, /\[1, 2, 3, \.\.\.\(colorId === "white" \? \[ranking\.REQUIRED_TIER\]/);
+test("all factor colors expose required after high, medium, and low", () => {
+  assert.match(contentSource, /const tiers = \[1, 2, 3, ranking\.REQUIRED_TIER\]/);
+  assert.match(contentSource, /const tierOptions = \[1, 2, 3, ranking\.REQUIRED_TIER\]/);
   assert.match(contentSource, /value === ranking\.REQUIRED_TIER \? "必需" : \["高", "中", "低"\]\[value - 1\]/);
   assert.match(contentSource, /必须双门槛达标/);
   assert.match(contentSource, /必需达标/);
+  assert.match(contentSource, /四类因子均可设为“必需”/);
+});
+
+test("selected factor cards include a direct remove action", () => {
+  assert.match(contentSource, /data-remove-factor="\$\{escapeHtml\(key\)\}"/);
+  assert.match(contentSource, /shadow\.querySelectorAll\("\[data-remove-factor\]"\)/);
+  assert.match(contentSource, /state\.selected\.delete\(key\)/);
+  assert.match(contentSource, /aria-label="删除\$\{escapeHtml\(item\.name\)\}"/);
 });
 
 test("self star selectors include zero as no self-factor requirement", () => {
@@ -150,7 +159,7 @@ test("bulk recognition accumulates batches and applies sequential skill priority
   assert.match(contentSource, /id="clear-pending-recognition"/);
   assert.match(contentSource, /planSequentialSkillTiers\?\.\(newItems\)/);
   assert.match(contentSource, /前 10 项高，第 11–20 项中，第 21 项以后低/);
-  assert.match(contentSource, /<span>\$\{\["高", "中", "低"\]\[plannedTier - 1\]\}\$\{tierNote\}<\/span>/);
+  assert.match(contentSource, /plannedTier === ranking\.REQUIRED_TIER \? "必需" : \["高", "中", "低"\]\[plannedTier - 1\]/);
   assert.match(contentSource, /tierByKey\.get\(key\) \?\? 1/);
   assert.match(contentSource, /state\.recognitionBatches = \[\]/);
 });

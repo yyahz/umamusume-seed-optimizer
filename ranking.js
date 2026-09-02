@@ -119,7 +119,7 @@
       type,
       num: raw.num,
       name: String(raw.name || raw.num || "未命名因子"),
-      tier: clampTier(raw.tier, 2, colorId === "white"),
+      tier: clampTier(raw.tier, 2, true),
       minStars: clampFactorStars(raw.minStars),
       minSelfStars: clampSelfStars(raw.minSelfStars),
       colorId,
@@ -203,11 +203,11 @@
         const selfProgress = actual
           ? preference.minSelfStars === 0 ? 1 : Math.min(selfStars / preference.minSelfStars, 1)
           : 0;
-        // Blue/red factors and required white factors are binary hard gates.
+        // Blue/red factors and every required factor are binary hard gates.
         // Other colors/tiers retain partial progress for near misses.
         const hardThreshold = colorId === "blue"
           || colorId === "red"
-          || (colorId === "white" && preference.tier === REQUIRED_TIER);
+          || preference.tier === REQUIRED_TIER;
         const strength = hardThreshold
           ? (meetsThreshold ? 1 : 0)
           : !actual
@@ -266,7 +266,7 @@
       };
     }
 
-    const required = desired.filter((item) => item.colorId === "white" && item.tier === REQUIRED_TIER);
+    const required = desired.filter((item) => item.tier === REQUIRED_TIER);
     const requiredSatisfiedCount = required.filter((preference) => {
       const actual = candidateFactors.get(factorKey(preference.type, preference.num));
       return candidateFactorStars(actual) >= preference.minStars
@@ -294,6 +294,14 @@
     return (Array.isArray(candidates) ? candidates : [])
       .map((candidate) => scoreCandidate(candidate, preferences))
       .sort((left, right) => {
+        const leftMeetsAllRequired = left.requiredSatisfiedCount === left.requiredRequestedCount;
+        const rightMeetsAllRequired = right.requiredSatisfiedCount === right.requiredRequestedCount;
+        if (leftMeetsAllRequired !== rightMeetsAllRequired) {
+          return rightMeetsAllRequired ? 1 : -1;
+        }
+        if (right.requiredSatisfiedCount !== left.requiredSatisfiedCount) {
+          return right.requiredSatisfiedCount - left.requiredSatisfiedCount;
+        }
         if (right.score !== left.score) return right.score - left.score;
         // Equal overall scores obey the user's color order before any global
         // counts, race wins, or ID fallback. Within a color, P-tier weights
@@ -317,9 +325,6 @@
           if (rightColor.weightedSelfStars !== leftColor.weightedSelfStars) {
             return rightColor.weightedSelfStars - leftColor.weightedSelfStars;
           }
-        }
-        if (right.requiredSatisfiedCount !== left.requiredSatisfiedCount) {
-          return right.requiredSatisfiedCount - left.requiredSatisfiedCount;
         }
         if (right.satisfiedCount !== left.satisfiedCount) {
           return right.satisfiedCount - left.satisfiedCount;
@@ -363,6 +368,8 @@
       .map(normalizedPreference)
       .filter((item) => item.colorId)
       .sort((left, right) => {
+        const requiredDelta = Number(left.tier !== REQUIRED_TIER) - Number(right.tier !== REQUIRED_TIER);
+        if (requiredDelta) return requiredDelta;
         const colorDelta = colorOrder.indexOf(left.colorId) - colorOrder.indexOf(right.colorId);
         if (colorDelta) return colorDelta;
         const tierDelta = tierPriorityRank(left.tier) - tierPriorityRank(right.tier);

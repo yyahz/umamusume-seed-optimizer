@@ -153,17 +153,17 @@ test("equal scores use the user-selected color order before wins and ids", () =>
   assert.equal(redFirst[0].candidate.role_id, "111");
 });
 
-test("required white factors are hard thresholds and outweigh P1", () => {
+test("required factors are hard thresholds and outweigh higher-color P1 factors", () => {
   const requiredPreferences = {
     colorOrder: ["blue", "red", "green", "white"],
     desiredFactors: [
-      { type: 6, num: 30001, name: "URA剧本", tier: ranking.REQUIRED_TIER, minStars: 3, minSelfStars: 1, colorId: "white" },
-      { type: 4, num: 20001, name: "顺时针○", tier: 1, minStars: 3, minSelfStars: 1, colorId: "white" }
+      { type: 2, num: 34, name: "泥地", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "red" },
+      { type: 1, num: 1, name: "速度", tier: 1, minStars: 9, minSelfStars: 3, colorId: "blue" }
     ]
   };
-  const requiredOnly = candidate("required", [{ type: 6, num: 30001, stars: 3, rarity: 1 }]);
-  const p1Only = candidate("p1", [{ type: 4, num: 20001, stars: 9, rarity: 3 }]);
-  const requiredBelow = candidate("required-below", [{ type: 6, num: 30001, stars: 2, rarity: 3 }]);
+  const requiredOnly = candidate("required", [{ type: 2, num: 34, stars: 1, rarity: 0 }]);
+  const p1Only = candidate("p1", [{ type: 1, num: 1, stars: 9, rarity: 3 }]);
+  const requiredBelow = candidate("required-below", [{ type: 2, num: 34, stars: 0, rarity: 0 }]);
   const ranked = ranking.rankCandidates([p1Only, requiredOnly], requiredPreferences);
   const belowScore = ranking.scoreCandidate(requiredBelow, requiredPreferences);
 
@@ -172,6 +172,25 @@ test("required white factors are hard thresholds and outweigh P1", () => {
   assert.equal(ranked[0].requiredRequestedCount, 1);
   assert.equal(belowScore.requiredSatisfiedCount, 0);
   assert.equal(belowScore.matches[0].meetsThreshold, false);
+});
+
+test("blue, red, green, and white factors all preserve the required tier", () => {
+  const desiredFactors = [
+    { type: 1, num: 1, name: "速度", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "blue" },
+    { type: 2, num: 34, name: "泥地", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "red" },
+    { type: 3, num: 101, name: "固有", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "green" },
+    { type: 4, num: 201, name: "技能", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "white" }
+  ];
+  const scored = ranking.scoreCandidate(candidate("all", desiredFactors.map((factor) => ({
+    type: factor.type,
+    num: factor.num,
+    stars: 1,
+    rarity: 0
+  }))), { colorOrder: ["blue", "red", "green", "white"], desiredFactors });
+
+  assert.equal(scored.requiredRequestedCount, 4);
+  assert.equal(scored.requiredSatisfiedCount, 4);
+  assert.ok(scored.matches.every((match) => match.tier === ranking.REQUIRED_TIER));
 });
 
 test("category normalization prevents a long white wishlist from multiplying its color weight", () => {
@@ -220,22 +239,19 @@ test("query planner includes baseline, combined top six, and bounded single-fact
   assert.equal(plans.filter((plan) => plan.id.startsWith("factor-")).length, 12);
 });
 
-test("required white factors are discovered before white P1, P2, and P3", () => {
+test("required factors are discovered before P1, P2, and P3 across colors", () => {
   const plans = ranking.planQueries({
     colorOrder: ["blue", "red", "green", "white"],
-    desiredFactors: [1, 2, 3, ranking.REQUIRED_TIER].map((tier) => ({
-      type: 4,
-      num: 40_000 + tier,
-      name: tier === ranking.REQUIRED_TIER ? "必需白" : `P${tier}白`,
-      tier,
-      minStars: 1,
-      minSelfStars: 1,
-      colorId: "white"
-    }))
+    desiredFactors: [
+      { type: 1, num: 40_001, name: "P1蓝", tier: 1, minStars: 1, minSelfStars: 0, colorId: "blue" },
+      { type: 2, num: 40_004, name: "必需红", tier: ranking.REQUIRED_TIER, minStars: 1, minSelfStars: 0, colorId: "red" },
+      { type: 3, num: 40_002, name: "P2绿", tier: 2, minStars: 1, minSelfStars: 0, colorId: "green" },
+      { type: 4, num: 40_003, name: "P3白", tier: 3, minStars: 1, minSelfStars: 0, colorId: "white" }
+    ]
   }, 12);
   assert.deepEqual(
     plans.filter((plan) => plan.id.startsWith("factor-")).map((plan) => plan.label),
-    ["必需白", "P1白", "P2白", "P3白"]
+    ["必需红", "P1蓝", "P2绿", "P3白"]
   );
 });
 
