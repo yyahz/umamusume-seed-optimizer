@@ -12,7 +12,7 @@ const liveCatalog = [
 ];
 
 test("ships a substantial verified BWIKI gold-to-white mapping snapshot", () => {
-  assert.equal(goldSkillMap.SOURCE_SNAPSHOT, "2026-08-01");
+  assert.equal(goldSkillMap.SOURCE_SNAPSHOT, "2026-09-08");
   assert.ok(goldSkillMap.GOLD_TO_WHITE.length >= 170);
   assert.ok(goldSkillMap.GOLD_TO_WHITE.some((item) =>
     item.gold === "圆弧艺术家" && item.white === "弯道恢复○"
@@ -20,6 +20,34 @@ test("ships a substantial verified BWIKI gold-to-white mapping snapshot", () => 
   assert.ok(goldSkillMap.GOLD_TO_WHITE.some((item) =>
     item.gold === "先发制人" && item.white === "抢先"
   ));
+});
+
+test("uses the available circle factor from a verified gold skill group", () => {
+  const catalog = [{ type: 4, num: 20020, name: "冬季优俊少女○" }];
+  const gold = goldSkillMap.buildGoldSkillFactors(catalog).find((item) => item.name === "冬日寒风");
+  assert.equal(gold.num, 20020);
+  assert.equal(gold.lowerSkillName, "冬季优俊少女○");
+  const stronger = goldSkillMap.buildGoldSkillFactors([...catalog,
+    { type: 4, num: 999, name: "冬季优俊少女◎" }]).find((item) => item.name === "冬日寒风");
+  assert.equal(stronger.num, 20020);
+  const renamed = goldSkillMap.buildGoldSkillFactors([
+    { type: 4, num: 20020, name: "工具箱正式名称" }
+  ]).find((item) => item.name === "冬日寒风");
+  assert.equal(renamed.lowerSkillName, "工具箱正式名称");
+});
+
+test("new gold skills use the updated toolbox lower-factor IDs", () => {
+  const catalog = [
+    { type: 4, num: 20280, name: "初期能手", colorId: "white", subtype: "技能" },
+    { type: 4, num: 20281, name: "尾声将至", colorId: "white", subtype: "技能" },
+    { type: 4, num: 20286, name: "急速起步", colorId: "white", subtype: "技能" }
+  ];
+  const extended = goldSkillMap.extendFactorCatalog(catalog);
+  const traditional = require("../traditional-name-map.js");
+  const index = recognizer.buildCatalogIndex(extended, { aliases: traditional.buildAliases(extended) });
+  const result = recognizer.recognizeFactorText("洞察機先的對決、畫龍點睛、火箭起跑", index);
+  assert.equal(result.canApply, true);
+  assert.deepEqual(result.resolved.map((item) => item.factor.num), [20280, 20281, 20286]);
 });
 
 test("only exposes gold skills whose lower white factor exists in the live catalog", () => {
