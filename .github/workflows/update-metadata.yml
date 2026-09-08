@@ -1,0 +1,29 @@
+name: Publish installer update metadata
+
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: installer-update-metadata
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish metadata for latest stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GH_REPO/releases/latest" > release.json
+          jq -e '. as $r | {tag_name, html_url, assets: [.assets[] | select(.name == ("umamusume-seed-optimizer-" + $r.tag_name + ".zip")) | {name, browser_download_url, size, digest}]} | select((.assets | length) == 1) | select(.assets[0].digest | test("^sha256:[a-fA-F0-9]{64}$"))' release.json > update.json
+          tag=$(jq -r .tag_name update.json)
+          gh release upload "$tag" update.json --clobber
