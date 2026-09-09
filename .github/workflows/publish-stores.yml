@@ -1,0 +1,78 @@
+name: Publish Chrome and Edge
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing stable Release tag, for example v0.18.0
+        required: true
+        type: string
+      store:
+        description: Store to update
+        type: choice
+        options: [both, chrome, edge]
+        default: both
+      mode:
+        description: validate does not contact stores; upload changes drafts; publish submits review
+        type: choice
+        options: [validate, upload, publish]
+        default: validate
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: store-publishing
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    if: >-
+      github.repository == 'yyahz/umamusume-seed-optimizer' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (vars.STORE_AUTO_PUBLISH == 'true' && !github.event.release.prerelease && !github.event.release.draft))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        store: [chrome, edge]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
+        with:
+          node-version: '22'
+      - name: Test publishing implementation
+        if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
+        run: node --test tests/*.test.cjs
+      - name: Verify released ZIP and test its source
+        if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: ./scripts/prepare-store-release.ps1 -Tag $env:RELEASE_TAG
+      - name: Upload or submit to store
+        if: >-
+          (inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release') &&
+          (github.event_name == 'release' || inputs.mode != 'validate')
+        env:
+          STORE: ${{ matrix.store }}
+          MODE: ${{ inputs.mode || 'publish' }}
+          CWS_PUBLISHER_ID: ${{ matrix.store == 'chrome' && secrets.CWS_PUBLISHER_ID || '' }}
+          CWS_EXTENSION_ID: jnnmlmfagfmihhghdfhimlahcmdkmien
+          CWS_CLIENT_ID: ${{ matrix.store == 'chrome' && secrets.CWS_CLIENT_ID || '' }}
+          CWS_CLIENT_SECRET: ${{ matrix.store == 'chrome' && secrets.CWS_CLIENT_SECRET || '' }}
+          CWS_REFRESH_TOKEN: ${{ matrix.store == 'chrome' && secrets.CWS_REFRESH_TOKEN || '' }}
+          EDGE_PRODUCT_ID: ${{ matrix.store == 'edge' && secrets.EDGE_PRODUCT_ID || '' }}
+          EDGE_CLIENT_ID: ${{ matrix.store == 'edge' && secrets.EDGE_CLIENT_ID || '' }}
+          EDGE_API_KEY: ${{ matrix.store == 'edge' && secrets.EDGE_API_KEY || '' }}
+        run: node scripts/publish-stores.cjs

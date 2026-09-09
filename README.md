@@ -30,6 +30,8 @@
 
 ## 安装
 
+维护者可通过 [双商店自动发布流程](./docs/store-publishing.md)上传更新并提交审核；首次需配置发布凭证，自动提交默认关闭。
+
 本扩展同时通过 Chrome 应用商店、Microsoft Edge 加载项商店和 GitHub Releases 分发。Chrome / Edge 用户优先使用商店版以获得浏览器自动更新；360 浏览器或希望立即使用 GitHub 最新版本的用户可使用安装助手或手动安装。
 
 ### 推荐：从浏览器商店安装
