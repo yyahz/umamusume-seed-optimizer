@@ -117,7 +117,7 @@
   }
 
   function clampDepth(value) {
-    return Math.min(3, Math.max(1, Number(value) || 2));
+    return Math.min(5, Math.max(2, Number(value) || 2));
   }
 
   function cooldownSeconds() {
@@ -460,6 +460,42 @@
       @media (max-width:520px) { .launcher { right:12px; bottom:72px; width:54px; padding:0; justify-content:center; border-radius:18px; } .launcher span { display:none; } }
       @media (max-height:700px) { .panel-header { padding-block:10px; } .panel-body { padding-top:10px; } .section { padding-block:12px; } .factor-catalog { max-height:220px; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+/* Art theme; original sidebar dimensions are preserved. See THIRD_PARTY_NOTICES.md. */
+:host{--surface:#fff;--surface-2:#f8f7ff;--ink:#29324a;--muted:#667087;--line:#e2e3ee;--brand:#315cff;--brand-dark:#2347c4;--focus:#315cff}
+.panel{background-color:var(--surface-2);background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22360%22%20height%3D%22420%22%20viewBox%3D%220%200%20360%20420%22%3E%3Cdefs%3E%3Cpath%20id%3D%22shoe%22%20d%3D%22M100.7%2094.6c-2.4-2.1-7-3.9-4.4-7.8%2018.8-27.1%2010.9-70.4-22.4-81.6C67.5%202.9%2060.7%201.8%2054%201.8S40.4%203%2034.1%205.2C.7%2016.5-7.1%2059.8%2011.7%2086.8c2.6%203.8-2%205.7-4.4%207.8-1.6%201.3-1.8%203.5-.5%205%202.8%203.2%205.7%206.4%208.6%209.5%201.4%201.7%203.6%201.2%205.1%200%207.1-4.7%2014.1-9.4%2021.2-14.1.8-.5%201.3-1.2%201.5-2.1.3-1.3%200-2.4-1.1-3.3-3.1-2.9-5.5-6.2-7.3-10.1-3.9-8.8-5-20.5-2-29.7%203.1-9.9%2011.8-15.3%2021.2-15.3s18.1%205.4%2021.2%2015.3c2.9%209.2%201.9%2020.9-2%2029.7-1.8%203.8-4.2%207.2-7.3%2010.1-1%20.9-1.4%202-1.1%203.3.2.9.7%201.6%201.5%202.1%207.1%204.7%2014.1%209.4%2021.2%2014.1%201.5%201.2%203.7%201.6%205.1%200%202.9-3.2%205.7-6.3%208.6-9.5%201.4-1.5%201.1-3.7-.5-5%22%2F%3E%3C%2Fdefs%3E%3Cg%20opacity%3D%22.30%22%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%23e78dbd%22%20transform%3D%22translate(22%2028)%20rotate(-25)%20scale(0.2)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%2380bfe5%22%20transform%3D%22translate(178%2075)%20rotate(18)%20scale(0.15)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%23a7cf73%22%20transform%3D%22translate(338%20135)%20rotate(155)%20scale(0.22)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%23c3a0e1%22%20transform%3D%22translate(85%20190)%20rotate(-15)%20scale(0.16)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%23efc35f%22%20transform%3D%22translate(245%20242)%20rotate(205)%20scale(0.23)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%2370cbb7%22%20transform%3D%22translate(14%20292)%20rotate(28)%20scale(0.17)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%23e899b6%22%20transform%3D%22translate(140%20357)%20rotate(165)%20scale(0.21)%20translate(-54%20-56)%22%2F%3E%3Cuse%20href%3D%22%23shoe%22%20fill%3D%22%238fa7ed%22%20transform%3D%22translate(321%20390)%20rotate(-32)%20scale(0.15)%20translate(-54%20-56)%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22600%22%20height%3D%22760%22%20viewBox%3D%220%200%20600%20760%22%3E%3Crect%20width%3D%22600%22%20height%3D%22760%22%20fill%3D%22%23fcfbff%22%2F%3E%3Cg%20opacity%3D%22.6%22%3E%3Cpath%20d%3D%22M0%200L220%20120%2035%20300Z%22%20fill%3D%22%23f8ddeb%22%2F%3E%3Cpath%20d%3D%22M600%200L390%20170%20520%20365%20600%20330Z%22%20fill%3D%22%23d9effb%22%2F%3E%3Cpath%20d%3D%22M0%20510L235%20390%20160%20690Z%22%20fill%3D%22%23e1f1cf%22%2F%3E%3Cpath%20d%3D%22M600%20515L395%20590%20540%20760%20600%20760Z%22%20fill%3D%22%23fff0bf%22%2F%3E%3Cpath%20d%3D%22M220%20120L380%200%20390%20170Z%22%20fill%3D%22%23e9e0f8%22%2F%3E%3Cpath%20d%3D%22M35%20300L235%20390%200%20510Z%22%20fill%3D%22%23ddf2ec%22%2F%3E%3Cpath%20d%3D%22M235%20390L520%20365%20395%20590Z%22%20fill%3D%22%23f8e0eb%22%2F%3E%3Cpath%20d%3D%22M160%20690L395%20590%20300%20760Z%22%20fill%3D%22%23e0e8fc%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");background-size:360px 420px,600px 760px;background-position:center top;background-repeat:repeat;box-shadow:-12px 0 36px #444e851c}
+.panel-header{color:var(--ink);background:linear-gradient(115deg,#fff6fa,#fff 48%,#eef8ff);box-shadow:0 2px 6px #444e8508}
+.panel-header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#ee78b7,#af97ec,#71bcec,#8fcd8a,#f2d478);pointer-events:none}
+.brand-mark{background:transparent;box-shadow:none}.brand-credit{color:#67718c}.subtitle{color:#667087}.source-link{text-decoration-color:#9ca6bf}.source-link:hover{color:#315cff}.panel-header .icon-button:hover{background:#eaf0ff}
+.section{border-color:#e6e6f0;box-shadow:0 3px 12px #4b48850b}
+.section-head{position:relative}.section-head:before{content:"";position:absolute;left:-9px;top:1px;width:3px;height:18px;border-radius:1px;background:#315cff;pointer-events:none}
+.panel-body>.section:nth-child(2) .section-head:before{background:#a789d1}.panel-body>.section:nth-child(3) .section-head:before{background:#ef5ab5}.panel-body>.section:nth-child(4) .section-head:before{background:#65b947}
+.role-tab.active{color:#2347c4;border-color:#8ea6ff;background:#edf1ff}.role-option.selected{color:#2347c4;border-color:#8ea6ff;background:#f0f3ff;box-shadow:inset 0 0 0 1px #b4c3ff}.role-option:hover{background:#f5f7ff;border-color:#9fb2ed}
+.role-image,.hero-image,.parent-image{background:#f7f8fc;border-color:#e0e4f0}.selected-role-summary{background:#f7f6fc}.clear-roles{color:#3154bf;background:#edf1ff}
+.catalog-head,.catalog-pagination{background:#fcfcff}.catalog-page-button:hover:not(:disabled){background:#edf1ff;border-color:#9aaeee}.catalog-page-button:disabled{background:#f4f4f8;color:#a0a4b2}
+.search-input{background:#fff}.selection-method{background:#faf9fd;border-color:#e3dfef}.selection-method:focus-within{border-color:#9aaeee;box-shadow:0 0 0 3px #315cff12}
+.quick-recognizer{background:#fcf9fd;border-color:#e7ddee}.recognizer-kicker{background:#f5eafb;color:#925899}.recognition-notice{background:#edf1ff}
+.priority-item{box-shadow:none}.tier-block{background:color-mix(in srgb,var(--factor-soft) 35%,white)}
+.action-bar{background:#fffffff7;border-color:#dfe3f2;box-shadow:0 -4px 16px #444e850c}
+.primary{background:linear-gradient(115deg,#356aff,#3451e5);box-shadow:0 4px 10px #315cff24}.primary:hover:not(:disabled){filter:brightness(1.06)}.primary:disabled{box-shadow:none}
+.result-card{border-color:#e2e3ee;box-shadow:0 3px 12px #4b488509}.score-value{color:#327c49}.score-fill{background:linear-gradient(90deg,#9ccd73,#55a962)}.result-actions{background:#fdfdff}
+.launcher{background:linear-gradient(115deg,#356aff,#3451e5);box-shadow:0 4px 14px #315cff25}
+.factor-drag-handle{display:none}
+.selected-remove svg{width:21px;height:21px;stroke-width:2}
+.factor-card-actions{display:flex;align-items:center;justify-content:center;gap:0;align-self:center}
+.selected-remove{padding:0;margin:0;appearance:none;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+.selected-remove svg{display:block;flex:0 0 21px}
+.priority-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.priority-item{min-height:46px;grid-template-columns:24px minmax(0,1fr) 24px 24px;gap:4px;padding:5px 6px;border-left-width:3px;border-radius:10px}
+.priority-item .rank-number{width:24px;height:24px;border-radius:7px;font-size:12px}
+.priority-item .factor-title{font-size:12px;white-space:nowrap}.priority-item .factor-description,.priority-item .grip svg{display:none}
+.priority-item .grip{gap:0}.priority-item .icon-button{width:24px;height:32px;padding:0;border-radius:6px}
+.priority-item .icon-button svg{width:16px;height:16px;transform:rotate(-90deg)}
+.priority-item.drop-before:before,.priority-item.drop-after:after{top:4px;bottom:4px;height:auto;width:3px;right:auto}
+.priority-item.drop-before:before{left:-6px}.priority-item.drop-after:after{left:auto;right:-6px}
+@container optimizer-panel (min-width:720px){.priority-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container optimizer-panel (max-width:359px){.priority-item{grid-template-columns:22px minmax(0,1fr) 20px 20px;gap:2px;padding-inline:4px}.priority-item .icon-button{width:20px}.priority-item .rank-number{width:22px;height:22px}.priority-item .factor-title{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+
     </style>
     <button class="launcher" id="launcher" type="button" aria-label="打开种马搜索器"><img class="launcher-icon" src="${extensionIconUrl}" alt="" aria-hidden="true"><span>种马搜索器</span></button>
     <div class="scrim" id="scrim"></div>
@@ -1017,7 +1053,7 @@
         ${state.loadingRoles ? '<div class="loading-line" aria-label="正在加载角色目录"></div>' : renderRoleSelector()}
       </section>
       <section class="section">
-        <div class="section-head"><div><h2>2. 拖动颜色优先度</h2><p class="helper">可一次拖到任意位置；综合分相同时也会严格按本顺序逐色比较。触屏或键盘用户可用右侧上下按钮。</p></div></div>
+        <div class="section-head"><div><h2>2. 拖动颜色优先度</h2><p class="helper">数字越小越优先；可拖动或点击箭头调整。同分时按此顺序比较。</p></div></div>
         <ol class="priority-list" id="priority-list">${renderColorOrder()}</ol>
       </section>
       <section class="section">
@@ -1027,7 +1063,7 @@
       <section class="section">
         <div class="section-head"><div><h2>4. 搜索范围</h2><p class="helper">会在已选角色内合并默认池、高优先组合与单因子候选，再统一重排。</p></div></div>
         <div class="settings">
-          <label class="field-label">每组候选页数<select class="select" id="depth"><option value="1" ${state.depth === 1 ? "selected" : ""}>1 页 · 最多 20 位</option><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 最多 40 位（推荐）</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 最多 60 位</option></select></label>
+          <label class="field-label">每组候选页数<select class="select" id="depth"><option value="2" ${state.depth === 2 ? "selected" : ""}>2 页 · 最多 40 位（推荐）</option><option value="3" ${state.depth === 3 ? "selected" : ""}>3 页 · 最多 60 位</option><option value="4" ${state.depth === 4 ? "selected" : ""}>4 页 · 最多 80 位</option><option value="5" ${state.depth === 5 ? "selected" : ""}>5 页 · 最多 100 位</option></select></label>
           <label class="field-label">可借状态<span class="toggle"><input id="filter-full" type="checkbox" ${state.filterFull ? "checked" : ""}>过滤关注人数已满</span></label>
           <label class="field-label">候选缓存<span class="toggle"><input id="force-refresh" type="checkbox" ${state.forceRefresh ? "checked" : ""}>本次强制刷新</span></label>
         </div>
@@ -1073,6 +1109,18 @@
     }
 
     function resolveDrop(event) {
+      const horizontal = getComputedStyle(list).gridTemplateColumns.trim().split(/\s+/).length > 1;
+      if(horizontal) {
+        const candidates = [...list.querySelectorAll('.priority-item')].filter(c=>c.dataset.color!==draggedColor);
+        let item=event.target.closest('.priority-item');
+        if(!item || item.dataset.color===draggedColor) item=candidates.sort((a,b)=>{
+          const distance=c=>{const r=c.getBoundingClientRect();return Math.hypot(event.clientX-r.left-r.width/2,event.clientY-r.top-r.height/2)};
+          return distance(a)-distance(b);
+        })[0];
+        if(!item)return null;
+        const r=item.getBoundingClientRect();
+        return {item,target:item.dataset.color,placement:event.clientX>=r.left+r.width/2?'after':'before'};
+      }
       let item = event.target.closest(".priority-item");
       if (!item || item.dataset.color === draggedColor) {
         const candidates = [...list.querySelectorAll(".priority-item")]

@@ -29,6 +29,7 @@ $releaseFiles = @(
     'README.md',
     'PRIVACY.md',
     'LICENSE',
+    'THIRD_PARTY_NOTICES.md',
     'icons/icon-16.png',
     'icons/icon-32.png',
     'icons/icon-48.png',
