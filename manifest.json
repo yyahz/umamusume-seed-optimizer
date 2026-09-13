@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "zh_CN",
   "icons": {
@@ -10,7 +10,9 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -20,20 +22,49 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/icon-48.png"],
-      "matches": ["https://game.bilibili.com/*"]
+      "resources": [
+        "icons/icon-48.png",
+        "hint-finder/index.html",
+        "hint-finder/app.mjs",
+        "hint-finder/search.mjs",
+        "hint-finder/style.css",
+        "hint-finder/refinement.css",
+        "hint-finder/assets/facets.svg",
+        "hint-finder/assets/favicon.svg",
+        "hint-finder/assets/horseshoes.svg",
+        "hint-finder/data/cn.json",
+        "hint-finder/PROVENANCE.json",
+        "hint-finder/desktop.css",
+        "hint-finder/embedded.js"
+      ],
+      "matches": [
+        "https://game.bilibili.com/*"
+      ]
     }
   ],
   "content_scripts": [
     {
-      "matches": ["https://game.bilibili.com/tool/pd*"],
-      "js": ["page-bridge.js"],
+      "matches": [
+        "https://game.bilibili.com/tool/pd*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["https://game.bilibili.com/tool/pd*"],
-      "js": ["ranking.js", "gold-skill-map.js", "traditional-name-map.js", "factor-recognizer.js", "request-guard.js", "content.js"],
+      "matches": [
+        "https://game.bilibili.com/tool/pd*"
+      ],
+      "js": [
+        "ranking.js",
+        "gold-skill-map.js",
+        "traditional-name-map.js",
+        "factor-recognizer.js",
+        "request-guard.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

@@ -1,0 +1,14 @@
+[
+  "hint-finder/index.html",
+  "hint-finder/app.mjs",
+  "hint-finder/search.mjs",
+  "hint-finder/style.css",
+  "hint-finder/refinement.css",
+  "hint-finder/assets/facets.svg",
+  "hint-finder/assets/favicon.svg",
+  "hint-finder/assets/horseshoes.svg",
+  "hint-finder/data/cn.json",
+  "hint-finder/PROVENANCE.json",
+  "hint-finder/desktop.css",
+  "hint-finder/embedded.js"
+]

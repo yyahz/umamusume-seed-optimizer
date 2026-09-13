@@ -36,7 +36,7 @@
     };
     window.chrome = {
       runtime: {
-        getURL(path) { return `../${path}`; },
+        getURL(path) { return new URL(`../${path}`, location.href).href; },
         async sendMessage(message) {
           if (message?.type === "UMA_SEED_SESSION_GET_V1") return { ok:true, value:saved.umaSeedOptimizerSessionV1 || {} };
           if (message?.type === "UMA_SEED_SESSION_SET_V1") {

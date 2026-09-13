@@ -23,6 +23,7 @@ $sourceRoot = Join-Path $taskRoot 'source'
 git worktree add --detach $sourceRoot "refs/tags/$Tag"
 if ($LASTEXITCODE) { throw 'Release source checkout failed.' }
 $allowed = @('manifest.json','_locales/zh_CN/messages.json','background.js','page-bridge.js','ranking.js','gold-skill-map.js','traditional-name-map.js','factor-recognizer.js','request-guard.js','content.js','README.md','PRIVACY.md','LICENSE','THIRD_PARTY_NOTICES.md','icons/icon-16.png','icons/icon-32.png','icons/icon-48.png','icons/icon-128.png')
+$allowed += @(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'hint-finder-files.json') -Raw | ConvertFrom-Json)
 $archive = [IO.Compression.ZipFile]::OpenRead($zipPath)
 try {
   $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -48,7 +49,7 @@ try {
 } finally { $archive.Dispose() }
 $manifest = Get-Content (Join-Path $sourceRoot 'manifest.json') -Raw | ConvertFrom-Json
 if ($manifest.version -ne $Tag.Substring(1) -or $manifest.manifest_version -ne 3) { throw 'Manifest version mismatch.' }
-$testFiles = @(Get-ChildItem (Join-Path $sourceRoot 'tests') -Filter '*.test.cjs' | ForEach-Object FullName)
+$testFiles = @(Get-ChildItem (Join-Path $sourceRoot 'tests') -File | Where-Object { $_.Name -match '\.test\.(cjs|mjs)$' } | ForEach-Object FullName)
 if (!$testFiles.Count) { throw 'Missing release tests.' }
 node --test @testFiles
 if ($LASTEXITCODE) { throw 'Release tests failed.' }

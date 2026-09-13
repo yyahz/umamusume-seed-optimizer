@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#315cff">
+  <meta name="description" content="闪耀优俊少女简中服支援卡技能灵感检索。按目标技能反查支援卡。">
+  <title>技能灵感检索 · 闪耀优俊少女</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./refinement.css">
+  <link rel="stylesheet" href="./desktop.css">
+  <script type="module" src="./app.mjs"></script><script defer src="./embedded.js"></script>
+</head>
+<body>
+  <a class="skip" href="#results-heading">跳到检索结果</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./" class="brand" aria-label="技能灵感检索首页"><span class="brand-symbol" aria-hidden="true">U<span>+</span></span><span><b>闪耀优俊少女</b><small>育成工具 · 技能灵感检索</small></span></a>
+      <div class="header-actions"><span class="server-badge">简中服</span><button class="text-button" id="about-button">数据说明 <span aria-hidden="true">↗</span></button></div>
+    </div>
+  </header>
+  <main class="workspace">
+    <div class="page-heading"><div><span class="eyebrow">SUPPORT HINTS</span><h1>技能灵感检索</h1><p>选好目标技能，找到合适的支援卡。</p></div><div class="snapshot"><span class="snapshot-label">简中服数据快照</span><b id="snapshot-date">正在加载</b></div></div>
+    <div id="load-status" role="status" class="load-status">正在载入简中服支援卡资料…</div>
+    <div class="workbench" id="workbench" hidden>
+      <aside class="filters" aria-label="检索条件">
+        <section class="panel filter-panel">
+          <div class="section-heading"><h2><span class="section-mark pink"></span>目标技能</h2></div>
+          <label for="skill-input" class="sr-only">搜索目标技能</label>
+          <div class="skill-search"><span class="search-symbol" aria-hidden="true"></span><input id="skill-input" enterkeyhint="search" placeholder="搜索技能名称…" autocomplete="off" role="combobox" aria-controls="skill-options" aria-expanded="false" aria-autocomplete="list"><button type="button" id="skill-search-button" aria-label="搜索技能">搜索</button></div>
+          <div id="skill-options" class="skill-options" role="listbox" aria-label="技能搜索建议" hidden></div>
+          <p id="skill-feedback" class="sr-only" aria-live="polite"></p>
+        </section>
+        <section class="panel filter-panel secondary-filters" data-expanded="false">
+          <div class="section-heading"><h2><span class="section-mark blue"></span>筛选条件</h2><div class="filter-heading-actions"><button id="reset-filters" class="text-button">重置</button><button id="filter-toggle" class="text-button" aria-expanded="false" aria-controls="filter-fields">展开 <span aria-hidden="true">⌄</span></button></div></div>
+          <div id="filter-fields">
+          <fieldset><legend>稀有度</legend><div class="rarity-options"><label class="rarity-choice ssr"><input type="checkbox" value="SSR" name="rarity" checked><span>SSR</span></label><label class="rarity-choice sr"><input type="checkbox" value="SR" name="rarity" checked><span>SR</span></label><label class="rarity-choice r"><input type="checkbox" value="R" name="rarity" checked><span>R</span></label></div></fieldset>
+          <fieldset><legend>支援类型 <small>可多选</small></legend><div id="type-filters" class="type-options"></div></fieldset>
+          </div>
+        </section>
+        <div id="tier-switch" role="tablist" aria-label="技能级别" hidden><button type="button" role="tab" data-result-tier="gold" aria-controls="direct-section" aria-selected="true">金技能</button><button type="button" role="tab" data-result-tier="lower" aria-controls="lower-section" aria-selected="false" tabindex="-1">下位白技能</button></div><div class="side-footnote">资料来自吗哩吗哩工具箱简中服快照。<br>未收录不代表无法获得。</div>
+      </aside>
+      <section class="results-section" aria-labelledby="results-heading">
+        <div class="results-toolbar"><div><h2 id="results-heading" tabindex="-1">支援卡 <span id="result-count">0</span></h2><p id="result-summary" role="status"></p></div></div>
+        <div class="results-meta"><span id="active-summary">全部支援卡</span></div>
+        <div id="direct-section"><div id="gold-heading" class="result-group-heading gold-heading" hidden></div>
+        <div id="results" class="card-grid"></div>
+        <div id="empty-state" class="panel empty-state" hidden><span class="empty-symbol" aria-hidden="true">∅</span><h3>没有找到符合条件的支援卡</h3><p id="empty-description"></p><button class="primary-button" id="empty-action">重置全部条件</button></div>
+        <nav class="pagination" aria-label="支援卡分页" hidden><button type="button" data-page-offset="-1" aria-controls="results">上一页</button><span class="page-label" aria-live="polite"></span><button type="button" data-page-offset="1" aria-controls="results">下一页</button></nav>
+        <p class="results-end" id="results-end"></p>
+        </div><section id="lower-section" aria-labelledby="lower-heading" hidden>
+          <div class="result-group-heading lower-heading"><h3 id="lower-heading">仅可获取下位白技能</h3><p id="lower-description"></p></div>
+          <div id="lower-results" class="card-grid"></div>
+          <p id="lower-empty" class="panel empty-state" hidden>当前筛选条件下，没有仅提供下位白技能的支援卡。</p>
+          <nav class="lower-pagination pagination" aria-label="下位白技能支援卡底部分页"><button type="button" data-lower-offset="-1" aria-controls="lower-results">上一页</button><span class="lower-page-label" aria-live="polite"></span><button type="button" data-lower-offset="1" aria-controls="lower-results">下一页</button></nav>
+        </section>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer"><span>闪耀优俊少女 · 技能灵感检索</span><span>非官方工具 · 游戏素材版权归原权利人所有</span></footer>
+  <dialog id="detail-dialog"><div class="dialog-header"><span id="dialog-label">详细信息</span><button id="close-dialog" class="close-button" aria-label="关闭详情">×</button></div><div id="dialog-content"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript><p class="panel">请启用 JavaScript 以使用技能检索。</p></noscript>
+</body>
+</html>

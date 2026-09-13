@@ -496,6 +496,11 @@
 @container optimizer-panel (max-width:359px){.priority-item{grid-template-columns:22px minmax(0,1fr) 20px 20px;gap:2px;padding-inline:4px}.priority-item .icon-button{width:20px}.priority-item .rank-number{width:22px;height:22px}.priority-item .factor-title{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
 
+      .tool-tabs{display:flex;flex:0 0 auto;gap:6px;padding:10px 16px;background:#f8f9fe;border-bottom:1px solid #e1e5f0}
+      .tool-tabs button{flex:1;min-height:42px;border:1px solid transparent;border-radius:10px;background:transparent;color:#63708a;font-size:14px;font-weight:700}
+      .tool-tabs button:hover{background:#edf1ff;color:#304dba}
+      .tool-tabs button[aria-selected="true"]{background:#fff;border-color:#ccd6fb;color:#2f52c8;box-shadow:0 2px 6px #304dba12}
+      #hints-panel{flex:1;min-height:0;width:100%;border:0;background:transparent}
     </style>
     <button class="launcher" id="launcher" type="button" aria-label="打开种马搜索器"><img class="launcher-icon" src="${extensionIconUrl}" alt="" aria-hidden="true"><span>种马搜索器</span></button>
     <div class="scrim" id="scrim"></div>
@@ -504,7 +509,12 @@
         <div class="title-wrap"><div class="brand-mark"><img src="${extensionIconUrl}" alt="" aria-hidden="true"></div><div><h1 id="optimizer-title">种马搜索器<span class="brand-credit">by Songe</span></h1><div class="subtitle"><a class="source-link" href="https://wiki.biligame.com/umamusume/" target="_blank" rel="noopener noreferrer" aria-label="打开赛马娘 BWIKI 数据来源（新窗口）">数据来源：BWIKI</a></div></div></div>
         <button class="icon-button" id="close" type="button" aria-label="关闭种马搜索器">${ICONS.close}</button>
       </header>
-      <div class="panel-body" id="body"></div>
+      <nav class="tool-tabs" role="tablist" aria-label="工具选择">
+        <button id="seed-tab" type="button" role="tab" aria-selected="true" aria-controls="body">种马搜索</button>
+        <button id="hints-tab" type="button" role="tab" aria-selected="false" aria-controls="hints-panel" tabindex="-1">技能查找</button>
+      </nav>
+      <div class="panel-body" id="body" role="tabpanel" aria-labelledby="seed-tab"></div>
+      <iframe id="hints-panel" title="技能查找" role="tabpanel" aria-labelledby="hints-tab" hidden></iframe>
       <footer class="action-bar"><div class="status" id="status" aria-live="polite"></div><button class="primary" id="search-button" type="button">开始寻找合适种马</button></footer>
     </div>
   `;
@@ -518,6 +528,33 @@
     status: shadow.getElementById("status"),
     searchButton: shadow.getElementById("search-button")
   };
+
+  const toolTabs = [shadow.getElementById("seed-tab"), shadow.getElementById("hints-tab")];
+  const hintsPanel = shadow.getElementById("hints-panel");
+  const hintsUrl = chrome.runtime.getURL("hint-finder/index.html");
+  const actionBar = shadow.querySelector(".action-bar");
+  function activateTool(index) {
+    toolTabs.forEach((tab,i) => {tab.setAttribute("aria-selected",String(i===index));tab.tabIndex=i===index?0:-1;});
+    elements.body.hidden = index===1;
+    actionBar.hidden = index===1;
+    hintsPanel.hidden = index!==1;
+    if(index===1 && !hintsPanel.hasAttribute("src")) hintsPanel.src=hintsUrl;
+  }
+  toolTabs.forEach((tab,index) => {
+    tab.addEventListener("click",()=>activateTool(index));
+    tab.addEventListener("keydown",event=>{
+      if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+      event.preventDefault();
+      const next=event.key==="Home"?0:event.key==="End"?1:1-index;
+      activateTool(next);toolTabs[next].focus();
+    });
+  });
+  window.addEventListener("message",event=>{
+    if(event.source!==hintsPanel.contentWindow || event.origin!==new URL(hintsUrl).origin)return;
+    if(event.data?.type==="uma-hints-close")setOpen(false);
+    if(event.data?.type==="uma-hints-focus-tab")toolTabs[1].focus();
+    if(event.data?.type==="uma-hints-focus-close")elements.close.focus();
+  });
 
   function setOpen(open) {
     state.open = Boolean(open);
@@ -542,7 +579,7 @@
   shadow.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.open) setOpen(false);
     if (event.key === "Tab" && state.open) {
-      const focusable = [...elements.panel.querySelectorAll("button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])")]
+      const focusable = [...elements.panel.querySelectorAll("button:not([disabled]),input:not([disabled]),select:not([disabled]),iframe,[tabindex]:not([tabindex='-1'])")]
         .filter((element) => !element.hidden && element.getClientRects().length);
       if (!focusable.length) return;
       const first = focusable[0];

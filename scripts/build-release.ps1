@@ -36,6 +36,8 @@ $releaseFiles = @(
     'icons/icon-128.png'
 )
 
+$releaseFiles += @(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'hint-finder-files.json') -Raw | ConvertFrom-Json)
+
 New-Item -ItemType Directory -Path $distRoot -Force | Out-Null
 $stageRoot = [System.IO.Path]::GetFullPath((Join-Path $distRoot "release-stage-v$version"))
 if (-not $stageRoot.StartsWith($distRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {

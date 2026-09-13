@@ -1,0 +1,54 @@
+/* Skills are a tab within the original shell; the shell owns navigation and insets. */
+.site-header,.page-heading,.site-footer,.skip,.side-footnote{display:none}
+html,body{background:transparent}body::before{display:none}
+.workspace{padding:14px 12px 20px}.workbench{gap:20px}.filters{gap:12px}
+.filter-panel{padding:16px;border:0;border-radius:20px;box-shadow:0 4px 18px #1638230d}
+.section-heading h2{font-size:20px}.section-mark{display:none}.section-heading{margin-bottom:12px}
+.skill-search{border-radius:16px;background:#fff;border:1px solid #ddddeb;height:48px}
+.skill-options{top:100px;left:16px;right:16px}
+.secondary-filters{padding-block:16px}.secondary-filters .section-heading{margin-bottom:0}
+.secondary-filters[data-expanded=true] .section-heading{margin-bottom:14px}
+.support-card{background:#fff;border:0;border-radius:20px;box-shadow:0 4px 18px #1638230d}
+.result-card-body{background:#fff}.card-footer{background:#fff;border-top:1px solid #efedf5}
+.results-toolbar h2{font-size:20px}.results-meta{border-bottom:0;padding-bottom:0}
+.pagination button{border-radius:14px;border:0;background:#fff;min-height:42px}
+@media(min-width:761px){.workspace{padding:24px}.workbench{grid-template-columns:260px minmax(0,1fr)}}
+
+/* Compact tab: hide the redundant catalog overview; group headings carry result meaning. */
+.results-toolbar,.results-meta{display:none}
+.result-card-body .skill-pill.skill-tone,.skill-pill.skill-tone{width:180px;max-width:100%;box-sizing:border-box;justify-content:flex-start;border-radius:6px}
+.result-card-body .skill-pill.skill-tone{width:100%;max-width:180px}
+.skill-pill.skill-tone>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#tier-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;background:#fff;border:1px solid #d2d9e8;border-radius:16px}
+#tier-switch[hidden],#direct-section[hidden]{display:none}
+#tier-switch button{min-height:44px;border:1px solid transparent;border-radius:11px;background:#f1f3f8;color:#47536c;font-size:14px;font-weight:600}
+#tier-switch button[aria-selected=true]{background:#fff0b8;border-color:#be901e;color:#684800}
+#tier-switch button[data-result-tier=lower][aria-selected=true]{background:#e4e8f5;border-color:#7886ac;color:#303f64}
+#lower-section{margin-top:0;padding-top:0;border-top:0}
+.pagination{justify-content:center;gap:12px;padding:10px 8px;background:#fff;border:1px solid #d2d9e8;border-radius:16px}
+.pagination button{background:#3157d5;color:#fff;border:1px solid #294bbb;border-radius:11px;font-weight:600;padding:8px 14px}
+.pagination button:disabled{opacity:1;background:#edf0f6;color:#7a859b;border-color:#d8dfea}
+.page-label,.lower-page-label{color:#35435f;font-size:13px;white-space:nowrap}
+.pagination button:hover:not(:disabled){background:#2445b0;color:#fff}
+
+/* Full-width touch targets, with only the page label taking intrinsic space. */
+.pagination{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;padding:10px}
+.pagination button{width:100%;min-height:52px;padding:12px 8px;font-size:15px;border-radius:12px}
+.page-label,.lower-page-label{text-align:center;font-size:13px}
+
+.skill-search{height:52px;padding:3px 4px 3px 12px;gap:8px}
+.skill-search input{flex:1;min-width:0;width:0}
+#skill-search-button{flex:0 0 64px;min-height:44px;border:0;border-radius:12px;background:#3157d5;color:#fff;font-size:15px;font-weight:600}
+#skill-search-button:active{background:#2445b0}
+.skill-options{top:112px}
+
+/* Match the desktop extension panel while keeping cards in one readable column. */
+html{font-size:14px}body{font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif}
+.workspace{padding:16px}.workbench{display:flex;flex-direction:column;gap:16px}.filters{position:static;display:grid;gap:12px}
+.filter-panel,.support-card{border:1px solid #e2e5f0;border-radius:16px;box-shadow:0 3px 12px #444e8508}
+.section-heading h2{font-size:17px}.card-grid{grid-template-columns:minmax(0,1fr)}
+.skill-search{height:48px}#skill-search-button{min-height:40px}.skill-options{top:105px}
+.pagination button{min-height:44px}.side-footnote{display:block;font-size:11px;color:#69758d;line-height:1.6;padding:0 4px}
+
+.workbench{align-items:stretch}.filters,.results-section{width:100%;min-width:0}

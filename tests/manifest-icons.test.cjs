@@ -37,7 +37,7 @@ test("manifest declares Simplified Chinese store metadata", () => {
 
 test("panel icon is exposed to the matched toolbox page", () => {
   assert.deepEqual(manifest.web_accessible_resources, [{
-    resources: ["icons/icon-48.png"],
+    resources: ["icons/icon-48.png", ...JSON.parse(fs.readFileSync(path.join(root, "scripts/hint-finder-files.json"), "utf8"))],
     matches: ["https://game.bilibili.com/*"]
   }]);
 });
