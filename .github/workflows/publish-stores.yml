@@ -53,7 +53,7 @@ jobs:
           package-manager-cache: false
       - name: Test publishing implementation
         if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
-        run: node --test tests
+        run: node --test tests/*.test.cjs tests/*.test.mjs
       - name: Verify released ZIP and test its source
         if: inputs.store == 'both' || inputs.store == matrix.store || github.event_name == 'release'
         shell: pwsh
