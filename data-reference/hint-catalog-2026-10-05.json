@@ -1,0 +1,1452 @@
+{
+  "asOf": "2026-10-05",
+  "previousCards": 300,
+  "cards": 320,
+  "skills": 335,
+  "added": [
+    {
+      "id": 10093,
+      "name": "[特雷森学园]奇锐骏"
+    },
+    {
+      "id": 10094,
+      "name": "[URA员工]佐岳鸣"
+    },
+    {
+      "id": 10095,
+      "name": "[特雷森学园]跳舞城"
+    },
+    {
+      "id": 20065,
+      "name": "[佳茗回味无穷]草上飞"
+    },
+    {
+      "id": 20066,
+      "name": "[助人大将与小小魔女]北部玄驹"
+    },
+    {
+      "id": 20067,
+      "name": "[撒娇鬼Night]大树快车"
+    },
+    {
+      "id": 20068,
+      "name": "[最特别的金牌]优秀素质"
+    },
+    {
+      "id": 30156,
+      "name": "[坚持一生的奇迹]奇锐骏"
+    },
+    {
+      "id": 30157,
+      "name": "[与你共赏的泡沫]曼城茶座"
+    },
+    {
+      "id": 30158,
+      "name": "[在这火热的夏天飞奔吧！]森林宝袋"
+    },
+    {
+      "id": 30159,
+      "name": "[Seaside Bloom]气槽"
+    },
+    {
+      "id": 30160,
+      "name": "[黎明将至]佐岳鸣"
+    },
+    {
+      "id": 30161,
+      "name": "[志向远大，展翅高飞]神鹰"
+    },
+    {
+      "id": 30162,
+      "name": "[Precious☆Moments]爱慕织姬"
+    },
+    {
+      "id": 30163,
+      "name": "[绽放于赛场的堇花]中山庆典"
+    },
+    {
+      "id": 30164,
+      "name": "[犹如烈炎，心怀斗志]菱亚马逊"
+    },
+    {
+      "id": 30165,
+      "name": "[福尔图娜的喝彩]谷水琴蕾"
+    },
+    {
+      "id": 30166,
+      "name": "[高歌一曲YO-HO！]跳舞城"
+    },
+    {
+      "id": 30167,
+      "name": "[Hello my clover]美妙姿势"
+    },
+    {
+      "id": 30168,
+      "name": "[乘风破浪梦想远行]黄金船"
+    }
+  ],
+  "retainedExistingCards": true,
+  "wikiDisagreements": [
+    10021,
+    10022,
+    10068,
+    10070,
+    10074,
+    10079,
+    10080,
+    10083,
+    10084,
+    20005,
+    20021,
+    30001,
+    30002,
+    30004,
+    30005,
+    30006,
+    30012,
+    30017,
+    30018,
+    30027,
+    30029,
+    30036,
+    30038,
+    30040,
+    30046,
+    30052,
+    30067,
+    30080,
+    30102,
+    30150
+  ],
+  "futureCardsExcluded": 42,
+  "unknownSkills": [
+    {
+      "cardId": 10008,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    },
+    {
+      "cardId": 10061,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    },
+    {
+      "cardId": 20029,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    },
+    {
+      "cardId": 20067,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    },
+    {
+      "cardId": 30053,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    },
+    {
+      "cardId": 30095,
+      "skillId": 202992,
+      "property": "事件技能id",
+      "reason": "Not present in BWIKI CN skill module; not rendered on CN card page"
+    }
+  ],
+  "contentHash": "e4fdf5b7a863daedd60f18aa31675249375515bfcbc8857c5ae066c98aa9e00a",
+  "revisions": [
+    {
+      "id": 10001,
+      "revision": 93390
+    },
+    {
+      "id": 10002,
+      "revision": 93391
+    },
+    {
+      "id": 10003,
+      "revision": 93392
+    },
+    {
+      "id": 10004,
+      "revision": 93393
+    },
+    {
+      "id": 10005,
+      "revision": 93394
+    },
+    {
+      "id": 10006,
+      "revision": 93395
+    },
+    {
+      "id": 10007,
+      "revision": 93396
+    },
+    {
+      "id": 10008,
+      "revision": 93397
+    },
+    {
+      "id": 10009,
+      "revision": 93398
+    },
+    {
+      "id": 10010,
+      "revision": 93399
+    },
+    {
+      "id": 10011,
+      "revision": 93400
+    },
+    {
+      "id": 10012,
+      "revision": 93401
+    },
+    {
+      "id": 10013,
+      "revision": 93402
+    },
+    {
+      "id": 10014,
+      "revision": 93403
+    },
+    {
+      "id": 10015,
+      "revision": 93404
+    },
+    {
+      "id": 10016,
+      "revision": 93405
+    },
+    {
+      "id": 10017,
+      "revision": 93406
+    },
+    {
+      "id": 10018,
+      "revision": 93407
+    },
+    {
+      "id": 10019,
+      "revision": 93408
+    },
+    {
+      "id": 10020,
+      "revision": 93409
+    },
+    {
+      "id": 10021,
+      "revision": 93410
+    },
+    {
+      "id": 10022,
+      "revision": 93411
+    },
+    {
+      "id": 10023,
+      "revision": 93412
+    },
+    {
+      "id": 10024,
+      "revision": 93413
+    },
+    {
+      "id": 10025,
+      "revision": 93414
+    },
+    {
+      "id": 10026,
+      "revision": 93415
+    },
+    {
+      "id": 10027,
+      "revision": 93416
+    },
+    {
+      "id": 10028,
+      "revision": 93417
+    },
+    {
+      "id": 10029,
+      "revision": 93418
+    },
+    {
+      "id": 10030,
+      "revision": 93419
+    },
+    {
+      "id": 10031,
+      "revision": 93420
+    },
+    {
+      "id": 10032,
+      "revision": 93421
+    },
+    {
+      "id": 10033,
+      "revision": 93422
+    },
+    {
+      "id": 10034,
+      "revision": 93423
+    },
+    {
+      "id": 10035,
+      "revision": 93424
+    },
+    {
+      "id": 10036,
+      "revision": 93426
+    },
+    {
+      "id": 10037,
+      "revision": 93428
+    },
+    {
+      "id": 10038,
+      "revision": 93429
+    },
+    {
+      "id": 10039,
+      "revision": 93431
+    },
+    {
+      "id": 10040,
+      "revision": 93433
+    },
+    {
+      "id": 10041,
+      "revision": 93434
+    },
+    {
+      "id": 10042,
+      "revision": 93435
+    },
+    {
+      "id": 10043,
+      "revision": 93436
+    },
+    {
+      "id": 10044,
+      "revision": 93437
+    },
+    {
+      "id": 10045,
+      "revision": 93438
+    },
+    {
+      "id": 10046,
+      "revision": 93439
+    },
+    {
+      "id": 10047,
+      "revision": 93440
+    },
+    {
+      "id": 10048,
+      "revision": 93441
+    },
+    {
+      "id": 10049,
+      "revision": 93442
+    },
+    {
+      "id": 10050,
+      "revision": 93443
+    },
+    {
+      "id": 10051,
+      "revision": 93444
+    },
+    {
+      "id": 10052,
+      "revision": 93445
+    },
+    {
+      "id": 10053,
+      "revision": 93446
+    },
+    {
+      "id": 10054,
+      "revision": 93447
+    },
+    {
+      "id": 10055,
+      "revision": 93448
+    },
+    {
+      "id": 10056,
+      "revision": 93449
+    },
+    {
+      "id": 10057,
+      "revision": 93450
+    },
+    {
+      "id": 10058,
+      "revision": 93451
+    },
+    {
+      "id": 10059,
+      "revision": 93452
+    },
+    {
+      "id": 10060,
+      "revision": 93453
+    },
+    {
+      "id": 10061,
+      "revision": 93454
+    },
+    {
+      "id": 10062,
+      "revision": 93455
+    },
+    {
+      "id": 10063,
+      "revision": 93456
+    },
+    {
+      "id": 10064,
+      "revision": 93457
+    },
+    {
+      "id": 10065,
+      "revision": 93458
+    },
+    {
+      "id": 10066,
+      "revision": 93459
+    },
+    {
+      "id": 10067,
+      "revision": 127521
+    },
+    {
+      "id": 10068,
+      "revision": 127522
+    },
+    {
+      "id": 10069,
+      "revision": 93460
+    },
+    {
+      "id": 10070,
+      "revision": 93461
+    },
+    {
+      "id": 10071,
+      "revision": 127523
+    },
+    {
+      "id": 10072,
+      "revision": 93462
+    },
+    {
+      "id": 10073,
+      "revision": 127524
+    },
+    {
+      "id": 10074,
+      "revision": 127525
+    },
+    {
+      "id": 10075,
+      "revision": 127526
+    },
+    {
+      "id": 10076,
+      "revision": 133663
+    },
+    {
+      "id": 10077,
+      "revision": 133668
+    },
+    {
+      "id": 10078,
+      "revision": 133669
+    },
+    {
+      "id": 10079,
+      "revision": 137145
+    },
+    {
+      "id": 10080,
+      "revision": 137146
+    },
+    {
+      "id": 10081,
+      "revision": 133670
+    },
+    {
+      "id": 10082,
+      "revision": 137147
+    },
+    {
+      "id": 10083,
+      "revision": 137148
+    },
+    {
+      "id": 10084,
+      "revision": 137149
+    },
+    {
+      "id": 10085,
+      "revision": 137150
+    },
+    {
+      "id": 10086,
+      "revision": 137151
+    },
+    {
+      "id": 10087,
+      "revision": 137152
+    },
+    {
+      "id": 10088,
+      "revision": 141701
+    },
+    {
+      "id": 10089,
+      "revision": 141702
+    },
+    {
+      "id": 10091,
+      "revision": 141703
+    },
+    {
+      "id": 10092,
+      "revision": 141704
+    },
+    {
+      "id": 10093,
+      "revision": 141705
+    },
+    {
+      "id": 10094,
+      "revision": 141706
+    },
+    {
+      "id": 10095,
+      "revision": 145912
+    },
+    {
+      "id": 20001,
+      "revision": 93463
+    },
+    {
+      "id": 20002,
+      "revision": 93464
+    },
+    {
+      "id": 20003,
+      "revision": 93465
+    },
+    {
+      "id": 20004,
+      "revision": 93466
+    },
+    {
+      "id": 20005,
+      "revision": 93467
+    },
+    {
+      "id": 20006,
+      "revision": 93468
+    },
+    {
+      "id": 20007,
+      "revision": 93469
+    },
+    {
+      "id": 20008,
+      "revision": 93470
+    },
+    {
+      "id": 20009,
+      "revision": 93471
+    },
+    {
+      "id": 20010,
+      "revision": 93472
+    },
+    {
+      "id": 20011,
+      "revision": 93473
+    },
+    {
+      "id": 20012,
+      "revision": 93474
+    },
+    {
+      "id": 20013,
+      "revision": 93475
+    },
+    {
+      "id": 20014,
+      "revision": 93476
+    },
+    {
+      "id": 20015,
+      "revision": 93477
+    },
+    {
+      "id": 20016,
+      "revision": 93478
+    },
+    {
+      "id": 20017,
+      "revision": 93479
+    },
+    {
+      "id": 20018,
+      "revision": 93480
+    },
+    {
+      "id": 20019,
+      "revision": 93481
+    },
+    {
+      "id": 20020,
+      "revision": 93482
+    },
+    {
+      "id": 20021,
+      "revision": 93483
+    },
+    {
+      "id": 20022,
+      "revision": 127527
+    },
+    {
+      "id": 20023,
+      "revision": 93484
+    },
+    {
+      "id": 20024,
+      "revision": 93485
+    },
+    {
+      "id": 20025,
+      "revision": 93486
+    },
+    {
+      "id": 20026,
+      "revision": 93487
+    },
+    {
+      "id": 20027,
+      "revision": 93488
+    },
+    {
+      "id": 20028,
+      "revision": 93489
+    },
+    {
+      "id": 20029,
+      "revision": 93490
+    },
+    {
+      "id": 20030,
+      "revision": 127528
+    },
+    {
+      "id": 20031,
+      "revision": 93491
+    },
+    {
+      "id": 20032,
+      "revision": 127529
+    },
+    {
+      "id": 20033,
+      "revision": 133671
+    },
+    {
+      "id": 20034,
+      "revision": 93492
+    },
+    {
+      "id": 20035,
+      "revision": 93493
+    },
+    {
+      "id": 20037,
+      "revision": 127530
+    },
+    {
+      "id": 20038,
+      "revision": 127531
+    },
+    {
+      "id": 20039,
+      "revision": 127532
+    },
+    {
+      "id": 20040,
+      "revision": 133672
+    },
+    {
+      "id": 20041,
+      "revision": 133673
+    },
+    {
+      "id": 20042,
+      "revision": 133674
+    },
+    {
+      "id": 20043,
+      "revision": 133675
+    },
+    {
+      "id": 20044,
+      "revision": 133676
+    },
+    {
+      "id": 20045,
+      "revision": 133677
+    },
+    {
+      "id": 20046,
+      "revision": 133678
+    },
+    {
+      "id": 20047,
+      "revision": 133679
+    },
+    {
+      "id": 20048,
+      "revision": 133680
+    },
+    {
+      "id": 20049,
+      "revision": 133681
+    },
+    {
+      "id": 20050,
+      "revision": 137153
+    },
+    {
+      "id": 20051,
+      "revision": 137154
+    },
+    {
+      "id": 20052,
+      "revision": 137155
+    },
+    {
+      "id": 20053,
+      "revision": 137156
+    },
+    {
+      "id": 20054,
+      "revision": 137157
+    },
+    {
+      "id": 20055,
+      "revision": 137158
+    },
+    {
+      "id": 20056,
+      "revision": 141707
+    },
+    {
+      "id": 20057,
+      "revision": 141708
+    },
+    {
+      "id": 20058,
+      "revision": 141709
+    },
+    {
+      "id": 20059,
+      "revision": 141710
+    },
+    {
+      "id": 20060,
+      "revision": 141711
+    },
+    {
+      "id": 20061,
+      "revision": 141712
+    },
+    {
+      "id": 20062,
+      "revision": 141713
+    },
+    {
+      "id": 20063,
+      "revision": 141714
+    },
+    {
+      "id": 20064,
+      "revision": 141715
+    },
+    {
+      "id": 20065,
+      "revision": 141716
+    },
+    {
+      "id": 20066,
+      "revision": 141717
+    },
+    {
+      "id": 20067,
+      "revision": 145922
+    },
+    {
+      "id": 20068,
+      "revision": 145923
+    },
+    {
+      "id": 30001,
+      "revision": 93494
+    },
+    {
+      "id": 30002,
+      "revision": 93495
+    },
+    {
+      "id": 30003,
+      "revision": 93496
+    },
+    {
+      "id": 30004,
+      "revision": 93497
+    },
+    {
+      "id": 30005,
+      "revision": 93498
+    },
+    {
+      "id": 30006,
+      "revision": 93499
+    },
+    {
+      "id": 30007,
+      "revision": 93500
+    },
+    {
+      "id": 30008,
+      "revision": 93533
+    },
+    {
+      "id": 30009,
+      "revision": 93534
+    },
+    {
+      "id": 30010,
+      "revision": 93535
+    },
+    {
+      "id": 30011,
+      "revision": 93536
+    },
+    {
+      "id": 30012,
+      "revision": 93537
+    },
+    {
+      "id": 30013,
+      "revision": 93538
+    },
+    {
+      "id": 30014,
+      "revision": 112902
+    },
+    {
+      "id": 30015,
+      "revision": 93540
+    },
+    {
+      "id": 30016,
+      "revision": 93541
+    },
+    {
+      "id": 30017,
+      "revision": 139884
+    },
+    {
+      "id": 30018,
+      "revision": 127838
+    },
+    {
+      "id": 30019,
+      "revision": 93546
+    },
+    {
+      "id": 30020,
+      "revision": 93548
+    },
+    {
+      "id": 30021,
+      "revision": 93549
+    },
+    {
+      "id": 30022,
+      "revision": 93550
+    },
+    {
+      "id": 30023,
+      "revision": 93551
+    },
+    {
+      "id": 30024,
+      "revision": 93552
+    },
+    {
+      "id": 30025,
+      "revision": 93553
+    },
+    {
+      "id": 30026,
+      "revision": 93554
+    },
+    {
+      "id": 30027,
+      "revision": 93555
+    },
+    {
+      "id": 30028,
+      "revision": 93556
+    },
+    {
+      "id": 30029,
+      "revision": 93557
+    },
+    {
+      "id": 30030,
+      "revision": 93558
+    },
+    {
+      "id": 30031,
+      "revision": 93559
+    },
+    {
+      "id": 30032,
+      "revision": 139882
+    },
+    {
+      "id": 30033,
+      "revision": 93561
+    },
+    {
+      "id": 30034,
+      "revision": 93562
+    },
+    {
+      "id": 30036,
+      "revision": 93563
+    },
+    {
+      "id": 30037,
+      "revision": 141718
+    },
+    {
+      "id": 30038,
+      "revision": 93564
+    },
+    {
+      "id": 30039,
+      "revision": 93565
+    },
+    {
+      "id": 30040,
+      "revision": 93566
+    },
+    {
+      "id": 30041,
+      "revision": 93567
+    },
+    {
+      "id": 30042,
+      "revision": 93568
+    },
+    {
+      "id": 30043,
+      "revision": 127534
+    },
+    {
+      "id": 30044,
+      "revision": 93569
+    },
+    {
+      "id": 30045,
+      "revision": 93570
+    },
+    {
+      "id": 30046,
+      "revision": 93571
+    },
+    {
+      "id": 30047,
+      "revision": 93572
+    },
+    {
+      "id": 30048,
+      "revision": 93573
+    },
+    {
+      "id": 30052,
+      "revision": 137159
+    },
+    {
+      "id": 30053,
+      "revision": 133682
+    },
+    {
+      "id": 30054,
+      "revision": 93574
+    },
+    {
+      "id": 30055,
+      "revision": 93575
+    },
+    {
+      "id": 30056,
+      "revision": 93576
+    },
+    {
+      "id": 30057,
+      "revision": 93577
+    },
+    {
+      "id": 30062,
+      "revision": 93582
+    },
+    {
+      "id": 30063,
+      "revision": 127535
+    },
+    {
+      "id": 30064,
+      "revision": 127536
+    },
+    {
+      "id": 30065,
+      "revision": 127537
+    },
+    {
+      "id": 30066,
+      "revision": 127538
+    },
+    {
+      "id": 30067,
+      "revision": 133683
+    },
+    {
+      "id": 30068,
+      "revision": 127539
+    },
+    {
+      "id": 30069,
+      "revision": 127540
+    },
+    {
+      "id": 30070,
+      "revision": 127541
+    },
+    {
+      "id": 30071,
+      "revision": 127542
+    },
+    {
+      "id": 30072,
+      "revision": 127543
+    },
+    {
+      "id": 30073,
+      "revision": 127544
+    },
+    {
+      "id": 30074,
+      "revision": 127545
+    },
+    {
+      "id": 30075,
+      "revision": 127546
+    },
+    {
+      "id": 30076,
+      "revision": 127547
+    },
+    {
+      "id": 30077,
+      "revision": 127548
+    },
+    {
+      "id": 30078,
+      "revision": 127549
+    },
+    {
+      "id": 30079,
+      "revision": 127550
+    },
+    {
+      "id": 30080,
+      "revision": 127551
+    },
+    {
+      "id": 30081,
+      "revision": 133684
+    },
+    {
+      "id": 30082,
+      "revision": 127552
+    },
+    {
+      "id": 30083,
+      "revision": 127553
+    },
+    {
+      "id": 30084,
+      "revision": 127554
+    },
+    {
+      "id": 30085,
+      "revision": 127555
+    },
+    {
+      "id": 30086,
+      "revision": 133685
+    },
+    {
+      "id": 30087,
+      "revision": 133686
+    },
+    {
+      "id": 30088,
+      "revision": 133687
+    },
+    {
+      "id": 30089,
+      "revision": 133688
+    },
+    {
+      "id": 30090,
+      "revision": 133689
+    },
+    {
+      "id": 30091,
+      "revision": 133690
+    },
+    {
+      "id": 30092,
+      "revision": 133691
+    },
+    {
+      "id": 30093,
+      "revision": 133692
+    },
+    {
+      "id": 30094,
+      "revision": 133693
+    },
+    {
+      "id": 30095,
+      "revision": 133694
+    },
+    {
+      "id": 30096,
+      "revision": 133695
+    },
+    {
+      "id": 30097,
+      "revision": 133696
+    },
+    {
+      "id": 30098,
+      "revision": 133697
+    },
+    {
+      "id": 30099,
+      "revision": 133698
+    },
+    {
+      "id": 30100,
+      "revision": 133699
+    },
+    {
+      "id": 30101,
+      "revision": 137160
+    },
+    {
+      "id": 30102,
+      "revision": 133700
+    },
+    {
+      "id": 30103,
+      "revision": 133701
+    },
+    {
+      "id": 30104,
+      "revision": 133702
+    },
+    {
+      "id": 30105,
+      "revision": 133703
+    },
+    {
+      "id": 30106,
+      "revision": 133704
+    },
+    {
+      "id": 30107,
+      "revision": 137161
+    },
+    {
+      "id": 30108,
+      "revision": 137162
+    },
+    {
+      "id": 30109,
+      "revision": 137163
+    },
+    {
+      "id": 30110,
+      "revision": 137164
+    },
+    {
+      "id": 30111,
+      "revision": 137165
+    },
+    {
+      "id": 30112,
+      "revision": 137166
+    },
+    {
+      "id": 30113,
+      "revision": 137167
+    },
+    {
+      "id": 30114,
+      "revision": 137168
+    },
+    {
+      "id": 30115,
+      "revision": 137169
+    },
+    {
+      "id": 30116,
+      "revision": 137170
+    },
+    {
+      "id": 30117,
+      "revision": 137171
+    },
+    {
+      "id": 30118,
+      "revision": 137172
+    },
+    {
+      "id": 30119,
+      "revision": 137173
+    },
+    {
+      "id": 30120,
+      "revision": 137174
+    },
+    {
+      "id": 30121,
+      "revision": 137175
+    },
+    {
+      "id": 30122,
+      "revision": 137176
+    },
+    {
+      "id": 30123,
+      "revision": 137177
+    },
+    {
+      "id": 30124,
+      "revision": 137178
+    },
+    {
+      "id": 30125,
+      "revision": 137179
+    },
+    {
+      "id": 30126,
+      "revision": 137180
+    },
+    {
+      "id": 30127,
+      "revision": 137181
+    },
+    {
+      "id": 30128,
+      "revision": 137182
+    },
+    {
+      "id": 30129,
+      "revision": 137183
+    },
+    {
+      "id": 30130,
+      "revision": 137184
+    },
+    {
+      "id": 30131,
+      "revision": 137185
+    },
+    {
+      "id": 30132,
+      "revision": 137186
+    },
+    {
+      "id": 30133,
+      "revision": 137187
+    },
+    {
+      "id": 30134,
+      "revision": 141719
+    },
+    {
+      "id": 30135,
+      "revision": 141720
+    },
+    {
+      "id": 30136,
+      "revision": 141721
+    },
+    {
+      "id": 30137,
+      "revision": 141722
+    },
+    {
+      "id": 30138,
+      "revision": 141723
+    },
+    {
+      "id": 30139,
+      "revision": 141724
+    },
+    {
+      "id": 30140,
+      "revision": 141725
+    },
+    {
+      "id": 30141,
+      "revision": 141726
+    },
+    {
+      "id": 30142,
+      "revision": 141727
+    },
+    {
+      "id": 30143,
+      "revision": 141728
+    },
+    {
+      "id": 30145,
+      "revision": 137188
+    },
+    {
+      "id": 30146,
+      "revision": 137189
+    },
+    {
+      "id": 30147,
+      "revision": 141729
+    },
+    {
+      "id": 30148,
+      "revision": 141730
+    },
+    {
+      "id": 30149,
+      "revision": 141731
+    },
+    {
+      "id": 30150,
+      "revision": 141732
+    },
+    {
+      "id": 30151,
+      "revision": 141733
+    },
+    {
+      "id": 30152,
+      "revision": 141734
+    },
+    {
+      "id": 30153,
+      "revision": 141735
+    },
+    {
+      "id": 30154,
+      "revision": 141736
+    },
+    {
+      "id": 30155,
+      "revision": 141737
+    },
+    {
+      "id": 30156,
+      "revision": 141738
+    },
+    {
+      "id": 30157,
+      "revision": 141739
+    },
+    {
+      "id": 30158,
+      "revision": 141740
+    },
+    {
+      "id": 30159,
+      "revision": 141741
+    },
+    {
+      "id": 30160,
+      "revision": 141742
+    },
+    {
+      "id": 30161,
+      "revision": 141743
+    },
+    {
+      "id": 30162,
+      "revision": 141744
+    },
+    {
+      "id": 30163,
+      "revision": 141745
+    },
+    {
+      "id": 30164,
+      "revision": 145930
+    },
+    {
+      "id": 30165,
+      "revision": 145931
+    },
+    {
+      "id": 30166,
+      "revision": 145932
+    },
+    {
+      "id": 30167,
+      "revision": 145933
+    },
+    {
+      "id": 30168,
+      "revision": 145934
+    }
+  ],
+  "checkedAt": "2026-10-05T02:30:50.837Z",
+  "sources": {
+    "api": "https://wiki.biligame.com/umamusume/api.php",
+    "cards": "https://wiki.biligame.com/umamusume/简中协助卡一览",
+    "skills": "https://wiki.biligame.com/umamusume/模块:技能简中数据库内容",
+    "colors": "https://wiki.biligame.com/umamusume/简中技能速查表"
+  },
+  "originalSnapshotAt": "2026-08-01T21:03:26+08:00",
+  "originalContentHash": "7576fb8cdf6aa63ecfe15b11171b7360f9ffdb0da712f405ef3ad395bd6fe0c1"
+}

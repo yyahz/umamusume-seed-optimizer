@@ -1,4 +1,4 @@
-import { defaultState, readState, writeState, findCards, findCardSections, selectSkill, paginate, skillIds, familyName, groupSkills, TYPES } from './search.mjs';
+import { defaultState, readState, writeState, findCards, findCardSections, selectSkill, paginate, skillIds, familyName, groupSkills, TYPES, safeImageUrl } from './search.mjs';
 
 const $ = selector => document.querySelector(selector);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
@@ -30,10 +30,6 @@ function bindImageFallbacks(root) {
     img.addEventListener('error', () => { img.hidden = true; }, { once:true });
     if (img.complete && !img.naturalWidth) img.hidden = true;
   });
-}
-function safeImageUrl(url) {
-  try { const parsed = new URL(url); return parsed.protocol === 'https:' && parsed.hostname.endsWith('.hdslb.com') ? parsed.href : ''; }
-  catch { return ''; }
 }
 function cardHeading(card, inlineSkills = false) {
   const image = safeImageUrl(card.image);
@@ -153,10 +149,11 @@ function showCard(id) {
   const card = data.cards.find(c=>c.id === id);
   if (!card) return;
   const ids=allCardSkills(card);
-  openDialog('支援卡详情', `${cardHeading(card)}<h3>技能 · ${ids.length} 项</h3><div class="skill-pills">${ids.map(pill).join('')}</div><p class="event-caveat">卡片编号 ${card.id} · 简中服快照 ${data.meta.snapshotAt.slice(0,10)}</p>`);
+  const snapshot = card.source === 'bwiki' ? data.meta.snapshotAt : (data.meta.originalSnapshotAt || data.meta.snapshotAt);
+  openDialog('支援卡详情', `${cardHeading(card)}<h3>技能 · ${ids.length} 项</h3><div class="skill-pills">${ids.map(pill).join('')}</div><p class="event-caveat">卡片编号 ${card.id} · ${card.source === 'bwiki' ? 'BWIKI 增补' : '工具箱归档'} ${snapshot.slice(0,10)}</p>`);
 }
 function showAbout() {
-  openDialog('数据与来源', `<h2>简中服资料，清楚标注来源。</h2><p>本工具根据目标技能反查支援卡，使用<a class="source-link" href="https://game.bilibili.com/tool/pd" target="_blank" rel="noopener noreferrer">吗哩吗哩工具箱简中服资料</a>。</p>${data ? `<div class="dialog-tags"><span>${data.meta.cards} 张支援卡</span><span>${data.meta.skills} 个技能</span><span>${data.meta.snapshotAt.slice(0,10)} 快照</span></div>` : ''}<h3>资料范围</h3><p>当前使用已归档的简中服快照，并非实时全量数据库。新卡与新增技能可能缺失；“没有找到”只表示本快照中未匹配。卡图从原始图片服务加载，失败时显示角色文字占位。</p><h3>检索方式</h3><p>每次选择新技能会替换上一次检索。金技能结果分为可获取金技能与仅可获取下位白技能两组，各自翻页；同时提供两者的卡只在金技能组显示。上下位关系来自 BWIKI 简中技能资料。</p><h3>技能配色</h3><p>图标类型色与普通／传说底色参考 BWIKI 简中技能速查表。选中标记保留技能原色。</p><h3>设计与致谢</h3><p>功能参考 <a href="https://daftuyda.moe/hints?mode=AND&rar=SSR%2CSR%2CR" target="_blank" rel="noopener noreferrer">UmaTools Hint Finder</a>；色彩、几何背景与马蹄装饰沿用 <a href="https://github.com/yyahz/umamusume-seed-searcher-android" target="_blank" rel="noopener noreferrer">种马搜索器 Android 项目</a>。马蹄素材源自赛马娘官方网站，游戏图片与相关素材版权归原权利人所有。本工具为非官方项目。</p>`);
+  openDialog('数据与来源', `<h2>简中服资料，清楚标注来源。</h2><p>本工具根据目标技能反查支援卡，使用<a class="source-link" href="https://game.bilibili.com/tool/pd" target="_blank" rel="noopener noreferrer">吗哩吗哩工具箱简中服归档资料</a>，并按<a class="source-link" href="https://wiki.biligame.com/umamusume/简中协助卡一览" target="_blank" rel="noopener noreferrer">BWIKI 公开简中资料</a>增补新卡。</p>${data ? `<div class="dialog-tags"><span>${data.meta.cards} 张支援卡</span><span>${data.meta.skills} 个技能</span><span>${data.meta.snapshotAt.slice(0,10)} 快照</span></div>` : ''}<h3>资料范围</h3><p>保留工具箱 2026-08-01 归档的 300 张卡，按 BWIKI 2026-10-05 资料增补 20 张卡；排除 42 张标注未来日期或占位日期的卡。当前目录并非实时全量数据库，“没有找到”只表示本快照中未匹配。卡图从原始图片服务加载，失败时显示角色文字占位。</p><h3>检索方式</h3><p>每次选择新技能会替换上一次检索。金技能结果分为可获取金技能与仅可获取下位白技能两组，各自翻页；同时提供两者的卡只在金技能组显示。上下位关系来自 BWIKI 简中技能资料。</p><h3>技能配色</h3><p>图标类型色与普通／传说底色参考 BWIKI 简中技能速查表。选中标记保留技能原色。</p><h3>设计与致谢</h3><p>功能参考 <a href="https://daftuyda.moe/hints?mode=AND&rar=SSR%2CSR%2CR" target="_blank" rel="noopener noreferrer">UmaTools Hint Finder</a>；色彩、几何背景与马蹄装饰沿用 <a href="https://github.com/yyahz/umamusume-seed-searcher-android" target="_blank" rel="noopener noreferrer">种马搜索器 Android 项目</a>。马蹄素材源自赛马娘官方网站，游戏图片与相关素材版权归原权利人所有。本工具为非官方项目。</p>`);
 }
 
 $('#tier-switch').addEventListener('click',event=>{const button=event.target.closest('[data-result-tier]');if(!button)return;resultTier=button.dataset.resultTier;render(false);});

@@ -9,10 +9,11 @@ export const SOURCE_MODULE = "https://wiki.biligame.com/umamusume/index.php?titl
 export function parseTable(source, name) {
   const body = source.match(new RegExp(`p\\.${name}\\s*=\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1];
   if (!body) throw new Error(`Missing BWIKI table: ${name}`);
-  return [...body.matchAll(/\{([^{}]*)\}/g)].map((row) => {
+  return [...body.matchAll(/\{((?:[^"{}]|"(?:\\.|[^"\\])*")*)\}/g)].map((row) => {
     const fields = [...row[1].matchAll(/(\w+)="((?:\\.|[^"\\])*)"/g)];
     if (!fields.length) throw new Error(`Invalid BWIKI row in ${name}`);
-    return Object.fromEntries(fields.map(([, key, value]) => [key, JSON.parse(`"${value}"`)]));
+    return Object.fromEntries(fields.map(([, key, value]) => [key,
+      JSON.parse(`"${value.replace(/[\u0000-\u001f]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)}"`)]));
   });
 }
 

@@ -82,3 +82,11 @@ export function findCardSections(cards, state, groups = []) {
   const lower = ids.length ? findCards(cards,{...state,selected:ids},groups).filter(c=>!directIds.has(c.id)) : [];
   return {target, direct, lower, lowerSkills};
 }
+export function safeImageUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password &&
+      (!parsed.port || parsed.port === '443') &&
+      (parsed.hostname.endsWith('.hdslb.com') || parsed.hostname === 'patchwiki.biligame.com') ? parsed.href : '';
+  } catch { return ''; }
+}
