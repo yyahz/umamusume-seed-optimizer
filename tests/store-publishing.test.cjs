@@ -22,6 +22,22 @@ test('HTTP failures redact raw store responses and do not retry mutations', asyn
   await assert.rejects(api('https://example.test',{method:'POST'}),e=>!e.message.includes('private-data')&&e.message.includes('401'));
   assert.equal(count,1);
 });
+
+test('Chrome diagnostics reveal only the phase and allowlisted OAuth error code', async()=>{
+ for(const error of ['invalid_grant','private-token-value']) {
+  const api=client(async()=>new Response(JSON.stringify({error,error_description:'private-account-and-token',access_token:'private-access-token'}),{status:400}));
+  await assert.rejects(api('https://oauth2.googleapis.com/token',{method:'POST'}),e=>
+   e.message.includes('Chrome OAuth token refresh') && e.message.includes('400') &&
+   e.message.includes('invalid_grant') === (error==='invalid_grant') && !e.message.includes('private-'));
+ }
+});
+test('Chrome authorization diagnosis reads status without changing draft or submitting',async()=>{
+ const requests=[];
+ const api=async url=>{requests.push(url);return reply(url.includes('oauth2')?{access_token:'t'}:{})};
+ assert.match(await chrome({...baseEnv,MODE:'diagnose'},Buffer.from('zip'),api,noWait),/No upload/);
+ assert.equal(requests.length,2);assert.ok(requests[1].endsWith(':fetchStatus'));
+ assert.throws(()=>config({...baseEnv,MODE:'diagnose',STORE:'edge'}),/Invalid store or mode/);
+});
 test('polling succeeds, fails closed on unknown state and has a finite timeout',async()=>{
   let count=0;
   await poll(async()=>({state:++count===2?'done':'wait'}),d=>d.state,'done','wait',noWait);

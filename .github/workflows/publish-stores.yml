@@ -13,9 +13,9 @@ on:
         options: [both, chrome, edge]
         default: both
       mode:
-        description: validate does not contact stores; upload changes drafts; publish submits review
+        description: validate checks files; diagnose reads Chrome authorization only; upload changes drafts; publish submits review
         type: choice
-        options: [validate, upload, publish]
+        options: [validate, diagnose, upload, publish]
         default: validate
   release:
     types: [published]

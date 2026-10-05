@@ -64,6 +64,8 @@ Chrome 扩展 ID 已固定为本项目公开的商店 ID。Edge 所需 Product I
 | 结果 | 下一步 |
 | --- | --- |
 | `validate` 成功 | ZIP 和测试通过，尚未联系商店 |
+| `diagnose` 成功（仅 Chrome） | OAuth 刷新与商品状态读取正常，未上传或提交；手动运行时选择 `store=chrome` |
+| Chrome OAuth token refresh / `invalid_grant` | 刷新授权失效；重新取得刷新令牌并更新 `CWS_REFRESH_TOKEN`，再仅提交 Chrome |
 | Missing GitHub Secrets | 补全该商店的 Secret，无需重新发布 GitHub 版本 |
 | HTTP 401 / 403 | 检查账号归属、授权、密钥有效期和 API 是否启用 |
 | HTTP 409 / 有正在审核的提交 | 先在商店后台处理已有提交，不自动撤销 |
@@ -71,3 +73,5 @@ Chrome 扩展 ID 已固定为本项目公开的商店 ID。Edge 所需 Product I
 | Submission accepted / created | 仅说明进入审核流程，不是审核通过 |
 
 本工作流不新增扩展权限，也不要求用户重装；商店审核通过后的分发仍由浏览器负责。
+
+诊断日志只显示请求阶段和允许的 OAuth 错误码，不输出令牌、账号信息、错误说明或原始响应。

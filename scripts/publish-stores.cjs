@@ -9,7 +9,7 @@ function required(env, names) {
   if (missing.length) throw new Error('Missing GitHub Secrets: ' + missing.join(', '));
 }
 function config(env) {
-  if (!['chrome', 'edge'].includes(env.STORE) || !['upload', 'publish'].includes(env.MODE)) throw new Error('Invalid store or mode.');
+  if (!['chrome', 'edge'].includes(env.STORE) || !['upload', 'publish', 'diagnose'].includes(env.MODE) || (env.MODE === 'diagnose' && env.STORE !== 'chrome')) throw new Error('Invalid store or mode.');
   const names = env.STORE === 'chrome'
     ? ['CWS_PUBLISHER_ID', 'CWS_EXTENSION_ID', 'CWS_CLIENT_ID', 'CWS_CLIENT_SECRET', 'CWS_REFRESH_TOKEN']
     : ['EDGE_PRODUCT_ID', 'EDGE_CLIENT_ID', 'EDGE_API_KEY'];
@@ -24,7 +24,19 @@ function client(fetchImpl = fetch) {
     let response;
     try { response = await fetchImpl(url, { ...options, redirect: 'error', signal: AbortSignal.timeout(90000) }); }
     catch { throw new Error('Store request interrupted; inspect dashboard before retrying.'); }
-    if (!response.ok) throw new Error(`Store API HTTP ${response.status}; inspect dashboard. Raw responses are withheld to protect credentials.`);
+    if (!response.ok) {
+      let stage = 'Store API', safeCode = '';
+      if (url === 'https://oauth2.googleapis.com/token') {
+        stage = 'Chrome OAuth token refresh';
+        try {
+          const error = JSON.parse(await response.text()).error;
+          if (['invalid_grant','invalid_client','unauthorized_client','unsupported_grant_type','invalid_request','access_denied'].includes(error)) safeCode = ` (${error})`;
+        } catch { /* Never log raw responses or descriptions. */ }
+      } else if (url.startsWith(CHROME + '/')) {
+        stage = url.endsWith(':fetchStatus') ? 'Chrome item status' : url.endsWith(':upload') ? 'Chrome package upload' : url.endsWith(':publish') ? 'Chrome review submission' : 'Chrome API';
+      }
+      throw new Error(`${stage} HTTP ${response.status}${safeCode}; inspect dashboard. Raw responses are withheld to protect credentials.`);
+    }
     let data = {};
     const raw = await response.text();
     if (raw) { try { data = JSON.parse(raw); } catch { throw new Error('Invalid store API JSON response.'); } }
@@ -58,6 +70,7 @@ async function chrome(env, zip, api, sleep) {
   const name = `publishers/${env.CWS_PUBLISHER_ID}/items/${env.CWS_EXTENSION_ID}`;
   const statusURL = `${CHROME}/v2/${name}:fetchStatus`;
   const before = (await api(statusURL, { headers })).data;
+  if (env.MODE === 'diagnose') return 'Chrome: OAuth refresh and item status read succeeded. No upload or review submission performed.';
   if (before.takenDown || before.warned) throw new Error('Chrome policy warning requires dashboard review.');
   if (['REJECTED', 'CANCELLED'].includes(before.submittedItemRevisionStatus?.state)) throw new Error('Chrome previous submission requires dashboard review before resubmission.');
   const revisions = [before.publishedItemRevisionStatus, before.submittedItemRevisionStatus];
