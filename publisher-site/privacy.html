@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>隐私政策 · Umamusume Seed Publisher</title>
+<link rel="stylesheet" href="style.css">
+<main>
+  <p class="eyebrow"><a href="index.html">Umamusume Seed Publisher</a></p>
+  <h1>发布工具隐私政策</h1>
+  <p>最后更新：2026 年 10 月 5 日</p>
+  <p>本政策适用于 Umamusume Seed Publisher，即项目维护者用于更新 Chrome 商店扩展的自动发布工具。普通用户安装的浏览器扩展适用<a href="https://github.com/yyahz/umamusume-seed-optimizer/blob/main/PRIVACY.md">独立的扩展隐私政策</a>。</p>
+  <h2>处理的数据及用途</h2>
+  <p>维护者通过 Google 授权 Chrome Web Store 管理权限。工具使用 OAuth 客户端凭证和刷新令牌获取短期访问令牌，并处理发布者 ID、扩展 ID、扩展安装包、上传状态及审核状态。所有处理仅服务于维护者主动配置的扩展发布。</p>
+  <h2>保存与传输</h2>
+  <p>维护者将发布凭证保存在 GitHub Actions Secrets 中，工作流运行时临时使用。OAuth 凭证通过 HTTPS 发送给 Google 官方令牌接口；扩展安装包和发布请求发送给 Chrome Web Store 官方 API。日志只记录必要的运行结果及经过限制的错误代码，不输出令牌、密钥或原始授权响应。</p>
+  <p>发布凭证不包含在扩展安装包、此说明网站或公开源码中。Google 与 GitHub 作为授权、托管和执行服务提供者，按各自政策处理相关数据。该工具不读取浏览器 Cookie，不请求邮件、联系人或网盘访问权限，不出售数据，不用于广告、用户画像或模型训练。</p>
+  <h2>保留与撤销</h2>
+  <p>凭证保留至维护者在 GitHub 中删除或替换相应 Secret。维护者可以在 Google 账号的第三方连接设置中撤销授权，并关闭仓库自动发布配置。工作流日志由 GitHub 按仓库保留设置管理；已公开的扩展版本与发布说明作为项目发布记录保留。</p>
+  <h2>本网站</h2>
+  <p>本网站是 GitHub Pages 托管的静态说明页，不包含登录表单、分析脚本、广告或自设 Cookie。GitHub 可能为提供托管服务处理 IP 地址等正常访问日志，详见<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub 隐私声明</a>。</p>
+  <h2>联系与变更</h2>
+  <p>可通过<a href="https://github.com/yyahz/umamusume-seed-optimizer/issues">项目 Issues</a>联系维护者、报告问题或提出数据处理请求。请勿在公开反馈中填写密钥、令牌、账号凭证或其他个人敏感信息。本政策随工具行为变化更新，并注明更新日期。</p>
+  <footer><a href="index.html">返回工具说明</a></footer>
+</main>
+</html>
