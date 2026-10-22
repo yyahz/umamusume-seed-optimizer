@@ -4,6 +4,17 @@ export const API_URL = 'https://wiki.biligame.com/umamusume/api.php';
 
 // Only public MediaWiki reads. No browser profile, cookies, or executable wiki code.
 export async function readWiki(fields) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await readWikiOnce(fields); }
+    catch (error) {
+      // Retry only transient connection failures, never HTTP/access-control errors.
+      if (attempt === 2 || ![7, 28, 35, 52, 55, 56].includes(error.curlCode)) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+  }
+}
+
+function readWikiOnce(fields) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.platform === 'win32' ? 'curl.exe' : 'curl', ['--fail', '--silent', '--show-error', '--max-time', '60',
       '--data-binary', '@-', API_URL]);
@@ -12,7 +23,7 @@ export async function readWiki(fields) {
     child.stderr.on('data', chunk => errors.push(chunk));
     child.on('error', reject);
     child.on('close', code => {
-      if (code) return reject(new Error(`BWIKI request failed: ${Buffer.concat(errors)}`));
+      if (code) return reject(Object.assign(new Error(`BWIKI request failed: ${Buffer.concat(errors)}`), { curlCode: code }));
       try {
         const result = JSON.parse(Buffer.concat(output).toString('utf8'));
         if (result.error) throw new Error(JSON.stringify(result.error));

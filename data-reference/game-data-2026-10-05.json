@@ -1,0 +1,38 @@
+{
+  "checkedOn": "2026-10-05",
+  "scope": [
+    "seed-search",
+    "skill-finder"
+  ],
+  "goldRelations": 190,
+  "traditionalNames": 1097,
+  "factorIdAliases": 734,
+  "cards": 320,
+  "skills": 335,
+  "cardsChanged": false,
+  "skillsChanged": false,
+  "futureCardsExcluded": 42,
+  "moduleRevisions": [
+    {
+      "title": "模块:技能简中数据库内容",
+      "revision": 145758,
+      "timestamp": "2026-09-06T07:51:33Z"
+    },
+    {
+      "title": "模块:简中支援卡效果数据库内容",
+      "revision": 145761,
+      "timestamp": "2026-09-06T07:53:15Z"
+    },
+    {
+      "title": "模块:简中数据库内容",
+      "revision": 145762,
+      "timestamp": "2026-09-06T07:53:18Z"
+    }
+  ],
+  "validation": {
+    "testsPassed": 138,
+    "testsFailed": 0,
+    "authenticatedLiveSearch": "not performed"
+  },
+  "published": false
+}

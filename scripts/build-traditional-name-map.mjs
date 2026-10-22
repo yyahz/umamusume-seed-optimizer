@@ -3,6 +3,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { parseTable, SOURCE_MODULE } from "./build-gold-skill-map.mjs";
+import { readWiki } from './bwiki-source.mjs';
 
 const SOURCE_URLS = Object.freeze({
   factors: "https://wiki.biligame.com/umamusume/因子一览",
@@ -27,11 +28,17 @@ function decodeHtml(value) {
     .trim();
 }
 
-const responses = await Promise.all(Object.values(SOURCE_URLS).map((url) => fetch(url)));
-for (const response of responses) {
-  if (!response.ok) throw new Error(`BWIKI request failed: ${response.status} ${response.url}`);
+const moduleResponse = await readWiki({ action: 'query', prop: 'revisions', rvprop: 'content',
+  rvslots: 'main', titles: '模块:翻译数据库|模块:技能简中数据库内容' });
+const modules = new Map(Object.values(moduleResponse.query?.pages || {}).map(page =>
+  [page.title, page.revisions?.[0]?.slots?.main?.['*']]));
+const translationModule = modules.get('模块:翻译数据库');
+const skillModule = modules.get('模块:技能简中数据库内容');
+const factorHtml = (await readWiki({ action: 'parse', page: '因子一览', prop: 'text' })).parse?.text?.['*'];
+const translationHtml = (await readWiki({ action: 'parse', page: '中日文对比表', prop: 'text' })).parse?.text?.['*'];
+if (![factorHtml, translationHtml, translationModule, skillModule].every(value => typeof value === 'string' && value.length)) {
+  throw new Error('Incomplete BWIKI translation sources');
 }
-const [factorHtml, translationHtml, translationModule, skillModule] = await Promise.all(responses.map((response) => response.text()));
 const candidates = new Map();
 
 function addCandidate(id, traditional, simplified) {

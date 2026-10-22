@@ -12,7 +12,8 @@ const liveCatalog = [
 ];
 
 test("ships a substantial verified BWIKI gold-to-white mapping snapshot", () => {
-  assert.equal(goldSkillMap.SOURCE_SNAPSHOT, "2026-09-08");
+  assert.match(goldSkillMap.SOURCE_SNAPSHOT, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(goldSkillMap.SOURCE_SNAPSHOT >= "2026-10-05");
   assert.ok(goldSkillMap.GOLD_TO_WHITE.length >= 170);
   assert.ok(goldSkillMap.GOLD_TO_WHITE.some((item) =>
     item.gold === "圆弧艺术家" && item.white === "弯道恢复○"

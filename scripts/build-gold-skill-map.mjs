@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { readWiki } from './bwiki-source.mjs';
 
 export const SOURCE_MODULE = "https://wiki.biligame.com/umamusume/index.php?title="
   + encodeURIComponent("模块:技能简中数据库内容") + "&action=raw";
@@ -43,9 +44,11 @@ export function buildMappings(source) {
 }
 
 async function main() {
-  const response = await fetch(SOURCE_MODULE, { signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(`BWIKI request failed: ${response.status}`);
-  const mappings = buildMappings(await response.text());
+  const response = await readWiki({ action: 'query', prop: 'revisions', rvprop: 'content',
+    rvslots: 'main', titles: '模块:技能简中数据库内容' });
+  const source = Object.values(response.query?.pages || {})[0]?.revisions?.[0]?.slots?.main?.['*'];
+  if (!source) throw new Error('Missing BWIKI simplified skill module');
+  const mappings = buildMappings(source);
   if (mappings.length < 170) throw new Error(`Unexpected mapping count: ${mappings.length}`);
   const output = new URL("../gold-skill-map.js", import.meta.url);
   const oldSource = await fs.readFile(output, "utf8");

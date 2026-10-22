@@ -1,0 +1,105 @@
+{
+  "checkedOn": "2026-10-22",
+  "version": "0.19.2",
+  "scope": [
+    "seed-search",
+    "skill-finder"
+  ],
+  "goldRelations": 190,
+  "traditionalNames": 1097,
+  "factorIdAliases": 734,
+  "seedMappingsChanged": false,
+  "toolboxWhiteSkillFactors": 282,
+  "cards": 325,
+  "skills": 345,
+  "addedCards": [
+    {
+      "id": 20069,
+      "name": "[恶蛛退散？！]待兼唐怀瑟"
+    },
+    {
+      "id": 30169,
+      "name": "[上天馈赠的微笑]鹤丸强志"
+    },
+    {
+      "id": 30170,
+      "name": "[我的舞蹈轮回不息]帝王光辉"
+    },
+    {
+      "id": 30171,
+      "name": "[啊啊，好开心，好开心啊！]春乌菈菈"
+    },
+    {
+      "id": 30172,
+      "name": "[打飞出去吧——？！]目白麦昆"
+    }
+  ],
+  "addedSkills": [
+    {
+      "id": 202642,
+      "name": "始于足下"
+    },
+    {
+      "id": 201103,
+      "name": "瞬息万变"
+    },
+    {
+      "id": 201101,
+      "name": "中距离直线◎"
+    },
+    {
+      "id": 202542,
+      "name": "压力"
+    },
+    {
+      "id": 202752,
+      "name": "一心向前"
+    },
+    {
+      "id": 202541,
+      "name": "威风堂堂"
+    },
+    {
+      "id": 202751,
+      "name": "傲骨嶙嶙"
+    },
+    {
+      "id": 202762,
+      "name": "迈向胜利"
+    },
+    {
+      "id": 202772,
+      "name": "锁定目标"
+    },
+    {
+      "id": 202761,
+      "name": "打飞它吧！"
+    }
+  ],
+  "futureCardsExcluded": 37,
+  "moduleRevisions": [
+    {
+      "title": "模块:技能简中数据库内容",
+      "revision": 145758,
+      "timestamp": "2026-09-06T07:51:33Z"
+    },
+    {
+      "title": "模块:简中支援卡效果数据库内容",
+      "revision": 145761,
+      "timestamp": "2026-09-06T07:53:15Z"
+    },
+    {
+      "title": "模块:简中数据库内容",
+      "revision": 145762,
+      "timestamp": "2026-09-06T07:53:18Z"
+    }
+  ],
+  "validation": {
+    "testsPassed": 140,
+    "testsFailed": 0,
+    "authenticatedLiveSearch": "not performed",
+    "localSeedSearch": "passed with mock candidates",
+    "localSkillSearch": "passed: 打飞它吧！ -> 30172; 瞬息万变 -> 30169; 40 lower-only cards"
+  },
+  "published": false
+}

@@ -4,7 +4,8 @@ const traditionalNameMap = require("../traditional-name-map.js");
 
 test("ships a substantial BWIKI Traditional-to-Simplified factor and gold-skill snapshot", () => {
   assert.ok(traditionalNameMap.TRADITIONAL_TO_SIMPLIFIED.length >= 500);
-  assert.equal(traditionalNameMap.SOURCE_SNAPSHOT, "2026-09-08");
+  assert.match(traditionalNameMap.SOURCE_SNAPSHOT, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(traditionalNameMap.SOURCE_SNAPSHOT >= "2026-10-05");
   assert.match(traditionalNameMap.SOURCE_URLS.factors, /因子一览/);
   assert.match(traditionalNameMap.SOURCE_URLS.translations, /中日文对比表/);
   assert.ok(traditionalNameMap.TRADITIONAL_TO_SIMPLIFIED.some((item) =>

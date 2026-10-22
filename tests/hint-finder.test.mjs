@@ -37,14 +37,46 @@ test('pagination clamps after filtering and never overlaps pages',()=>{
 });
 
 test('BWIKI supplement preserves verified archive cards and excludes forecast cards',()=>{
- assert.equal(data.cards.length,320);assert.equal(data.skills.length,335);
+ assert.equal(data.cards.length,325);assert.equal(data.skills.length,345);
  const original=data.cards.filter(card=>card.source!=='bwiki').sort((a,b)=>a.id-b.id);
  assert.equal(original.length,300);
  assert.equal(createHash('sha256').update(JSON.stringify(original)).digest('hex'),'577e82ddce03aa97949f7b13f5b26f86650dd870811c73e78adad5ff9598c189');
- assert.equal(data.cards.filter(card=>card.source==='bwiki').length,20);
+ assert.equal(data.cards.filter(card=>card.source==='bwiki').length,25);
+ assert.equal(data.meta.availableThrough,'2026-10-22');
  assert.ok(!data.cards.some(card=>[30187,30188,30189,30190].includes(card.id)));
  const ids=new Set(data.skills.map(skill=>skill.id));
  assert.ok(data.cards.every(card=>[...card.training,...card.event].every(id=>ids.has(id))));
+});
+
+test('October releases are searchable with complete skill colors and lower gold relationships',()=>{
+ for(const id of [20069,30169,30170,30171,30172]) {
+  const card=data.cards.find(card=>card.id===id);
+  assert.ok(card,`Missing released card: ${id}`);
+  assert.equal(card.source,'bwiki');
+  assert.ok(Date.parse(card.availableAt)<=Date.parse('2026-10-22T23:59:59+08:00'));
+  for(const skillId of [...card.training,...card.event]) {
+   const skill=data.skills.find(skill=>skill.id===skillId);
+   assert.ok(skill,`Missing skill: ${skillId}`);
+   assert.ok(['green','blue','yellow','red','purple'].includes(skill.color));
+   assert.ok(safeImageUrl(skill.icon),`Missing skill icon: ${skill.name}`);
+  }
+ }
+ const target=groups.find(skill=>skill.name==='打飞它吧！');
+ assert.ok(target);
+ const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
+ assert.deepEqual(sections.direct.map(card=>card.id),[30172]);
+ assert.deepEqual(sections.lowerSkills.map(skill=>skill.name),['迈向胜利']);
+ assert.ok(sections.lower.every(card=>card.id!==30172));
+});
+
+test('new mid-distance gold skill keeps existing white-only support results',()=>{
+ const target=groups.find(skill=>skill.name==='瞬息万变');
+ assert.ok(target);
+ const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
+ assert.deepEqual(sections.direct.map(card=>card.id),[30169]);
+ assert.ok(sections.lower.length>0);
+ assert.ok(sections.lowerSkills.every(skill=>familyName(skill.name)==='中距离直线'));
+ assert.ok(sections.lower.every(card=>card.id!==30169));
 });
 test('new gold hint resolves to its new card and separates lower white hints',()=>{
  const target=groups.find(skill=>skill.name==='迫近的暗影');
