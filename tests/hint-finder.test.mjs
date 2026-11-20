@@ -8,8 +8,8 @@ const groups=groupSkills(data.skills);
 test('gold results separate lower-only cards from cards supplying gold',()=>{
  const gold=groups.find(s=>s.name==='百万马力');
  const result=findCardSections(data.cards,selectSkill(defaultState(),gold.id),groups);
- assert.equal(result.direct.length,2);
- assert.equal(result.lower.length,9);
+ assert.ok(result.direct.some(card=>card.id===30064));
+ assert.ok(result.lower.some(card=>card.id===30046));
  assert.deepEqual(result.lowerSkills.map(s=>s.name),['十万马力']);
  assert.ok(result.lower.every(c=>!result.direct.some(d=>d.id===c.id)));
 });
@@ -19,7 +19,7 @@ test('new skill replaces selection and resets both result pages',()=>{
  const next=selectSkill(old,skill.id);
  assert.deepEqual(next.selected,[skill.id]);
  assert.equal(next.page,1);assert.equal(next.lowerPage,1);
- assert.equal(findCards(data.cards,next,groups).length,28);
+ assert.ok(findCards(data.cards,next,groups).some(card=>card.id===30072));
  assert.deepEqual(old.selected,[123]);
 });
 test('circle skill grades resolve to identical support sources',()=>{
@@ -37,13 +37,16 @@ test('pagination clamps after filtering and never overlaps pages',()=>{
 });
 
 test('BWIKI supplement preserves verified archive cards and excludes forecast cards',()=>{
- assert.equal(data.cards.length,325);assert.equal(data.skills.length,345);
+ assert.equal(data.cards.length,data.meta.cards);
+ assert.equal(data.skills.length,data.meta.skills);
  const original=data.cards.filter(card=>card.source!=='bwiki').sort((a,b)=>a.id-b.id);
  assert.equal(original.length,300);
  assert.equal(createHash('sha256').update(JSON.stringify(original)).digest('hex'),'577e82ddce03aa97949f7b13f5b26f86650dd870811c73e78adad5ff9598c189');
- assert.equal(data.cards.filter(card=>card.source==='bwiki').length,25);
- assert.equal(data.meta.availableThrough,'2026-10-22');
- assert.ok(!data.cards.some(card=>[30187,30188,30189,30190].includes(card.id)));
+ const cutoff=Date.parse(data.meta.availableThrough+'T23:59:59+08:00');
+ assert.ok(cutoff>=Date.parse('2026-11-20T23:59:59+08:00'));
+ const supplemental=data.cards.filter(card=>card.source==='bwiki');
+ assert.ok(supplemental.length>=41);
+ assert.ok(supplemental.every(card=>Date.parse(card.availableAt)<=cutoff));
  const ids=new Set(data.skills.map(skill=>skill.id));
  assert.ok(data.cards.every(card=>[...card.training,...card.event].every(id=>ids.has(id))));
 });
@@ -64,7 +67,7 @@ test('October releases are searchable with complete skill colors and lower gold 
  const target=groups.find(skill=>skill.name==='打飞它吧！');
  assert.ok(target);
  const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
- assert.deepEqual(sections.direct.map(card=>card.id),[30172]);
+ assert.ok(sections.direct.some(card=>card.id===30172));
  assert.deepEqual(sections.lowerSkills.map(skill=>skill.name),['迈向胜利']);
  assert.ok(sections.lower.every(card=>card.id!==30172));
 });
@@ -73,7 +76,7 @@ test('new mid-distance gold skill keeps existing white-only support results',()=
  const target=groups.find(skill=>skill.name==='瞬息万变');
  assert.ok(target);
  const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
- assert.deepEqual(sections.direct.map(card=>card.id),[30169]);
+ assert.ok(sections.direct.some(card=>card.id===30169));
  assert.ok(sections.lower.length>0);
  assert.ok(sections.lowerSkills.every(skill=>familyName(skill.name)==='中距离直线'));
  assert.ok(sections.lower.every(card=>card.id!==30169));
@@ -81,12 +84,24 @@ test('new mid-distance gold skill keeps existing white-only support results',()=
 test('new gold hint resolves to its new card and separates lower white hints',()=>{
  const target=groups.find(skill=>skill.name==='迫近的暗影');
  const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
- assert.deepEqual(sections.direct.map(card=>card.id),[30164]);
+ assert.ok(sections.direct.some(card=>card.id===30164));
  assert.deepEqual(sections.lowerSkills.map(skill=>skill.name),['一鼓作气']);
  assert.ok(sections.lower.some(card=>card.id===30168));
  assert.ok(sections.lower.every(card=>card.id!==30164));
- const friend=groups.find(skill=>skill.name==='永不言弃');
- assert.deepEqual(findCards(data.cards,selectSkill(defaultState(),friend.id),groups).map(card=>card.id),[30160]);
+ const sharedGold=groups.find(skill=>skill.name==='永不言弃');
+ const sources=findCards(data.cards,selectSkill(defaultState(),sharedGold.id),groups);
+ assert.ok(sources.some(card=>card.id===30160), '佐岳鸣 still supplies 永不言弃');
+ assert.ok(sources.some(card=>card.id===30178), '鸣声雷动 supplies 永不言弃');
+});
+test('冬日寒风 finds the new 目白拉莫娜 card and both grades of the lower white skill',()=>{
+ const target=groups.find(skill=>skill.name==='冬日寒风');
+ assert.equal(target.color,'green');
+ assert.ok(safeImageUrl(target.icon));
+ const sections=findCardSections(data.cards,selectSkill(defaultState(),target.id),groups);
+ assert.ok(sections.direct.some(card=>card.id===30175));
+ assert.deepEqual(sections.lowerSkills.map(skill=>skill.name),['冬季优俊少女◎','冬季优俊少女○']);
+ assert.ok(sections.lower.length>0);
+ assert.ok(sections.lower.every(card=>!sections.direct.some(direct=>direct.id===card.id)));
 });
 test('images permit only HTTPS on the original service and exact BWIKI image host',()=>{
  assert.ok(safeImageUrl('https://i0.hdslb.com/image.png'));

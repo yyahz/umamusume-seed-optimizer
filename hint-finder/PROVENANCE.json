@@ -2,16 +2,16 @@
   "source": "hint-finder/dist",
   "revision": "f3496c3919e973a8d7f5a4f253e33b3b14ca9b06",
   "adaptation": "Relative packaged URLs, desktop.css, embedded.js; desktop extension tab integration",
-  "dataSnapshot": "2026-10-22T14:12:17.697Z",
+  "dataSnapshot": "2026-11-20T01:24:02.015Z",
   "integrationSource": "yyahz/umamusume-seed-searcher-android v0.1.52",
   "dataRefresh": {
-    "asOf": "2026-10-22",
+    "asOf": "2026-11-20",
     "originalCards": 300,
     "originalSnapshot": "2026-08-01T21:03:26+08:00",
     "supplementalSource": "https://wiki.biligame.com/umamusume/简中协助卡一览",
-    "supplementalCards": 25,
-    "skills": 345,
-    "futureCardsExcluded": 37,
-    "contentHash": "112dc013e55e3912dfc10f2995913dea28e331231a0fa51a322cd4c434bd4290"
+    "supplementalCards": 41,
+    "skills": 351,
+    "futureCardsExcluded": 21,
+    "contentHash": "cb2d8ccea1a115233d2165c01a3067797e3f7e6404ae4a9a70e6f1c23eeaf5b3"
   }
 }

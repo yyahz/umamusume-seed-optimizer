@@ -11,6 +11,15 @@ test('BWIKI loader supports legacy trailing commas and the complete batch format
   assert.deepEqual(parseSkillRows(`<div id="jn-json">[${JSON.stringify(row)}, ]</div>`),[row]);
   assert.equal(parseSkillRows(part(0,[row])+part(1,[row])+part(2,[row]),3).length,3);
 });
+test('BWIKI loader keeps literal line breaks and existing JSON escapes in skill fields', () => {
+  const skill = { ...row, '8': '第一行\r\n第二行"引号"\\续行\n原有转义\n最后一行' };
+  const html = part(0, [skill])
+    .replace('>[', '>[\n')
+    .replace('第一行\\r\\n', '第一行\r\n')
+    .replace('\\n最后一行', '\n最后一行');
+  assert.deepEqual(parseSkillRows(html, 1), [skill]);
+  assert.throws(() => parseSkillRows(html.replace('"20011"', 'invalid'), 1), SyntaxError);
+});
 test('BWIKI loader refuses missing, duplicate, unexpanded, or incomplete batches',()=>{
   assert.throws(()=>parseSkillRows(part(0,[row])+part(2,[row])),/batch/);
   assert.throws(()=>parseSkillRows(part(0,[row])+part(0,[row])),/batch/);

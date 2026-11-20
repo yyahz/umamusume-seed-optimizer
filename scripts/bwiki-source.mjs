@@ -41,13 +41,35 @@ export function decodeText(text) {
 }
 export const plainText = text => decodeText(text.replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]+>/g, '')).trim();
 
+// Expanded BWIKI templates can emit literal line breaks inside JSON strings.
+function escapeJsonStringLineBreaks(text) {
+  let insideString = false;
+  let escaped = false;
+  let result = '';
+  for (const char of text) {
+    if (escaped) {
+      escaped = false;
+    } else if (char === '"') {
+      insideString = !insideString;
+    } else if (insideString && char === '\\') {
+      escaped = true;
+    } else if (insideString && (char === '\r' || char === '\n')) {
+      result += char === '\r' ? '\\r' : '\\n';
+      continue;
+    }
+    result += char;
+  }
+  return result;
+}
+
 export function parseSkillRows(html, expectedTotal) {
   const parts = [...html.matchAll(/<div\b([^>]*(?:id="jn-json"|class="jn-json-part")[^>]*)>([\s\S]*?)<\/div>/g)];
   if (!parts.length) throw new Error('Missing BWIKI skill JSON');
   const batchIds = parts.map(([ , attrs]) => Number(attrs.match(/data-batch="(\d+)"/)?.[1] ?? 0));
   if (new Set(batchIds).size !== parts.length || batchIds.some((id, i) => id !== i)) throw new Error('Missing or duplicate BWIKI skill batch');
   const rows = parts.flatMap(([, , text]) => {
-    const parsed = JSON.parse(text.trim().replace(/,\s*\]$/, ']'));
+    const json = text.trim().replace(/,\s*\]$/, ']');
+    const parsed = JSON.parse(escapeJsonStringLineBreaks(json));
     if (!Array.isArray(parsed) || parsed.some(row => !row['3'] || !row['17'] || !row['7'])) throw new Error('Invalid BWIKI skill row');
     return parsed;
   });
